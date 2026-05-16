@@ -1,0 +1,13 @@
+node_modules/
+.codex-screens/
+.brain/
+.claude/
+.playwright-mcp/
+.vscode/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
