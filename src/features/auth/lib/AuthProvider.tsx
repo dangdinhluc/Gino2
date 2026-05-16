@@ -19,9 +19,12 @@ interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
   isSupabaseConfigured: boolean;
   isLocalSupabase: boolean;
+  isDemo: boolean;
   signIn: (email: string, password: string) => Promise<AuthActionResult>;
   signOut: () => Promise<AuthActionResult>;
   refreshSession: () => Promise<void>;
+  enterDemoMode: () => void;
+  exitDemoMode: () => void;
 }
 
 const initialState: AuthState = {
@@ -35,6 +38,29 @@ const initialState: AuthState = {
 const AUTH_ERROR_MESSAGE = 'Không thể xác thực phiên đăng nhập. Vui lòng thử lại.';
 const SIGN_IN_ERROR_MESSAGE = 'Email hoặc mật khẩu không đúng.';
 const AUTH_REQUEST_TIMEOUT_MS = 3500;
+const DEMO_STORAGE_KEY = 'tokutei.demoMode';
+
+function readPersistedDemoMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(DEMO_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writePersistedDemoMode(isDemo: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (isDemo) {
+      window.localStorage.setItem(DEMO_STORAGE_KEY, '1');
+    } else {
+      window.localStorage.removeItem(DEMO_STORAGE_KEY);
+    }
+  } catch {
+    // ignore storage errors (private mode, quota, etc.)
+  }
+}
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -107,6 +133,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const sessionRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const [state, setState] = useState<AuthState>(() => ({ ...initialState, isLoading: supabaseConfig.isConfigured }));
+  const [isDemo, setIsDemo] = useState<boolean>(() => readPersistedDemoMode());
+
+  const enterDemoMode = useCallback(() => {
+    setIsDemo(true);
+    writePersistedDemoMode(true);
+  }, []);
+
+  const exitDemoMode = useCallback(() => {
+    setIsDemo(false);
+    writePersistedDemoMode(false);
+  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -278,11 +315,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isAuthenticated: Boolean(state.session),
       isSupabaseConfigured: supabaseConfig.isConfigured,
       isLocalSupabase: supabaseConfig.isLocal,
+      isDemo,
       signIn,
       signOut,
       refreshSession,
+      enterDemoMode,
+      exitDemoMode,
     }),
-    [refreshSession, signIn, signOut, state],
+    [enterDemoMode, exitDemoMode, isDemo, refreshSession, signIn, signOut, state],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

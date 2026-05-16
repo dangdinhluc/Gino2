@@ -11,9 +11,22 @@ export interface AuthRouteDecisionInput {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isSupabaseConfigured: boolean;
+  isDemo?: boolean;
 }
 
-export function decideAuthRouteAccess({ area, isAuthenticated, isAdmin, isSupabaseConfigured }: AuthRouteDecisionInput): AuthRouteDecision {
+export function decideAuthRouteAccess({
+  area,
+  isAuthenticated,
+  isAdmin,
+  isSupabaseConfigured,
+  isDemo,
+}: AuthRouteDecisionInput): AuthRouteDecision {
+  // Demo mode bypasses Supabase for the learner area so reviewers / users
+  // without local Supabase can fully browse the app shell.
+  if (isDemo && area === 'learner') {
+    return { status: 'allowed' };
+  }
+
   if (!isSupabaseConfigured) {
     return { status: 'setup-required', reason: 'missing-supabase-config' };
   }
