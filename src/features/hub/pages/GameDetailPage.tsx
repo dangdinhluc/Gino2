@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, CheckCircle2, Flame, Gamepad2, RotateCcw, Trophy, XCircle } from 'lucide-react';
 import { gameShells, type GameShell } from '@/src/data/phaseOneMock';
 import { cn } from '@/src/lib/utils';
+import AisatsuReflexGame from '../games/AisatsuReflexGame';
+import ProfileBuilderGame from '../games/ProfileBuilderGame';
+import MemoryMatchGame from '../games/MemoryMatchGame';
 
 function formatGameTitle(gameId: string | undefined): string {
   if (!gameId) {
@@ -34,6 +37,15 @@ function createFallbackGame(gameId: string | undefined): GameShell {
 
 export default function GameDetail() {
   const { gameId } = useParams();
+
+  if (gameId === 'aisatsu-reflex') return <AisatsuReflexGame />;
+  if (gameId === 'profile-builder') return <ProfileBuilderGame />;
+  if (gameId === 'tokutei-match') return <MemoryMatchGame />;
+
+  return <QuizShellGame gameId={gameId} />;
+}
+
+function QuizShellGame({ gameId }: { gameId: string | undefined }) {
   const game = useMemo(() => gameShells.find((item) => item.id === gameId) ?? createFallbackGame(gameId), [gameId]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
