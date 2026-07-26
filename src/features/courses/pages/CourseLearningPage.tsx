@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
 import { DocumentsPanel, ExamsPanel, GamesPanel, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { ArrowLeft, Brain, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Home, Layers, Lightbulb, MessageSquareQuote, RotateCcw, Search, Sparkles, Volume2, X, Zap } from 'lucide-react';
@@ -719,6 +719,7 @@ interface VocabularyFlashcardsProps {
 }
 
 function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabularyDetail }: VocabularyFlashcardsProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
 
@@ -763,34 +764,41 @@ function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabul
 
       <button
         onClick={() => setIsRevealed((current) => !current)}
-        aria-expanded={isRevealed}
-        className={cn(
-          'flex min-h-[15rem] w-full flex-col justify-center gap-3 rounded-[1.75rem] border border-[#e6ddd1] bg-white px-5 py-6 text-center transition-colors hover:border-orange-200',
-          focusRing
-        )}
+        aria-live="polite"
+        aria-label={isRevealed ? `Nghĩa: ${card.meaning}. Chạm để lật lại mặt từ.` : `Từ ${card.word}. Chạm để lật xem nghĩa.`}
+        className={cn('block w-full rounded-[1.75rem] [perspective:1200px]', focusRing)}
       >
-        {isRevealed ? (
-          <>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Nghĩa</p>
-            <p className="text-2xl font-black leading-tight text-[#172033]">{card.meaning}</p>
-            <div className="mt-1 rounded-2xl bg-[#fdf6ee] px-4 py-3 text-left">
-              <p className="text-sm font-black leading-snug text-[#172033]">{card.example.jp}</p>
-              <p className="mt-1 text-xs font-semibold leading-snug text-[#5f6b7c]">{card.example.vi}</p>
-            </div>
-            {card.mnemonic && (
-              <p className="text-xs font-semibold leading-snug text-[#5f6b7c]">
-                <Lightbulb size={13} className="mr-1 inline text-orange-600" aria-hidden="true" focusable="false" />
-                {card.mnemonic}
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <p className="text-3xl font-black italic leading-tight text-[#172033]">{getVocabularyDisplayName(card)}</p>
-            <p className="text-sm font-black text-orange-700">/{card.pronunciation}/</p>
-            <p className="mt-2 text-xs font-bold uppercase tracking-[0.14em] text-[#95a0af]">Chạm để xem nghĩa</p>
-          </>
-        )}
+        <motion.span
+          className="relative block min-h-[13rem] w-full [transform-style:preserve-3d]"
+          animate={{ rotateY: isRevealed ? 180 : 0 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Mặt trước: chỉ có từ, không lộ nghĩa — người học phải tự đoán trước khi lật. */}
+          <span
+            aria-hidden={isRevealed}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border border-[#e6ddd1] bg-white px-5 py-6 text-center [backface-visibility:hidden]"
+          >
+            <span className="text-3xl font-black italic leading-tight text-[#172033]">{getVocabularyDisplayName(card)}</span>
+            <span className="text-sm font-black text-orange-700">/{card.pronunciation}/</span>
+            <span className="mt-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#95a0af]">
+              <RotateCcw size={13} aria-hidden="true" focusable="false" />
+              Chạm để lật
+            </span>
+          </span>
+
+          {/* Mặt sau: chỉ có nghĩa. Ví dụ và mẹo nhớ nằm ở nút chi tiết bên dưới. */}
+          <span
+            aria-hidden={!isRevealed}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border border-orange-200 bg-[#fffaf3] px-5 py-6 text-center [backface-visibility:hidden] [transform:rotateY(180deg)]"
+          >
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Nghĩa</span>
+            <span className="text-2xl font-black leading-tight text-[#172033]">{card.meaning}</span>
+            <span className="mt-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#95a0af]">
+              <RotateCcw size={13} aria-hidden="true" focusable="false" />
+              Chạm để lật lại
+            </span>
+          </span>
+        </motion.span>
       </button>
 
       <div className="flex items-center gap-2">
