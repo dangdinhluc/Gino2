@@ -366,7 +366,7 @@ function VocabularySection({ items, onSelect }: { items: AdminVocabularyItem[]; 
       <MobileEntityList
         items={items}
         getKey={(item) => item.id}
-        getTitle={(item) => `${item.article} ${item.term}`}
+        getTitle={(item) => item.term}
         getSubtitle={(item) => `${item.translation} · ${item.topic}`}
         getMeta={(item) => (
           <div className="flex flex-wrap items-center gap-2">
@@ -394,7 +394,7 @@ function VocabularySection({ items, onSelect }: { items: AdminVocabularyItem[]; 
               <tr key={item.id} className="transition hover:bg-[#F8F2EA]">
                 <td className="px-4 py-4">
                   <button type="button" onClick={() => onSelect({ type: 'vocabulary', item })} className="text-left">
-                    <span className="block font-black text-[#172033]">{item.article} {item.term}</span>
+                    <span className="block font-black text-[#172033]">{item.term}</span>
                     <span className="text-xs font-semibold text-[#5F6B7C]">{item.level} · {item.topic}</span>
                   </button>
                 </td>
@@ -516,7 +516,7 @@ function ReportsSection({ onSelect }: { onSelect: (entity: DetailEntity) => void
         {vocabularyIssues.map((item) => (
           <button key={item.id} type="button" onClick={() => onSelect({ type: 'vocabulary', item })} className="w-full rounded-2xl bg-white p-4 text-left">
             <StatusBadge value={item.reviewStatus} />
-            <p className="mt-3 font-black text-[#172033]">{item.article} {item.term}</p>
+            <p className="mt-3 font-black text-[#172033]">{item.term}</p>
             <p className="mt-1 text-sm leading-6 text-[#5F6B7C]">{item.commonMistake}</p>
           </button>
         ))}

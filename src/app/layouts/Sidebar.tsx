@@ -15,8 +15,12 @@ import {
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useReviewStore } from '@/src/features/review/store/reviewStore';
+import { useProgressStore } from '@/src/features/courses/store/progressStore';
+import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
+import { startOfDay, xpForRating } from '@/src/features/review/lib/srs';
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -85,10 +89,24 @@ export function Sidebar() {
     },
   } as const;
 
-  const menuItems = [
-    { icon: Home, label: 'Trang chủ', path: '/app/dashboard', badge: '4', tone: 'orange' },
+  const reviewStates = useReviewStore((state) => state.states);
+  const reviewLog = useReviewStore((state) => state.log);
+  const totalReviewXp = useReviewStore((state) => state.totalReviewXp);
+  const streak = useProgressStore((state) => state.streak);
+  const weeklyXp = useProgressStore((state) => state.weeklyXp);
+
+  const dueCount = useMemo(() => collectDueCards(reviewStates, Date.now()).length, [reviewStates]);
+  const xpToday = useMemo(() => {
+    const dayStart = startOfDay(Date.now());
+    return reviewLog.filter((entry) => entry.at >= dayStart).reduce((sum, entry) => sum + xpForRating(entry.rating), 0);
+  }, [reviewLog]);
+  const totalXp = totalReviewXp + weeklyXp;
+  const level = Math.floor(totalXp / 300) + 1;
+
+  const menuItems: { icon: typeof Home; label: string; path: string; tone: string; badge?: string }[] = [
+    { icon: Home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
     { icon: Layout, label: 'Khóa học', path: '/app/courses', tone: 'sky' },
-    { icon: RotateCcw, label: 'Ôn tập', path: '/app/review', tone: 'emerald' },
+    { icon: RotateCcw, label: 'Ôn tập', path: '/app/review', badge: dueCount > 0 ? String(dueCount) : undefined, tone: 'emerald' },
     { icon: GraduationCap, label: 'Luyện thi', path: '/app/exams', tone: 'amber' },
     { icon: Bookmark, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
     { icon: BarChart3, label: 'Thống kê', path: '/app/stats', tone: 'blue' },
@@ -136,7 +154,7 @@ export function Sidebar() {
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-50 blur-md" />
               <div className="relative flex h-full w-full items-center justify-center rounded-full bg-white shadow-lg">
                 <img
-                  src="/mascot.png"
+                  src={`${import.meta.env.BASE_URL}mascot.png`}
                   alt="Mascot"
                   className="h-full w-full object-contain p-1"
                   onError={(e) => {
@@ -350,7 +368,7 @@ export function Sidebar() {
                   <div className="text-sm font-black uppercase text-gray-800">Anh</div>
                   <div className="mt-0.5 flex items-center gap-2 text-[10px] font-bold text-gray-400">
                     <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">Tokutei Track</span>
-                    <span>Lv.1</span>
+                    <span>Lv.{level}</span>
                   </div>
                 </div>
               )}
@@ -388,7 +406,7 @@ export function Sidebar() {
                     <div className="text-sm font-black uppercase text-gray-900">Anh</div>
                     <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
                       <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">Tokutei Track</span>
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-500">Lv.1</span>
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-500">Lv.{level}</span>
                     </div>
                   </div>
                 </div>
@@ -396,15 +414,15 @@ export function Sidebar() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-2xl border border-[#e6ddd1] bg-[#f8f1e6] px-3 py-3 text-center">
                     <div className="text-[9px] font-bold uppercase tracking-wide text-gray-400">XP</div>
-                    <div className="mt-1 text-sm font-black text-gray-900">0/300</div>
+                    <div className="mt-1 text-sm font-black text-gray-900">{totalXp % 300}/300</div>
                   </div>
                   <div className="rounded-2xl border border-[#e6ddd1] bg-[#fffaf3] px-3 py-3 text-center">
                     <div className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Streak</div>
-                    <div className="mt-1 text-sm font-black text-orange-500">0d</div>
+                    <div className="mt-1 text-sm font-black text-orange-500">{streak}d</div>
                   </div>
                   <div className="rounded-2xl border border-[#dbe5f4] bg-blue-50/45 px-3 py-3 text-center">
                     <div className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Hôm nay</div>
-                    <div className="mt-1 text-sm font-black text-blue-500">0/50</div>
+                    <div className="mt-1 text-sm font-black text-blue-500">{xpToday}/60</div>
                   </div>
                 </div>
 

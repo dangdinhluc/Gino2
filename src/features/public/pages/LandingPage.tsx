@@ -228,7 +228,7 @@ export default function Landing() {
                 {/* mascot mini */}
                 <div className="pointer-events-none absolute -bottom-6 right-4 hidden lg:block">
                   <motion.img
-                    src="/mascot.png"
+                    src={`${import.meta.env.BASE_URL}mascot.png`}
                     alt=""
                     aria-hidden
                     className="h-32 w-32 object-contain drop-shadow-[0_18px_24px_rgba(201,106,27,0.3)]"

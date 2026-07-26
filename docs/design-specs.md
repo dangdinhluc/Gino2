@@ -5,7 +5,7 @@
 - Screen/Page: Course Learning Workspace
 - Product category: education web app
 - Primary goal: biến màn học khóa học thành workspace học tập chuyên nghiệp, tập trung, dễ quay lại mỗi ngày
-- Primary audience: người lớn học tiếng Đức theo lộ trình đặc định kỹ năng, cần cảm giác tin cậy và có tổ chức
+- Primary audience: người lớn học tiếng Nhật theo lộ trình Tokutei Ginou (kỹ năng đặc định), cần cảm giác tin cậy và có tổ chức
 
 ## Visual Direction
 - Pattern: professional learning workspace with app shell + productivity rail
@@ -91,6 +91,130 @@
 - Keep tokens and interaction states consistent in implementation.
 - Ưu tiên làm lại hierarchy của hero, left nav, main panel, right rail trước khi thêm hiệu ứng mới.
 - ReviewPanel và VocabularyPanel nên dùng chung panel shell để giảm drift visual.
+
+---
+
+> ⚠️ OUTDATED (2026-07-11): Phần spec 6 game dưới đây (Der/Die/Das Rush, Wortschmiede, Satzpuzzle, Kasus Kampf, Diktat Sprint, Aussprache Echo) dựa hoàn toàn trên ngữ pháp tiếng Đức (giống từ der/die/das, cách Akkusativ/Dativ) — các khái niệm này KHÔNG tồn tại trong tiếng Nhật nên không áp dụng được cho Tokutei Ginou. 6 game này chưa từng được code (đã xác nhận qua audit `types.ts`). Nếu muốn mở rộng Game Zone thêm game mới, cần thiết kế lại mechanic từ đầu cho phù hợp tiếng Nhật (xem `plans/2026-07-11-tokutei-full-migration/awf-plan.md`), không dùng lại spec cũ này. Phần Hub layout, color palette, motion, shell pattern chung vẫn có thể tái dùng.
+
+# Game Zone Visual Specs
+
+## Project Context
+- Project: TOKUTEI GINO
+- Screen/Page: Learning Hub + 6 Game Screens
+- Routes: `/app/hub` (hub), `/app/hub/:gameId` (in-game)
+- Product category: gamified language learning
+- Primary goal: biến game từ mock quiz thành 6 trò chơi học tập thật, mỗi game một cơ chế riêng, gắn với vốn từ và tình huống Tokutei Ginou
+- Primary audience: người lớn học tiếng Nhật công việc Tokutei, cần game vừa vui vừa hiệu quả, không childish
+
+## Visual Direction — Hybrid Mode
+- Hub page: calm, curated, warm — nằm trong MainLayout
+- In-game screens: immersive, focused — full viewport, thoát MainLayout
+- Pattern: calm portal → immersive focus mode
+- Style: premium adult gaming meets education
+- Mood: Hub = warm invitation; In-game = focused flow state
+- Shape language: Hub rounded large (24-30px); In-game rounded medium (14-18px) for tighter controls
+
+## Hub Color Palette
+| Token | Value | Usage |
+|------|-------|-------|
+| hub-bg | #F7F1E8 | Hub background (inherits app bg) |
+| hub-surface | #FFF9F2 | Game cards |
+| hub-border | #E4D8C9 | Card borders |
+| hub-text | #172033 | Titles |
+| hub-meta | #5F6B7C | Subtitles, level badges |
+| daily-accent | #C96A1B | Daily Challenge highlight |
+
+## In-Game Color Palette
+| Token | Value | Usage |
+|------|-------|-------|
+| game-bg | #0F1419 | Dark base background |
+| game-surface | #1A2332 | Card/panel surfaces in-game |
+| game-border | #2A3544 | Subtle borders |
+| game-text | #F9FAFB | Primary text (white) |
+| game-text-muted | #9CA3AF | Secondary text |
+| game-correct | #10B981 | Correct feedback |
+| game-wrong | #EF4444 | Wrong feedback |
+| game-combo | #F59E0B | Combo/streak highlight |
+
+## Game-Specific Accent Colors
+| Game | Accent | CSS var |
+|------|--------|---------|
+| Der/Die/Das Rush | #3B82F6 | --game-accent-rush |
+| Wortschmiede | #8B5CF6 | --game-accent-forge |
+| Satzpuzzle | #06B6D4 | --game-accent-puzzle |
+| Kasus Kampf | #EF4444 | --game-accent-kampf |
+| Diktat Sprint | #10B981 | --game-accent-diktat |
+| Aussprache Echo | #F59E0B | --game-accent-echo |
+
+## Typography — In-Game
+| Element | Font | Size | Weight |
+|---------|------|------|--------|
+| Game prompt | Manrope | 28-36px | 800 |
+| Options/buttons | Inter | 16-18px | 700 |
+| Score/meta | Inter | 12px | 700 |
+| Feedback text | Inter | 15px | 600 |
+| Rule explainer | Inter | 13px | 500 |
+
+## Hub Layout
+- Desktop: Daily Challenge hero card (full width) + 3×2 game card grid
+- Tablet: Daily Challenge + 2×3 grid
+- Mobile: Daily Challenge + 2-column grid, scrollable
+- Card anatomy: accent dot → title → subtitle → level badge → progress indicator
+- Bottom stats strip: streak + weekly XP
+
+## In-Game Shared Shell
+- Top bar: back button + game name + score + combo counter
+- Progress bar: 4px height, accent color fill, spring animation
+- Gameplay area: center, max-width 640px on desktop
+- Feedback bar: bottom slide-up toast, auto-dismiss 1.5s
+- No sidebar, no app navigation — pure focus
+
+## Game Mechanics Summary
+| # | Game | Mechanic | Input | Skill |
+|---|------|----------|-------|-------|
+| 1 | Der/Die/Das Rush | Article classification | Tap 1 of 3 | Vocab gender |
+| 2 | Wortschmiede | Compound word building | Drag/tap to combine | Compound vocab |
+| 3 | Satzpuzzle | Word order reorder | Drag-and-drop | Grammar structure |
+| 4 | Kasus Kampf | Case selection | Tap article per blank | Akk/Dat cases |
+| 5 | Diktat Sprint | Dictation typing | Keyboard input | Listening + spelling |
+| 6 | Aussprache Echo | Pronunciation | Hold-to-speak | Speaking |
+
+## Motion — In-Game
+| Event | Animation | Duration |
+|-------|-----------|----------|
+| Correct answer | scale(1.05) + accent glow | 200ms |
+| Wrong answer | translateX shake ±4px + red flash | 150ms |
+| Combo milestone | particle burst from score | 300ms |
+| Progress advance | spring fill | 250ms |
+| Round transition | crossfade | 180ms |
+| Hub → Game | fade from black | 200ms |
+| Game → Result | card scale from 0.95 | 300ms |
+
+## States
+- Loading: dark skeleton with accent shimmer
+- Empty (no rounds): "Chưa có dữ liệu cho game này" + back to hub CTA
+- Error (audio fail): inline retry with fallback text
+- Game Over (Kasus Kampf): hearts depleted → summary card
+- Complete: result card with score, combo, XP, replay/hub buttons
+
+## Anti-Patterns to Avoid
+- Không dùng nền sáng cream cho in-game — phải tối để tạo focus
+- Không dùng mascot/illustration lớn trong gameplay area
+- Không dùng quá nhiều particle/confetti — chỉ dùng khi perfect score
+- Không để game controls quá nhỏ trên mobile — 48px minimum touch target
+- Không mix nhiều accent color trong 1 game screen — mỗi game chỉ dùng 1 accent
+- Không để feedback toast che gameplay area — luôn ở bottom bar riêng
+
+## Build Handoff Notes
+- Game screens MUST NOT use MainLayout — render as standalone full-viewport routes
+- Use CSS custom properties for game accent so 1 component serves all 6 games
+- Shared GameShell component: top bar + progress + feedback + gameplay slot
+- Each game is a separate gameplay component rendered inside GameShell
+- Drag-and-drop: use `@dnd-kit/core` for Satzpuzzle and Wortschmiede
+- Audio: Web Speech Synthesis API for Diktat Sprint TTS; Web Speech Recognition for Echo
+- SRS integration: wrong answers feed into ReviewCenter's SRS queue
+- Data: game rounds should come from Supabase vocabulary/review_questions tables
+- Route structure: keep `/app/hub/:gameId` but render outside MainLayout wrapper
 
 ---
 

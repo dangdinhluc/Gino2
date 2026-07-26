@@ -97,7 +97,7 @@ function getEntityTitle(entity: NonNullable<DetailEntity>): string {
     case 'student':
       return entity.item.name;
     case 'vocabulary':
-      return `${entity.item.article} ${entity.item.term}`;
+      return entity.item.term;
     case 'package':
     case 'ai-prompt':
       return entity.item.name;

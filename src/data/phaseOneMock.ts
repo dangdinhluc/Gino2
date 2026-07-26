@@ -2,9 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Award,
   BookOpen,
-  Brain,
   Flame,
-  Gamepad2,
   Headphones,
   Mic,
   PenTool,
@@ -12,7 +10,6 @@ import {
   Star,
   Trophy,
   Volume2,
-  Zap,
 } from 'lucide-react';
 
 export type LessonExerciseType = 'choice' | 'match' | 'order' | 'listen';
@@ -44,23 +41,6 @@ export interface FlashcardItem {
   level: string;
   dueDate: string;
   strength: 'Yếu' | 'Ổn' | 'Tốt';
-}
-
-export interface GameRound {
-  id: string;
-  prompt: string;
-  options: string[];
-  answer: string;
-}
-
-export interface GameShell {
-  id: string;
-  title: string;
-  sub: string;
-  level: string;
-  color: string;
-  icon: LucideIcon;
-  rounds: GameRound[];
 }
 
 export interface ChatMessage {
@@ -167,45 +147,6 @@ export const flashcards = [
     strength: 'Tốt',
   },
 ] satisfies FlashcardItem[];
-
-export const gameShells = [
-  {
-    id: 'gino-runner',
-    title: 'Shift Sprint',
-    sub: 'Trả lời đúng để giữ nhịp đầu ca.',
-    level: 'Workplace',
-    color: 'from-blue-500 to-cyan-400',
-    icon: Gamepad2,
-    rounds: [
-      { id: 'runner-1', prompt: 'Khi vào ca, hành động nào đúng nhất?', options: ['Chào đội và xác nhận vị trí', 'Mở điện thoại kiểm tra tin nhắn', 'Tự đổi vị trí làm', 'Bỏ qua checklist'], answer: 'Chào đội và xác nhận vị trí' },
-      { id: 'runner-2', prompt: '“anzen” nghĩa là gì?', options: ['an toàn', 'hồ sơ', 'ca tối', 'quản lý'], answer: 'an toàn' },
-    ],
-  },
-  {
-    id: 'matching',
-    title: 'Nối ca làm',
-    sub: 'Ghép cụm Tokutei với ý nghĩa đúng.',
-    level: 'JFT Basic',
-    color: 'from-pink-500 to-rose-400',
-    icon: Zap,
-    rounds: [
-      { id: 'match-1', prompt: 'Ghép “kyukei” với nghĩa đúng.', options: ['giờ nghỉ', 'điểm danh', 'báo cáo', 'phỏng vấn'], answer: 'giờ nghỉ' },
-      { id: 'match-2', prompt: 'Ghép “tenchou” với nghĩa đúng.', options: ['quản lý cửa hàng', 'đồng nghiệp mới', 'khách hàng', 'nhân sự'], answer: 'quản lý cửa hàng' },
-    ],
-  },
-  {
-    id: 'wortstellung',
-    title: 'Interview Flow',
-    sub: 'Chọn câu trả lời gọn và đúng ý khi phỏng vấn.',
-    level: 'Interview',
-    color: 'from-orange-500 to-amber-400',
-    icon: Brain,
-    rounds: [
-      { id: 'word-1', prompt: 'Khi HR hỏi lý do sang Nhật, câu nào an toàn nhất?', options: ['Tôi muốn học và làm việc ổn định lâu dài.', 'Tôi chưa biết rõ nhưng cứ sang trước.', 'Tôi chỉ muốn thử vài tháng thôi.', 'Tôi sang vì bạn rủ.'], answer: 'Tôi muốn học và làm việc ổn định lâu dài.' },
-      { id: 'word-2', prompt: 'Khi chưa hiểu hướng dẫn, phản ứng nào đúng?', options: ['Xin nhắc lại giúp em một lần nữa.', 'Em đoán và làm luôn.', 'Em bỏ qua vì ngại hỏi.', 'Em hỏi đồng nghiệp sau ca.'], answer: 'Xin nhắc lại giúp em một lần nữa.' },
-    ],
-  },
-] satisfies GameShell[];
 
 export const aiPromptChips = [
   'Sửa câu trả lời phỏng vấn này giúp anh',

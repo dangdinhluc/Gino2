@@ -2,9 +2,9 @@ import type { AdminStudent } from './types';
 
 export const adminStudents = [
   {
-    id: 'student-anna-muller',
-    name: 'Anna Müller',
-    email: 'anna.mueller@example.com',
+    id: 'student-thu-le',
+    name: 'Thu Le',
+    email: 'thu.le@example.com',
     level: 'A1',
     activeCourseId: 'course-a1-foundation',
     progress: 42,
@@ -44,7 +44,7 @@ export const adminStudents = [
     lastActiveAt: '2026-05-10',
     riskStatus: 'completed',
     riskReason: 'Completed the active sprint with high retention.',
-    recommendedAction: 'Invite to Goethe A1 Simulation and badge completion.',
+    recommendedAction: 'Invite to JFT-Basic A1 Simulation and badge completion.',
   },
   {
     id: 'student-quang-do',
@@ -81,7 +81,7 @@ export const adminStudents = [
     name: 'Khanh Nguyen',
     email: 'khanh.nguyen@example.com',
     level: 'A1',
-    activeCourseId: 'course-goethe-a1-simulation',
+    activeCourseId: 'course-jft-a1-simulation',
     progress: 74,
     streakDays: 6,
     averageScore: 83,

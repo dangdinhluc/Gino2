@@ -232,7 +232,7 @@ export default function LoginPage({ area }: LoginPageProps) {
               className="pointer-events-none relative hidden items-center gap-4 lg:flex"
             >
               <motion.img
-                src="/mascot.png"
+                src={`${import.meta.env.BASE_URL}mascot.png`}
                 alt=""
                 aria-hidden
                 className="h-32 w-32 object-contain drop-shadow-[0_18px_24px_rgba(201,106,27,0.25)]"

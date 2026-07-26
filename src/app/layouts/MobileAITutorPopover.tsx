@@ -75,7 +75,7 @@ export function MobileAITutorPopover() {
           <div className="relative flex h-8 w-8 items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 blur-md opacity-20" />
             <img
-              src="/mascot.png"
+              src={`${import.meta.env.BASE_URL}mascot.png`}
               alt="Mascot"
               className="relative z-10 h-full w-full object-contain"
               onError={(event) => {

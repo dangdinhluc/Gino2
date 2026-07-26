@@ -57,7 +57,7 @@ export function CourseLearningPodcastPlayer({ activePodcast, isOpen, isPlaying, 
 
   return (
     <>
-      <button ref={triggerRef} type="button" onClick={onOpen} className={cn('fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex min-h-11 items-center gap-2 rounded-full border border-orange-200 bg-orange-700 px-4 py-3 text-white shadow-[0_22px_44px_-24px_rgba(249,115,22,0.7)] md:bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:right-8 xl:bottom-6 xl:right-7', focusRing)} aria-label="Mở podcast nổi" aria-haspopup="dialog" aria-expanded={isOpen} aria-controls="course-podcast-popover">
+      <button ref={triggerRef} type="button" onClick={onOpen} className={cn('fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex min-h-11 items-center gap-2 rounded-full border border-orange-200 bg-orange-700 px-4 py-3 text-white shadow-[0_22px_44px_-24px_rgba(249,115,22,0.7)] md:bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:right-8 xl:bottom-[calc(7rem+env(safe-area-inset-bottom))] xl:right-8', focusRing)} aria-label="Mở podcast nổi" aria-haspopup="dialog" aria-expanded={isOpen} aria-controls="course-podcast-popover">
         <Headphones size={20} aria-hidden="true" focusable="false" />
         <span className="hidden text-xs font-black uppercase tracking-[0.12em] sm:inline">Podcast</span>
         <span className="h-2 w-2 rounded-full bg-emerald-300" />

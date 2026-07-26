@@ -37,6 +37,40 @@ export default function QuickLoginPage() {
     );
   }
 
+  // Bản demo (không cấu hình Supabase): vào học thẳng, dữ liệu lưu trên máy người dùng.
+  if (!auth.isSupabaseConfigured) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#F7F1E8] px-4">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-200 bg-[linear-gradient(135deg,#fff4e8_0%,#fffaf3_100%)] shadow-sm">
+              <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-2xl font-black text-transparent">T</span>
+            </div>
+            <h1 className="mt-4 text-2xl font-black tracking-tight text-[#172033]">TOKUTEI GINO</h1>
+            <p className="mt-2 text-sm text-[#5F6B7C]">Bản demo — không cần tài khoản, tiến độ học lưu ngay trên thiết bị của bạn.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/app/dashboard', { replace: true })}
+            className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-orange-200 bg-[#FFFCF7] p-4 text-left shadow-sm transition-all hover:border-orange-300 hover:shadow-[0_12px_28px_-12px_rgba(201,106,27,0.4)]"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-amber-50 text-[#C96A1B]">
+              <GraduationCap size={22} />
+            </span>
+            <div>
+              <p className="text-base font-black text-[#172033]">Vào học ngay</p>
+              <p className="mt-0.5 text-xs text-[#5F6B7C]">Flashcard SRS · Khóa học · Cộng đồng</p>
+            </div>
+            <LogIn size={18} className="ml-auto text-[#C96A1B] transition-transform group-hover:translate-x-0.5" />
+          </button>
+          <p className="text-center text-[11px] text-[#5F6B7C]">
+            Khu vực admin cần cấu hình Supabase riêng
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="grid min-h-screen place-items-center bg-[#F7F1E8] px-4">
       <div className="w-full max-w-sm space-y-6">

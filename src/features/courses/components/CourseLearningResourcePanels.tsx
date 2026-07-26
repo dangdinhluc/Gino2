@@ -1,14 +1,17 @@
 import { type KeyboardEvent, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BookOpen, FileText, Headphones, Search, Target, type LucideIcon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bird, BookOpen, BrainCircuit, FileText, Headphones, MessageSquareText, Play, Search, Sparkles, Target, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseDocumentKind,
   type CourseExamItem,
-  type CourseGameItem,
   type CoursePodcastItem,
+  type CourseReviewQuestion,
+  type CourseVocabularyItem,
   type NonEmptyArray,
 } from '@/src/features/courses/mock/courseLearningMock';
+import { useCourseGameStore } from '@/src/features/games/courseGameStore';
+import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
@@ -206,26 +209,125 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
   );
 }
 
-interface GamesPanelProps {
-  activeGame: CourseGameItem;
-  games: CourseGameItem[];
-  onSelectGame: (gameId: string) => void;
+interface CourseGameCard {
+  type: CourseGameType;
+  title: string;
+  source: string;
+  description: string;
+  rounds: number;
+  duration: string;
+  color: string;
+  icon: LucideIcon;
 }
 
-export function GamesPanel({ activeGame, games, onSelectGame }: GamesPanelProps) {
+function getAvailableCourseGames(vocabulary: CourseVocabularyItem[], reviewQuestions: CourseReviewQuestion[]): CourseGameCard[] {
+  const cards: CourseGameCard[] = [];
+
+  if (vocabulary.length >= 4) {
+    cards.push(
+      {
+        type: 'flappy-vocab',
+        title: 'Flappy Vocab',
+        source: `${vocabulary.length} từ trong khóa`,
+        description: 'Bay qua thử thách và chọn đúng nghĩa của từ đang học trong khóa này.',
+        rounds: vocabulary.length,
+        duration: '2 phút',
+        color: 'from-amber-500 to-orange-500',
+        icon: Bird,
+      },
+      {
+        type: 'vocab-sprint',
+        title: 'Vocab Sprint',
+        source: `${vocabulary.length} từ trong khóa`,
+        description: 'Chọn nghĩa đúng thật nhanh để củng cố nhóm từ vừa học.',
+        rounds: vocabulary.length,
+        duration: '1 phút',
+        color: 'from-blue-500 to-cyan-500',
+        icon: BrainCircuit,
+      }
+    );
+  }
+
+  if (reviewQuestions.length > 0) {
+    cards.push({
+      type: 'situation-game',
+      title: 'Tình huống',
+      source: `${reviewQuestions.length} câu ôn tập`,
+      description: 'Xử lý tình huống bằng câu hỏi review của chính khóa học này.',
+      rounds: reviewQuestions.length,
+      duration: '2 phút',
+      color: 'from-emerald-500 to-teal-500',
+      icon: MessageSquareText,
+    });
+  }
+
+  return cards;
+}
+
+interface GamesPanelProps {
+  activeGameType: CourseGameType;
+  courseId: string;
+  courseTitle: string;
+  vocabulary: CourseVocabularyItem[];
+  reviewQuestions: CourseReviewQuestion[];
+  onSelectGame: (gameType: CourseGameType) => void;
+}
+
+export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, reviewQuestions, onSelectGame }: GamesPanelProps) {
+  const navigate = useNavigate();
+  const setCourseGameContext = useCourseGameStore((state) => state.setCourseGameContext);
+  const availableGames = useMemo(() => getAvailableCourseGames(vocabulary, reviewQuestions), [reviewQuestions, vocabulary]);
+  const activeGame = availableGames.find((game) => game.type === activeGameType) ?? availableGames[0];
+  const lockedMessage = vocabulary.length < 4 ? `Cần ít nhất 4 từ trong khóa để mở game từ vựng. Hiện có ${vocabulary.length} từ.` : null;
+
+  const handlePlay = (game: CourseGameCard) => {
+    setCourseGameContext({
+      courseId,
+      courseTitle,
+      vocabulary,
+      reviewQuestions,
+      returnPath: `/app/courses/${courseId}/learn`,
+      selectedGameType: game.type,
+    });
+    navigate(`/app/game/${game.type}?courseId=${encodeURIComponent(courseId)}`);
+  };
+
+  if (!activeGame) {
+    return (
+      <div className="workspace-panel rounded-[2rem] p-6 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-700">
+          <Sparkles size={22} aria-hidden="true" focusable="false" />
+        </div>
+        <h3 className={cn('mt-4 text-2xl font-black', headingClass)}>Game sẽ mở khi khóa có thêm dữ liệu</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm font-semibold leading-relaxed text-[#5f6b7c]">
+          {lockedMessage ?? 'Khóa này chưa có đủ từ vựng hoặc câu hỏi review để tạo vòng chơi.'}
+        </p>
+      </div>
+    );
+  }
+
+  const ActiveIcon = activeGame.icon;
+
   return (
     <div className="space-y-5">
       <div className="relative hidden overflow-hidden rounded-[2.5rem] border border-[rgba(198,182,163,0.42)] bg-[linear-gradient(135deg,rgba(255,247,237,0.98)_0%,rgba(255,250,243,0.98)_56%,rgba(244,234,220,0.96)_100%)] p-6 shadow-[0_28px_58px_-40px_rgba(96,70,42,0.24)] md:block">
         <div className="absolute right-0 top-0 h-full w-1/3 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.12),transparent_48%)]" />
         <div className="relative z-10 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
-          <div>
+          <div className="flex items-start gap-4">
+            <div className={cn('flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_18px_34px_-24px_rgba(99,71,42,0.38)]', activeGame.color)}>
+              <ActiveIcon size={28} aria-hidden="true" focusable="false" />
+            </div>
+            <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-700">Game tạo từ dữ liệu khóa này</p>
             <h3 className="mt-2 font-[var(--font-heading)] text-3xl font-black tracking-[-0.04em] text-[#172033] md:text-4xl">{activeGame.title}</h3>
             <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-[#5f6b7c]">{activeGame.description}</p>
+            <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-[#8b6d50]">{activeGame.source} • {activeGame.rounds} vòng</p>
+            </div>
           </div>
-          <Link to={`/app/hub/${activeGame.id}`} className={cn('rounded-2xl bg-orange-700 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_32px_-22px_rgba(249,115,22,0.5)] transition-transform hover:scale-[1.02]', focusRing)} aria-label={`Chơi game ${activeGame.title}`}>
+          <button type="button" onClick={() => handlePlay(activeGame)} className={cn('inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-700 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_32px_-22px_rgba(249,115,22,0.5)] transition-transform hover:scale-[1.02]', focusRing)} aria-label={`Chơi game ${activeGame.title}`}>
+            <Play size={15} aria-hidden="true" focusable="false" />
             Chơi ngay
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -236,16 +338,22 @@ export function GamesPanel({ activeGame, games, onSelectGame }: GamesPanelProps)
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          {games.map((game) => {
-            const isActive = activeGame.id === game.id;
+          {availableGames.map((game) => {
+            const Icon = game.icon;
+            const isActive = activeGame.type === game.type;
 
             return (
-              <div key={game.id} aria-current={isActive ? 'true' : undefined} className={cn('workspace-item rounded-[1.75rem] p-4 transition-all md:p-5', isActive ? 'border-orange-200 bg-orange-50/55 shadow-[0_20px_42px_-34px_rgba(201,106,27,0.35)]' : '')}>
-                <button type="button" onClick={() => onSelectGame(game.id)} className={cn('w-full rounded-2xl text-left', focusRing)}>
+              <div key={game.type} aria-current={isActive ? 'true' : undefined} className={cn('workspace-item rounded-[1.75rem] p-4 transition-all md:p-5', isActive ? 'border-orange-200 bg-orange-50/55 shadow-[0_20px_42px_-34px_rgba(201,106,27,0.35)]' : '')}>
+                <button type="button" onClick={() => onSelectGame(game.type)} className={cn('w-full rounded-2xl text-left', focusRing)}>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h4 className={cn('text-lg font-black leading-snug', headingClass)}>{game.title}</h4>
+                    <div className="flex min-w-0 gap-3">
+                      <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white', game.color)}>
+                        <Icon size={22} aria-hidden="true" focusable="false" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className={cn('text-lg font-black leading-snug', headingClass)}>{game.title}</h4>
                       <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{game.description}</p>
+                      </div>
                     </div>
                     <span className="workspace-chip shrink-0 rounded-full px-3 py-1 text-[10px] font-black text-orange-700">{game.rounds} vòng</span>
                   </div>
@@ -254,20 +362,21 @@ export function GamesPanel({ activeGame, games, onSelectGame }: GamesPanelProps)
                 <div className="mt-3 grid grid-cols-[1fr_1fr_auto] items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                   <span>
                     <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Điểm tốt</span>
-                    <span className="text-base font-black text-[#172033]">{game.bestScore}%</span>
+                    <span className="text-base font-black text-[#172033]">Theo khóa</span>
                   </span>
                   <span>
                     <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Thời gian</span>
                     <span className="text-base font-black text-[#172033]">{game.duration}</span>
                   </span>
-                  <Link to={`/app/hub/${game.id}`} className={cn('rounded-2xl bg-orange-700 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white', focusRing)} aria-label={`Chơi game ${game.title}`}>
+                  <button type="button" onClick={() => handlePlay(game)} className={cn('rounded-2xl bg-orange-700 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white', focusRing)} aria-label={`Chơi game ${game.title}`}>
                     Chơi
-                  </Link>
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
+        {lockedMessage && <p className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-xs font-bold text-orange-700">{lockedMessage}</p>}
       </div>
     </div>
   );

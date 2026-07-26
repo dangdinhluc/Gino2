@@ -9,7 +9,7 @@ Status: planning
 
 ## 1. Executive Summary
 
-Trang admin là khu quản trị nội bộ cho app học tiếng Đức TOKUTEI GINO. Mục tiêu là giúp người quản lý nhìn nhanh tình hình học tập, chất lượng nội dung, tiến độ học viên và các điểm cần xử lý.
+Trang admin là khu quản trị nội bộ cho app học Tokutei Ginou (tiếng Nhật công việc) TOKUTEI GINO. Mục tiêu là giúp người quản lý nhìn nhanh tình hình học tập, chất lượng nội dung, tiến độ học viên và các điểm cần xử lý.
 
 Phase đầu sẽ làm UI + mockdata phong phú, chưa nối backend thật. Bản này cần đủ đẹp và đủ dữ liệu để demo như một sản phẩm thật.
 

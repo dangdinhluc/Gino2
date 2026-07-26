@@ -311,12 +311,12 @@ export function GrammarTopicDetail() {
         </div>
         <div className="space-y-4">
           {topic.examples.map((example) => (
-            <div key={example.de} className="rounded-[2rem] border border-blue-100 bg-blue-50/65 p-5">
-              <p className="text-lg font-black text-blue-900">{example.de}</p>
+            <div key={example.jp} className="rounded-[2rem] border border-blue-100 bg-blue-50/65 p-5">
+              <p className="text-lg font-black text-blue-900">{example.jp}</p>
               <p className="mt-2 text-sm font-medium text-blue-700">{example.vi}</p>
             </div>
           ))}
-          <Link to="/app/hub/wortstellung" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white">Luyện bằng game <ChevronRight size={16} /></Link>
+          <Link to="/app/hub/word-builder" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white">Luyện bằng game <ChevronRight size={16} /></Link>
         </div>
       </section>
     </div>
@@ -347,8 +347,8 @@ export function VocabularyDetail() {
         </div>
         <div className="space-y-4">
           {entry.examples.map((example) => (
-            <article key={example.de} className="rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_18px_42px_-34px_rgba(148,163,184,0.18)]">
-              <p className="text-lg font-black text-gray-900">{example.de}</p>
+            <article key={example.jp} className="rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_18px_42px_-34px_rgba(148,163,184,0.18)]">
+              <p className="text-lg font-black text-gray-900">{example.jp}</p>
               <p className="mt-2 text-sm font-medium text-gray-500">{example.vi}</p>
             </article>
           ))}

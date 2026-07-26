@@ -286,7 +286,7 @@ export default function CourseList() {
           <div className="relative inline-flex rounded-[2.5rem] border border-[#ece5da] bg-[#fffaf3] p-10 text-gray-100 shadow-[0_18px_40px_-34px_rgba(148,163,184,0.14)]">
             <BookOpen size={64} />
             <div className="absolute bottom-4 right-4 h-12 w-12">
-              <img src="/mascot.png" alt="Mascot" className="h-full w-full animate-float object-contain grayscale" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.parentElement!.innerHTML='<span class="text-3xl">🐯</span>'; }} />
+              <img src={`${import.meta.env.BASE_URL}mascot.png`} alt="Mascot" className="h-full w-full animate-float object-contain grayscale" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.parentElement!.innerHTML='<span class="text-3xl">🐯</span>'; }} />
             </div>
           </div>
           <div className="space-y-1">

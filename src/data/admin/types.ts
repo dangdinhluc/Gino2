@@ -80,7 +80,6 @@ export interface AdminStudent {
 export interface AdminVocabularyItem {
   id: string;
   term: string;
-  article: 'der' | 'die' | 'das' | '-';
   translation: string;
   level: AdminLevel;
   topic: string;

@@ -3,7 +3,7 @@
 ## Page
 - Name: Admin Management Dashboard
 - Route/Screen: `/admin`
-- Purpose: quản lý vận hành app học tiếng Đức bằng dashboard dày dữ liệu, rõ trạng thái và dễ drill down
+- Purpose: quản lý vận hành app học Tokutei Ginou bằng dashboard dày dữ liệu, rõ trạng thái và dễ drill down
 - Primary CTA: module-dependent mock action such as Review, Preview, Export, Message student
 
 ## Layout Override
@@ -63,7 +63,7 @@
 ├─────────────────────────────────────┤
 │ Filter: Level A1  Risk All          │
 ├─────────────────────────────────────┤
-│ Anna Müller                         │
+│ Thu Le                              │
 │ A1 Foundation · 42% · At risk       │
 │ Last active 7d ago · Avg 61         │
 ├─────────────────────────────────────┤

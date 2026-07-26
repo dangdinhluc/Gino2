@@ -4,6 +4,8 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => ({
+  // GitHub Pages phục vụ app dưới đường dẫn /<repo>/ — set GITHUB_PAGES=true khi build trên CI.
+  base: process.env.GITHUB_PAGES === 'true' ? '/Gino2/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

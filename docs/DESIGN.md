@@ -149,7 +149,7 @@ Bố cục:
 Các dạng câu hỏi mock nên có:
 
 - Chọn đáp án.
-- Ghép cặp từ Đức - Việt.
+- Ghép cặp từ tiếng Nhật - Việt.
 - Xếp từ thành câu đúng.
 - Điền từ còn thiếu.
 - Nghe audio giả lập rồi chọn đáp án.
@@ -163,13 +163,13 @@ Quy tắc UI:
 
 ### 3.2. Exam Runner
 
-Mục đích: tạo cảm giác đang làm đề Goethe/TELC thật.
+Mục đích: tạo cảm giác đang làm đề JFT-Basic/Tokutei thật.
 
 Bố cục desktop:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Exam top bar: Goethe B1 | Timer 02:45:00 | Nộp bài          │
+│ Exam top bar: JFT-Basic B1 | Timer 02:45:00 | Nộp bài        │
 ├───────────────┬─────────────────────────────────────────────┤
 │ Skill sidebar │ Question workspace                          │
 │ Lesen         │ Đề bài, đoạn văn, câu hỏi                   │
@@ -239,8 +239,8 @@ Mục đích: một khung game chung để 13 game trong LearningHub không còn
 Bắt đầu làm 3 game:
 
 1. Gino Runner: chọn đáp án đúng để mascot chạy tiếp.
-2. Nối từ: kéo hoặc bấm ghép cặp Đức - Việt.
-3. Wortstellung: xếp từ đúng thứ tự trong câu.
+2. Nối từ: kéo hoặc bấm ghép cặp tiếng Nhật - Việt.
+3. Word Order: xếp từ đúng thứ tự trong câu.
 
 Shell chung:
 
@@ -573,7 +573,7 @@ Mock shape đề xuất:
 | Review question | `id`, `type`, `prompt`, `options`, `answer`, `explanation` | trắc nghiệm chọn nghĩa |
 | Document | `id`, `title`, `kind`, `size`, `publishedAt`, `readTime` | `PDF`, `2026-05-06` |
 | Game | `id`, `title`, `source`, `rounds`, `bestScore` | tạo từ bộ từ vựng chương 1 |
-| Exam | `id`, `title`, `skills`, `duration`, `status` | Goethe A1 Mini Test |
+| Exam | `id`, `title`, `skills`, `duration`, `status` | JFT-Basic A1 Mini Test |
 | Podcast | `id`, `title`, `duration`, `episode`, `isNew` | Episode 01, `05:30` |
 
 ### 9.2. Bố cục màn hình
@@ -630,7 +630,7 @@ Nội dung chính:
 - Hero nhỏ: số từ trong khóa, số từ đã nhớ, số từ cần ôn.
 - Bộ lọc: `Tất cả`, `Đang học`, `Cần ôn`, `Đã nhớ`.
 - Danh sách vocabulary card:
-  - Từ tiếng Đức + giống từ nếu có.
+  - Từ tiếng Nhật (romaji).
   - Nghĩa tiếng Việt.
   - Ví dụ ngắn.
   - Nút nghe phát âm mock.
@@ -2180,3 +2180,20 @@ User opens /app/courses/:id/learn
 ---
 
 *Tạo bởi AWF Design Phase - UI/mockdata v0; cập nhật Supabase real data design 2026-05-14*
+
+
+---
+
+## ADDENDUM 2026-05-17 — New Engagement Games MVP
+
+Bản design chi tiết cho 2 game mới (Memory Match + Word Builder) tách thành file riêng để giữ document này gọn:
+
+- 📐 Design: [`docs/design/new-games-mvp.md`](./design/new-games-mvp.md)
+- 📝 Plan: [`plans/2026-05-17-new-games-engagement/awf-plan.md`](../plans/2026-05-17-new-games-engagement/awf-plan.md)
+- 📋 Spec: [`docs/specs/new-games-engagement.md`](./specs/new-games-engagement.md)
+
+Tóm tắt phạm vi:
+- **MVP**: Memory Match (lật bài ghép cặp) + Word Builder (xếp chữ tiếng Nhật romaji)
+- **Future**: Listening Lab + Story Quest (mở plan riêng sau)
+- Reuse `GameShell` + `gameStore` + `courseGameStore`, **không thêm dependency mới**
+- 4 phases: Foundation → Memory Match → Word Builder → Polish

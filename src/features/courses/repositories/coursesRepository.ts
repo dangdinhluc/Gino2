@@ -18,14 +18,14 @@ export interface CourseListEntry extends Course {
   themeColor: string | null;
 }
 
-export function mapCourseRowToEntry(row: SupabaseCourseRow): CourseListEntry {
+export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0): CourseListEntry {
   const totalLessons = row.lessons?.[0]?.count ?? 0;
   return {
     id: row.id,
     title: row.title,
     level: row.level,
     description: row.description,
-    progress: 0,
+    progress: Math.max(0, Math.min(100, Math.round(progress))),
     totalLessons,
     image: FALLBACK_IMAGE,
     themeColor: row.theme_color,
@@ -55,5 +55,23 @@ export async function fetchPublishedCourses(): Promise<CourseListEntry[] | null>
     throw new Error(error.message);
   }
 
-  return (data ?? []).map((row) => mapCourseRowToEntry(row as unknown as SupabaseCourseRow));
+  const { data: authData } = await supabase.auth.getUser();
+  const progressByCourse = new Map<string, number>();
+
+  if (authData.user) {
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .from('enrollments')
+      .select('course_id, progress_percent')
+      .eq('user_id', authData.user.id);
+
+    if (enrollmentError) throw new Error(enrollmentError.message);
+    for (const enrollment of enrollments ?? []) {
+      progressByCourse.set(enrollment.course_id, Number(enrollment.progress_percent));
+    }
+  }
+
+  return (data ?? []).map((row) => {
+    const courseRow = row as unknown as SupabaseCourseRow;
+    return mapCourseRowToEntry(courseRow, progressByCourse.get(courseRow.id));
+  });
 }

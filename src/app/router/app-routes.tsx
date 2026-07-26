@@ -22,7 +22,6 @@ import AISprechenLabPage from '@/src/features/ai/pages/AISprechenLabPage';
 import SpeakingHistoryPage from '@/src/features/ai/pages/SpeakingHistoryPage';
 import AITutorChatPage from '@/src/features/ai/pages/AITutorChatPage';
 import LearningHubPage from '@/src/features/hub/pages/LearningHubPage';
-import GameDetailPage from '@/src/features/hub/pages/GameDetailPage';
 import ProfilePage from '@/src/features/profile/pages/ProfilePage';
 import SettingsPage from '@/src/features/profile/pages/SettingsPage';
 import FriendsPage from '@/src/features/social/pages/FriendsPage';
@@ -64,7 +63,6 @@ export function AppRoutes() {
       <Route path="review" element={<ReviewCenterPage />} />
       <Route path="review/flashcards" element={<FlashcardSessionPage />} />
       <Route path="hub" element={<LearningHubPage />} />
-      <Route path="hub/:gameId" element={<GameDetailPage />} />
       <Route path="stats" element={<StatsAchievementsPage />} />
       <Route path="profile" element={<ProfilePage />} />
     </Route>

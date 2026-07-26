@@ -4,7 +4,7 @@
 - Name: TOKUTEI GINO
 - Product category: education web app
 - Platform: responsive web app
-- Primary audience: adult German learners using structured self-study flows
+- Primary audience: adult Tokutei Ginou (Japan work-skill visa) learners using structured self-study flows
 - Primary goal: make study flows feel premium, trustworthy, and focused without losing warmth
 
 ## Visual Direction

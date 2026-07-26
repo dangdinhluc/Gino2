@@ -34,5 +34,11 @@ assert.deepEqual(
 assert.deepEqual(
   decideAuthRouteAccess({ area: 'admin', isAuthenticated: false, isAdmin: false, isSupabaseConfigured: false }),
   { status: 'setup-required', reason: 'missing-supabase-config' },
-  'missing Supabase env should show setup-required instead of pretending auth passed',
+  'missing Supabase env should keep the admin area behind setup-required',
+);
+
+assert.deepEqual(
+  decideAuthRouteAccess({ area: 'learner', isAuthenticated: false, isAdmin: false, isSupabaseConfigured: false }),
+  { status: 'allowed' },
+  'missing Supabase env should open the learner area in demo mode (local-first data)',
 );

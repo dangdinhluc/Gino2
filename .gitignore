@@ -2,6 +2,7 @@ node_modules/
 .codex-screens/
 .brain/
 .claude/
+.playwright-cli/
 .playwright-mcp/
 .vscode/
 build/

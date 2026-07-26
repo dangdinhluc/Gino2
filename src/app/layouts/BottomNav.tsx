@@ -2,12 +2,18 @@ import { Home, GraduationCap, Bookmark, Layout, RotateCcw } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import { useReviewStore } from '@/src/features/review/store/reviewStore';
+import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
 
 export function BottomNav() {
-  const navItems = [
+  const reviewStates = useReviewStore((state) => state.states);
+  const dueCount = useMemo(() => collectDueCards(reviewStates, Date.now()).length, [reviewStates]);
+
+  const navItems: { icon: typeof Home; label: string; path: string; badge?: number }[] = [
     { icon: Home, label: 'Trang chủ', path: '/app/dashboard' },
     { icon: Layout, label: 'Khóa học', path: '/app/courses' },
-    { icon: RotateCcw, label: 'Ôn tập', path: '/app/review' },
+    { icon: RotateCcw, label: 'Ôn tập', path: '/app/review', badge: dueCount },
     { icon: GraduationCap, label: 'Luyện thi', path: '/app/exams' },
     { icon: Bookmark, label: 'Từ của tôi', path: '/app/grammar' },
   ];
@@ -33,14 +39,19 @@ export function BottomNav() {
                 "relative rounded-xl p-1.5 transition-all",
                 isActive && "bg-gradient-to-br from-orange-100 to-[#f7efe4] shadow-sm"
               )}>
-                <item.icon 
-                  size={21} 
-                  strokeWidth={isActive ? 2.5 : 2} 
+                <item.icon
+                  size={21}
+                  strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-colors",
                     isActive ? "text-orange-500" : "text-gray-400"
-                  )} 
+                  )}
                 />
+                {typeof item.badge === 'number' && item.badge > 0 && (
+                  <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 px-1 text-[8px] font-black text-white shadow-sm">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </div>
               <span className={cn(
                 "bottom-nav-label max-w-full truncate text-[10px] font-bold tracking-tight",

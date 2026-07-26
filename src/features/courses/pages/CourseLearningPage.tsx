@@ -2,18 +2,19 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
-import { DocumentsPanel, ExamsPanel, GamesPanel, RightRail, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, Brain, FileText, Gamepad2, GraduationCap, Headphones, Layers, Search, Volume2, X, Zap } from 'lucide-react';
+import { DocumentsPanel, ExamsPanel, GamesPanel, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
+import { ArrowLeft, Brain, FileText, Gamepad2, GraduationCap, Home, Layers, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
-  type CourseGameItem,
   type CoursePodcastItem,
   type CourseReviewQuestion,
   type CourseVocabularyItem,
   type NonEmptyArray,
   type VocabularyStatus,
-  getCourseLearningWorkspace,
 } from '@/src/features/courses/mock/courseLearningMock';
+import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
+import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 
 type WorkspaceTab = 'vocabulary' | 'review' | 'documents' | 'games' | 'exams';
@@ -56,10 +57,6 @@ function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): Cours
   return documents[0];
 }
 
-function getInitialGame(games: NonEmptyArray<CourseGameItem>): CourseGameItem {
-  return games[0];
-}
-
 function getInitialPodcast(podcasts: NonEmptyArray<CoursePodcastItem>): CoursePodcastItem {
   return podcasts[0];
 }
@@ -76,8 +73,8 @@ function buildQuizOptions(answer: string, pool: string[], limit = 4) {
 export default function CourseLearningWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const workspace = getCourseLearningWorkspace(id);
-  const { course, vocabulary, reviewQuestions, documents, games, exams, podcasts } = workspace;
+  const workspace = useCourseLearningWorkspace(id);
+  const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
   const [vocabularyFilter, setVocabularyFilter] = useState<VocabularyFilter>('all');
@@ -90,13 +87,12 @@ export default function CourseLearningWorkspace() {
   const [vocabularyQuestionIndex, setVocabularyQuestionIndex] = useState(0);
   const [selectedVocabularyAnswer, setSelectedVocabularyAnswer] = useState<string | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState(getInitialDocument(documents).id);
-  const [activeGameId, setActiveGameId] = useState(getInitialGame(games).id);
+  const [activeGameType, setActiveGameType] = useState<CourseGameType>('flappy-vocab');
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
   const [activePodcastId, setActivePodcastId] = useState(getInitialPodcast(podcasts).id);
   const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
   const [isReviewModeDialogOpen, setIsReviewModeDialogOpen] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
-  const [isRailTabPanelLabel, setIsRailTabPanelLabel] = useState(false);
   const vocabularyAudioTimerRef = useRef<number | null>(null);
 
   const filteredVocabulary = useMemo(() => {
@@ -114,7 +110,7 @@ export default function CourseLearningWorkspace() {
         item.meaning,
         item.pronunciation,
         item.module,
-        item.example.de,
+        item.example.jp,
         item.example.vi,
         ...item.tags,
       ].join(' ').toLowerCase();
@@ -132,7 +128,7 @@ export default function CourseLearningWorkspace() {
       prompt: `"${getVocabularyDisplayName(item)}" nghĩa là gì?`,
       options: buildQuizOptions(item.meaning, meaningPool),
       answer: item.meaning,
-      explanation: `${getVocabularyDisplayName(item)} nghĩa là "${item.meaning}". Ví dụ: ${item.example.de}`,
+      explanation: `${getVocabularyDisplayName(item)} nghĩa là "${item.meaning}". Ví dụ: ${item.example.jp}`,
       source: `Từ vựng: ${item.module}`,
     })) satisfies CourseReviewQuestion[];
   }, [vocabulary]);
@@ -142,7 +138,6 @@ export default function CourseLearningWorkspace() {
   const activeQuestion = reviewQuestions[questionIndex] ?? reviewQuestions[0];
   const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? getInitialDocument(documents);
-  const activeGame = games.find((game) => game.id === activeGameId) ?? getInitialGame(games);
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? getInitialPodcast(podcasts);
   const isAnswerCorrect = selectedAnswer === activeQuestion.answer;
   const dueVocabularyCount = vocabulary.filter((item) => item.status === 'due').length;
@@ -164,7 +159,7 @@ export default function CourseLearningWorkspace() {
     setVocabularyQuestionIndex(0);
     setSelectedVocabularyAnswer(null);
     setSelectedDocumentId(getInitialDocument(documents).id);
-    setActiveGameId(getInitialGame(games).id);
+    setActiveGameType('flappy-vocab');
     setIsPodcastOpen(false);
     setActivePodcastId(getInitialPodcast(podcasts).id);
     setIsPodcastPlaying(false);
@@ -175,17 +170,10 @@ export default function CourseLearningWorkspace() {
       window.clearTimeout(vocabularyAudioTimerRef.current);
       vocabularyAudioTimerRef.current = null;
     }
-  }, [course.id, documents, games, podcasts, vocabulary]);
+  }, [course.id, documents, podcasts, vocabulary]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 1280px)');
-    const handleViewportChange = () => setIsRailTabPanelLabel(mediaQuery.matches);
-
-    handleViewportChange();
-    mediaQuery.addEventListener('change', handleViewportChange);
-
     return () => {
-      mediaQuery.removeEventListener('change', handleViewportChange);
       if (vocabularyAudioTimerRef.current !== null) {
         window.clearTimeout(vocabularyAudioTimerRef.current);
       }
@@ -193,11 +181,22 @@ export default function CourseLearningWorkspace() {
   }, []);
 
   const handleQuestionNext = () => {
+    if (selectedAnswer) {
+      void saveReviewAttempt(activeQuestion.id, selectedAnswer === activeQuestion.answer).catch((error: unknown) => {
+        if (import.meta.env.DEV) console.error('[course-review] Failed to save attempt', error);
+      });
+    }
     setSelectedAnswer(null);
     setQuestionIndex((currentIndex) => (currentIndex + 1) % reviewQuestions.length);
   };
 
   const handleVocabularyQuestionNext = () => {
+    if (selectedVocabularyAnswer) {
+      const vocabularyItem = vocabulary[vocabularyQuestionIndex] ?? vocabulary[0];
+      void saveVocabularyReview(vocabularyItem.id, selectedVocabularyAnswer === activeVocabularyQuestion.answer).catch((error: unknown) => {
+        if (import.meta.env.DEV) console.error('[vocabulary-review] Failed to save progress', error);
+      });
+    }
     setSelectedVocabularyAnswer(null);
     setVocabularyQuestionIndex((currentIndex) => (currentIndex + 1) % vocabularyQuizQuestions.length);
   };
@@ -242,13 +241,12 @@ export default function CourseLearningWorkspace() {
 
   const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: WorkspaceTab) => {
     const currentIndex = workspaceTabs.findIndex((tab) => tab.id === currentTab);
-    const tabVariant = event.currentTarget.id.includes('compact') ? 'compact' : 'rail';
-    const isRailTab = tabVariant === 'rail';
+    const tabVariant = 'compact';
     let nextIndex = currentIndex;
 
-    if (event.key === 'ArrowRight' || (isRailTab && event.key === 'ArrowDown')) {
+    if (event.key === 'ArrowRight') {
       nextIndex = (currentIndex + 1) % workspaceTabs.length;
-    } else if (event.key === 'ArrowLeft' || (isRailTab && event.key === 'ArrowUp')) {
+    } else if (event.key === 'ArrowLeft') {
       nextIndex = (currentIndex - 1 + workspaceTabs.length) % workspaceTabs.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
@@ -266,38 +264,52 @@ export default function CourseLearningWorkspace() {
     });
   };
 
-  const activeTabPanelLabelId = `course-workspace-${isRailTabPanelLabel ? 'rail' : 'compact'}-tab-${activeTab}`;
+  const handleExitWorkspace = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate(`/app/courses/${id ?? course.id}`);
+  };
+
+  const handleGoHome = () => {
+    navigate('/app/dashboard');
+  };
+
+  const activeTabPanelLabelId = `course-workspace-compact-tab-${activeTab}`;
 
   return (
     <>
-      <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-32 md:space-y-6 md:pb-36 xl:pb-16">
-      <section className="sticky top-0 z-40 flex items-center justify-between rounded-[1.75rem] border border-[rgba(198,182,163,0.48)] bg-[rgba(255,250,243,0.9)] px-3 py-2.5 shadow-[0_18px_38px_-30px_rgba(76,51,29,0.28)] backdrop-blur-xl md:hidden">
-        <button onClick={() => navigate(`/app/courses/${id ?? course.id}`)} className={cn('-ml-2 flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:bg-[#f1ebe2]', focusRing)} aria-label="Quay lại chi tiết khóa học">
-          <ArrowLeft size={22} className="text-[#172033]" aria-hidden="true" focusable="false" />
-        </button>
-        <div className="min-w-0 px-2 text-center">
-          <p className="hidden text-[9px] font-black uppercase tracking-[0.2em] text-orange-700 md:block">Course Workspace</p>
-          <h1 className="truncate font-[var(--font-heading)] text-sm font-black uppercase tracking-[-0.04em] text-[#172033] md:text-base">{course.title}</h1>
-          <p className="mt-0.5 truncate text-[10px] font-bold text-[#5f6b7c] md:hidden">{course.currentModule} · {course.progress}%</p>
-        </div>
-        <button onClick={() => setIsPodcastOpen(true)} className={cn('-mr-1 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-700 transition-colors hover:bg-orange-100', focusRing)} aria-label="Mở podcast khóa học" aria-haspopup="dialog" aria-expanded={isPodcastOpen} aria-controls="course-podcast-popover">
-          <Headphones size={21} aria-hidden="true" focusable="false" />
-        </button>
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[13rem_minmax(0,1fr)_18rem]">
-        <aside className="hidden xl:block">
-          <div className="workspace-panel sticky top-24 space-y-2 rounded-[2rem] p-3" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="vertical">
-            {workspaceTabs.map((tab) => (
-              <div key={tab.id} role="presentation">
-                <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} />
+      <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(7.25rem+env(safe-area-inset-bottom))] md:space-y-6 md:pb-[calc(7.75rem+env(safe-area-inset-bottom))]">
+        <section className="sticky top-0 z-40 -mx-3 border-b border-[#eadfd2]/80 bg-[#fbf6ef]/95 px-4 py-2.5 backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-[1120px] items-center gap-3">
+            <div className="flex shrink-0 items-center gap-1 rounded-2xl border border-[#eadfd2] bg-white/60 p-1">
+              <button onClick={handleGoHome} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#172033] transition-colors hover:bg-[#f1ebe2] sm:px-3', focusRing)} aria-label="Về trang chủ">
+                <Home size={18} className="text-[#172033]" aria-hidden="true" focusable="false" />
+                <span>Home</span>
+              </button>
+              <button onClick={handleExitWorkspace} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#5f6b7c] transition-colors hover:bg-[#f1ebe2] hover:text-[#172033] sm:px-3', focusRing)} aria-label="Quay lại trang khóa học">
+                <ArrowLeft size={18} aria-hidden="true" focusable="false" />
+                <span className="hidden sm:inline">Khóa học</span>
+              </button>
+            </div>
+            <div className="min-w-0 flex-1 pr-2">
+              <div className="flex min-w-0 items-baseline gap-2">
+                <h1 className="truncate font-[var(--font-heading)] text-sm font-black tracking-[-0.03em] text-[#172033] md:text-base">{course.title}</h1>
+                <span className="hidden shrink-0 text-[10px] font-black uppercase tracking-[0.14em] text-orange-700 sm:inline">{course.progress}%</span>
               </div>
-            ))}
+              <p className="mt-0.5 truncate text-[10px] font-bold text-[#5f6b7c]">{course.currentModule}</p>
+              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-orange-100">
+                <div className="h-full rounded-full bg-orange-700" style={{ width: `${Math.max(0, Math.min(100, course.progress))}%` }} />
+              </div>
+            </div>
           </div>
-        </aside>
+        </section>
 
+      <section className="mx-auto w-full max-w-[980px] space-y-5 xl:max-w-[1040px] 2xl:max-w-[1120px]">
         <div className="space-y-5">
-          <div className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 rounded-[1.7rem] border border-[rgba(198,182,163,0.5)] bg-[rgba(255,250,243,0.94)] p-2 shadow-[0_24px_60px_-34px_rgba(88,63,38,0.34)] backdrop-blur-xl md:inset-x-8 md:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:mx-auto md:max-w-3xl md:rounded-[2rem] xl:hidden">
+          <div className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 rounded-[1.7rem] border border-[rgba(198,182,163,0.5)] bg-[rgba(255,250,243,0.94)] p-2 shadow-[0_24px_60px_-34px_rgba(88,63,38,0.34)] backdrop-blur-xl md:inset-x-8 md:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:mx-auto md:max-w-3xl md:rounded-[2rem] lg:max-w-4xl xl:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
               {workspaceTabs.map((tab) => (
                 <div key={tab.id} className="min-w-0" role="presentation">
@@ -336,13 +348,20 @@ export default function CourseLearningWorkspace() {
                 />
               )}
               {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
-              {activeTab === 'games' && <GamesPanel activeGame={activeGame} games={games} onSelectGame={setActiveGameId} />}
+              {activeTab === 'games' && (
+                <GamesPanel
+                  activeGameType={activeGameType}
+                  courseId={course.id}
+                  courseTitle={course.title}
+                  vocabulary={vocabulary}
+                  reviewQuestions={reviewQuestions}
+                  onSelectGame={setActiveGameType}
+                />
+              )}
               {activeTab === 'exams' && <ExamsPanel courseId={course.id} exams={exams} />}
             </motion.div>
           </AnimatePresence>
         </div>
-
-        <RightRail dueCount={dueVocabularyCount} activePodcast={activePodcast} isPodcastOpen={isPodcastOpen} onOpenPodcast={() => setIsPodcastOpen(true)} />
       </section>
 
       <CourseLearningPodcastPlayer
@@ -729,7 +748,7 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, onAudio, onClos
                 <p className="mt-1 text-lg font-black text-gray-900">{vocabulary.meaning}</p>
               </div>
               <div className="rounded-2xl border border-orange-100 bg-orange-50/75 px-4 py-3">
-                <p className="text-sm font-black text-gray-900">{vocabulary.example.de}</p>
+                <p className="text-sm font-black text-gray-900">{vocabulary.example.jp}</p>
                 <p className="mt-1 text-sm font-semibold text-gray-600">{vocabulary.example.vi}</p>
               </div>
             </div>

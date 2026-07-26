@@ -36,7 +36,7 @@ export interface GrammarTopic {
   category: string;
   summary: string;
   rules: string[];
-  examples: Array<{ de: string; vi: string }>;
+  examples: Array<{ jp: string; vi: string }>;
   drills: string[];
 }
 
@@ -47,7 +47,7 @@ export interface VocabularyEntry {
   meaning: string;
   level: string;
   pronunciation: string;
-  examples: Array<{ de: string; vi: string }>;
+  examples: Array<{ jp: string; vi: string }>;
   related: string[];
 }
 
@@ -126,8 +126,8 @@ export const grammarTopics: GrammarTopic[] = [
     summary: 'Lời chào đầu ca cần ngắn, rõ và thể hiện thái độ làm việc nghiêm túc.',
     rules: ['Chào quản lý và đội trước khi vào vị trí.', 'Giữ âm lượng rõ, không quá nhỏ.', 'Theo sau bằng một câu xác nhận sẵn sàng làm việc.'],
     examples: [
-      { de: 'Ohayou gozaimasu. Yoroshiku onegaishimasu.', vi: 'Chào buổi sáng. Hôm nay cũng mong được giúp đỡ.' },
-      { de: 'Hai, junbi dekimashita.', vi: 'Vâng, em đã sẵn sàng.' },
+      { jp: 'Ohayou gozaimasu. Yoroshiku onegaishimasu.', vi: 'Chào buổi sáng. Hôm nay cũng mong được giúp đỡ.' },
+      { jp: 'Hai, junbi dekimashita.', vi: 'Vâng, em đã sẵn sàng.' },
     ],
     drills: ['Đọc to 2 câu mở đầu đầu ca.', 'Chọn câu chào phù hợp với quản lý.'],
   },
@@ -139,8 +139,8 @@ export const grammarTopics: GrammarTopic[] = [
     summary: 'Khi có vấn đề, ưu tiên báo cáo sớm, nói ngắn và xác nhận lại hướng dẫn.',
     rules: ['Gặp sự cố thì báo ngay, không tự ý xử lý nếu chưa rõ.', 'Nhắc lại hướng dẫn để tránh hiểu sai.', 'Khi đổi ca hoặc trễ giờ, phải liên lạc sớm.'],
     examples: [
-      { de: 'Mondai ga areba, sugu houkoku shimasu.', vi: 'Nếu có vấn đề, em sẽ báo cáo ngay.' },
-      { de: 'Mou ichido onegaishimasu.', vi: 'Xin nhắc lại cho em một lần nữa.' },
+      { jp: 'Mondai ga areba, sugu houkoku shimasu.', vi: 'Nếu có vấn đề, em sẽ báo cáo ngay.' },
+      { jp: 'Mou ichido onegaishimasu.', vi: 'Xin nhắc lại cho em một lần nữa.' },
     ],
     drills: ['Chọn câu báo cáo ngắn gọn nhất.', 'Điền cụm xin nhắc lại hướng dẫn.'],
   },
@@ -152,8 +152,8 @@ export const grammarTopics: GrammarTopic[] = [
     summary: 'Trước khi thao tác, cần giữ khu vực sạch, đúng vị trí và tránh các rủi ro cơ bản.',
     rules: ['Dọn gọn và kiểm tra đúng vị trí dụng cụ.', 'Không tự bỏ qua checklist vì nghĩ mình nhớ rồi.', 'Khi thấy nguy cơ, ưu tiên báo cáo thay vì tự phán đoán.'],
     examples: [
-      { de: 'Kiken desu. Kochira wa sawaranaide kudasai.', vi: 'Nguy hiểm. Xin đừng chạm vào khu vực này.' },
-      { de: 'Saigo ni checklist o kakunin shimasu.', vi: 'Cuối cùng, em sẽ kiểm tra lại checklist.' },
+      { jp: 'Kiken desu. Kochira wa sawaranaide kudasai.', vi: 'Nguy hiểm. Xin đừng chạm vào khu vực này.' },
+      { jp: 'Saigo ni checklist o kakunin shimasu.', vi: 'Cuối cùng, em sẽ kiểm tra lại checklist.' },
     ],
     drills: ['Xác định hành động nào vi phạm an toàn.', 'Ghép nội dung 5S với ví dụ đúng.'],
   },
@@ -165,8 +165,8 @@ export const grammarTopics: GrammarTopic[] = [
     summary: 'Một câu trả lời tốt cần đủ tên, mục tiêu, thái độ và dừng đúng lúc.',
     rules: ['Bắt đầu bằng tên và quê quán ngắn gọn.', 'Nói mục tiêu đi Nhật và thái độ học việc.', 'Kết thúc khi đã đủ ý, không lan man.'],
     examples: [
-      { de: 'Watashi wa Minh desu. Nihon de nagaku hatarakitai desu.', vi: 'Em là Minh. Em muốn làm việc ổn định lâu dài ở Nhật.' },
-      { de: 'Hayaku oshiete, sugu manabimasu.', vi: 'Em học nhanh và sẽ cố gắng bắt nhịp sớm.' },
+      { jp: 'Watashi wa Minh desu. Nihon de nagaku hatarakitai desu.', vi: 'Em là Minh. Em muốn làm việc ổn định lâu dài ở Nhật.' },
+      { jp: 'Hayaku oshiete, sugu manabimasu.', vi: 'Em học nhanh và sẽ cố gắng bắt nhịp sớm.' },
     ],
     drills: ['Tự ghi âm 30 giây giới thiệu.', 'Cắt bớt câu thừa trong câu trả lời.'],
   },
@@ -181,8 +181,8 @@ export const vocabularyEntries: VocabularyEntry[] = [
     level: 'Tokutei',
     pronunciation: 'zai-ryu ka-do',
     examples: [
-      { de: 'Mendou demo zairyu card wa itsumo kakunin shimasu.', vi: 'Dù gấp, vẫn phải kiểm tra lại thẻ cư trú.' },
-      { de: 'Mensetsu mae ni zairyu card o junbi shite kudasai.', vi: 'Trước buổi phỏng vấn, hãy chuẩn bị thẻ cư trú.' },
+      { jp: 'Mendou demo zairyu card wa itsumo kakunin shimasu.', vi: 'Dù gấp, vẫn phải kiểm tra lại thẻ cư trú.' },
+      { jp: 'Mensetsu mae ni zairyu card o junbi shite kudasai.', vi: 'Trước buổi phỏng vấn, hãy chuẩn bị thẻ cư trú.' },
     ],
     related: ['passport', 'application', 'photo'],
   },
@@ -194,7 +194,7 @@ export const vocabularyEntries: VocabularyEntry[] = [
     level: 'Workplace',
     pronunciation: 'kin-kyu ren-ra-ku',
     examples: [
-      { de: 'Kinkyu renraku no toki wa sugu tenchou ni tsutaemasu.', vi: 'Khi có liên lạc khẩn cấp, hãy báo ngay cho quản lý.' },
+      { jp: 'Kinkyu renraku no toki wa sugu tenchou ni tsutaemasu.', vi: 'Khi có liên lạc khẩn cấp, hãy báo ngay cho quản lý.' },
     ],
     related: ['houkoku', 'anzen', 'tenchou'],
   },

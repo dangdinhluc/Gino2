@@ -3,7 +3,7 @@ import type { AdminCourse } from './types';
 export const adminCourses = [
   {
     id: 'course-a1-foundation',
-    title: 'Gino A1 Foundation',
+    title: 'Tokutei Foundation A1',
     level: 'A1',
     status: 'published',
     lessonCount: 32,
@@ -18,7 +18,7 @@ export const adminCourses = [
   },
   {
     id: 'course-a1-alltag',
-    title: 'A1 Alltag Deutsch',
+    title: 'A1 Giao Tiếp Hàng Ngày',
     level: 'A1',
     status: 'published',
     lessonCount: 28,
@@ -28,7 +28,7 @@ export const adminCourses = [
     revenueMock: 9480000,
     updatedAt: '2026-05-08',
     owner: 'Lan Pham',
-    weakArea: 'Daily conversation verbs',
+    weakArea: 'Daily conversation phrases',
     nextAction: 'Add 2 more short role-play quizzes for daily routines.',
   },
   {
@@ -43,7 +43,7 @@ export const adminCourses = [
     revenueMock: 11160000,
     updatedAt: '2026-05-07',
     owner: 'Hana Tran',
-    weakArea: 'Word order in questions',
+    weakArea: 'Question order in workplace requests',
     nextAction: 'Refresh the speaking prompts and add sentence ordering drills.',
   },
   {
@@ -63,7 +63,7 @@ export const adminCourses = [
   },
   {
     id: 'course-b1-exam-prep',
-    title: 'B1 Goethe Exam Prep',
+    title: 'B1 JFT Exam Prep',
     level: 'B1',
     status: 'published',
     lessonCount: 42,
@@ -73,12 +73,12 @@ export const adminCourses = [
     revenueMock: 12880000,
     updatedAt: '2026-05-06',
     owner: 'Khoa Dinh',
-    weakArea: 'Writing task 2',
+    weakArea: 'Interview writing task',
     nextAction: 'Add model answers and rubric examples for writing review.',
   },
   {
     id: 'course-vocab-sprint',
-    title: 'German Vocabulary Sprint',
+    title: 'Tokutei Vocabulary Sprint',
     level: 'A1',
     status: 'published',
     lessonCount: 18,
@@ -88,8 +88,8 @@ export const adminCourses = [
     revenueMock: 9180000,
     updatedAt: '2026-05-10',
     owner: 'Mai Hoang',
-    weakArea: 'Article memorization',
-    nextAction: 'Promote article mini-game to every third session.',
+    weakArea: 'Romaji spelling accuracy',
+    nextAction: 'Promote vocabulary mini-game to every third session.',
   },
   {
     id: 'course-listening-practice',
@@ -107,8 +107,8 @@ export const adminCourses = [
     nextAction: 'Replace archived audio before reopening enrollment.',
   },
   {
-    id: 'course-goethe-a1-simulation',
-    title: 'Goethe A1 Simulation',
+    id: 'course-jft-a1-simulation',
+    title: 'JFT-Basic A1 Simulation',
     level: 'A1',
     status: 'published',
     lessonCount: 14,
