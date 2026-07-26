@@ -29,6 +29,10 @@ export interface CourseVocabularyItem {
   module: string;
   strength: number;
   tags: string[];
+  /** Giải thích cách dùng: sắc thái, ngữ cảnh nơi làm việc, lỗi hay gặp. */
+  explanation?: string;
+  /** Mẹo nhớ nhanh — liên tưởng âm hoặc hình ảnh, viết ngắn một câu. */
+  mnemonic?: string;
 }
 
 export interface CourseReviewQuestion {
@@ -117,6 +121,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Vào ca',
       strength: 92,
       tags: ['Greeting', 'JFT'],
+      explanation: 'Câu chào chuẩn khi bắt đầu ca, dùng được cả buổi chiều nếu đó là ca đầu tiên anh gặp người đó trong ngày. Có "gozaimasu" là thể lịch sự — với quản lý và khách phải nói đủ, bỏ đi chỉ hợp với bạn cùng ca thân thiết.',
+      mnemonic: '"Ô-ha-yô" nghe như tiếng ngáp lúc mới dậy — chào buổi sáng.',
     },
     {
       id: 'tenchou',
@@ -129,6 +135,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Báo cáo & giao tiếp',
       strength: 48,
       tags: ['Workplace', 'People'],
+      explanation: 'Người phụ trách cao nhất của một cửa hàng. Gọi trực tiếp bằng chức danh "Tenchou" là đủ lịch sự, không cần thêm tên. Đây là người anh báo cáo khi có sự cố hoặc xin nghỉ.',
+      mnemonic: '"Ten" (店) là cửa hàng, "chou" (長) là trưởng — trưởng cửa hàng.',
     },
     {
       id: 'houkoku',
@@ -141,6 +149,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'An toàn & kỷ luật',
       strength: 64,
       tags: ['Safety', 'Routine'],
+      explanation: 'Từ quan trọng nhất nhóm "hou-ren-sou" (báo cáo - liên lạc - bàn bạc) mà công ty Nhật nào cũng nhắc. Nguyên tắc: hỏng máy, làm sai, hay chưa hiểu việc thì báo ngay, báo sớm được đánh giá cao hơn tự xoay rồi giấu.',
+      mnemonic: '"Hou-kô-ku" — nghe như "hô lên khúc mắc", có gì vướng là hô lên.',
     },
     {
       id: 'kyukei',
@@ -153,6 +163,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Nhịp ca làm',
       strength: 58,
       tags: ['Shift', 'Routine'],
+      explanation: 'Giờ nghỉ giữa ca. Khi cần đi nghỉ phải xin phép bằng "Kyukei ni ittemo ii desu ka?" chứ không tự rời vị trí. Ca dài thường có kyukei 45-60 phút, ca ngắn thì 15 phút.',
+      mnemonic: '"Kyu" nghe gần "cứu" — hết ca sáng được "cứu" bằng giờ nghỉ.',
     },
     {
       id: 'zairyu-card',
@@ -165,6 +177,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Hồ sơ',
       strength: 18,
       tags: ['Documents', 'Tokutei'],
+      explanation: 'Thẻ cư trú do Cục Xuất nhập cảnh cấp, ghi tư cách lưu trú và hạn. Luật yêu cầu mang theo người mọi lúc. Khi đổi chỗ ở hoặc đổi công ty phải đi khai báo trong 14 ngày, trễ hạn là bị phạt.',
+      mnemonic: '"Zairyu" (在留) = đang ở lại — tấm thẻ chứng minh anh được ở lại Nhật.',
     },
     {
       id: 'mensetsu',
@@ -177,6 +191,8 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Phỏng vấn',
       strength: 44,
       tags: ['Interview', 'Core'],
+      explanation: 'Buổi phỏng vấn xin việc. Nhà tuyển dụng Nhật chấm thái độ và sự rõ ràng hơn là vốn từ nhiều: trả lời ngắn, nói đủ nghe, không hiểu thì xin nhắc lại bằng "Mou ichido onegaishimasu".',
+      mnemonic: '"Men" (面) là mặt, "setsu" (接) là tiếp — gặp mặt trực tiếp.',
     },
   ],
   reviewQuestions: [
