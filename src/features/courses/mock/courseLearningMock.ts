@@ -1,4 +1,6 @@
 export type VocabularyStatus = 'new' | 'learning' | 'due' | 'remembered';
+/** Kiểu chữ hiển thị từ vựng: romaji cho người mới, kana và kanji cho người đã quen mặt chữ. */
+export type VocabularyScript = 'romaji' | 'kana' | 'kanji';
 export type CourseDocumentKind = 'PDF' | 'Post';
 export type CourseExamStatus = 'ready' | 'in_progress' | 'completed';
 export type NonEmptyArray<T> = [T, ...T[]];
@@ -17,13 +19,21 @@ export interface CourseLearningCourse {
 
 export interface CourseVocabularyItem {
   id: string;
+  /** Dạng romaji — luôn có, dùng làm mức fallback cuối cùng. */
   word: string;
   article: string;
   meaning: string;
   pronunciation: string;
+  /** Dạng kana (hiragana/katakana). Thiếu thì rơi về romaji. */
+  kana?: string;
+  /** Dạng có kanji. Bỏ trống với từ vốn chỉ viết bằng kana. Thiếu thì rơi về kana. */
+  kanji?: string;
   example: {
+    /** Câu ví dụ dạng romaji. */
     jp: string;
     vi: string;
+    kana?: string;
+    kanji?: string;
   };
   status: VocabularyStatus;
   module: string;
@@ -116,7 +126,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'chào buổi sáng',
       pronunciation: 'o-ha-yo go-zai-ma-su',
-      example: { jp: 'Ohayou gozaimasu. Kyou mo yoroshiku onegaishimasu.', vi: 'Chào buổi sáng. Hôm nay cũng mong được giúp đỡ.' },
+      kana: 'おはようございます',
+      // Từ này thực tế luôn viết bằng kana, không dùng kanji.
+      example: {
+        jp: 'Ohayou gozaimasu. Kyou mo yoroshiku onegaishimasu.',
+        vi: 'Chào buổi sáng. Hôm nay cũng mong được giúp đỡ.',
+        kana: 'おはようございます。きょうもよろしくおねがいします。',
+        kanji: 'おはようございます。今日もよろしくお願いします。',
+      },
       status: 'remembered',
       module: 'Vào ca',
       strength: 92,
@@ -130,7 +147,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'quản lý cửa hàng',
       pronunciation: 'ten-chou',
-      example: { jp: 'Tenchou ni houkoku shimasu.', vi: 'Em sẽ báo cáo với quản lý cửa hàng.' },
+      kana: 'てんちょう',
+      kanji: '店長',
+      example: {
+        jp: 'Tenchou ni houkoku shimasu.',
+        vi: 'Em sẽ báo cáo với quản lý cửa hàng.',
+        kana: 'てんちょうにほうこくします。',
+        kanji: '店長に報告します。',
+      },
       status: 'due',
       module: 'Báo cáo & giao tiếp',
       strength: 48,
@@ -144,7 +168,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'báo cáo',
       pronunciation: 'hou-kô-ku',
-      example: { jp: 'Mondai ga areba, sugu houkoku shimasu.', vi: 'Nếu có vấn đề, hãy báo cáo ngay.' },
+      kana: 'ほうこく',
+      kanji: '報告',
+      example: {
+        jp: 'Mondai ga areba, sugu houkoku shimasu.',
+        vi: 'Nếu có vấn đề, hãy báo cáo ngay.',
+        kana: 'もんだいがあれば、すぐほうこくします。',
+        kanji: '問題があれば、すぐ報告します。',
+      },
       status: 'learning',
       module: 'An toàn & kỷ luật',
       strength: 64,
@@ -158,7 +189,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'giờ nghỉ',
       pronunciation: 'kyu-kei',
-      example: { jp: 'Kyukei wa juu go fun desu.', vi: 'Giờ nghỉ là mười lăm phút.' },
+      kana: 'きゅうけい',
+      kanji: '休憩',
+      example: {
+        jp: 'Kyukei wa juu go fun desu.',
+        vi: 'Giờ nghỉ là mười lăm phút.',
+        kana: 'きゅうけいはじゅうごふんです。',
+        kanji: '休憩は十五分です。',
+      },
       status: 'learning',
       module: 'Nhịp ca làm',
       strength: 58,
@@ -172,7 +210,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'thẻ cư trú',
       pronunciation: 'zai-ryu ka-do',
-      example: { jp: 'Mensetsu no mae ni zairyu card o kakunin shimasu.', vi: 'Trước buổi phỏng vấn, hãy kiểm tra lại thẻ cư trú.' },
+      kana: 'ざいりゅうカード',
+      kanji: '在留カード',
+      example: {
+        jp: 'Mensetsu no mae ni zairyu card o kakunin shimasu.',
+        vi: 'Trước buổi phỏng vấn, hãy kiểm tra lại thẻ cư trú.',
+        kana: 'めんせつのまえにざいりゅうカードをかくにんします。',
+        kanji: '面接の前に在留カードを確認します。',
+      },
       status: 'new',
       module: 'Hồ sơ',
       strength: 18,
@@ -186,7 +231,14 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       article: '—',
       meaning: 'phỏng vấn',
       pronunciation: 'men-set-su',
-      example: { jp: 'Mensetsu de wa mijikai kotae ga anzen desu.', vi: 'Trong phỏng vấn, câu trả lời ngắn thường an toàn hơn.' },
+      kana: 'めんせつ',
+      kanji: '面接',
+      example: {
+        jp: 'Mensetsu de wa mijikai kotae ga anzen desu.',
+        vi: 'Trong phỏng vấn, câu trả lời ngắn thường an toàn hơn.',
+        kana: 'めんせつではみじかいこたえがあんぜんです。',
+        kanji: '面接では短い答えが安全です。',
+      },
       status: 'due',
       module: 'Phỏng vấn',
       strength: 44,

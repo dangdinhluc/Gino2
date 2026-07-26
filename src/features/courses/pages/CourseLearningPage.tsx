@@ -10,6 +10,7 @@ import {
   type CourseReviewQuestion,
   type CourseVocabularyItem,
   type NonEmptyArray,
+  type VocabularyScript,
   type VocabularyStatus,
 } from '@/src/features/courses/mock/courseLearningMock';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
@@ -72,6 +73,45 @@ const vocabularyViewModes = [
   { id: 'flashcard', label: 'Flashcard', icon: Sparkles },
 ] satisfies Array<{ id: VocabularyViewMode; label: string; icon: typeof Layers }>;
 
+const vocabularyScripts = [
+  { id: 'romaji', label: 'A', name: 'Romaji' },
+  { id: 'kana', label: 'あ', name: 'Kana (hiragana/katakana)' },
+  { id: 'kanji', label: '漢', name: 'Kanji' },
+] satisfies Array<{ id: VocabularyScript; label: string; name: string }>;
+
+const VOCABULARY_SCRIPT_STORAGE_KEY = 'tokutei:vocabulary-script';
+
+/** Đọc lựa chọn kiểu chữ đã lưu. An toàn khi không có localStorage (test node, private mode). */
+function readStoredVocabularyScript(): VocabularyScript {
+  if (typeof window === 'undefined') return 'romaji';
+  try {
+    const stored = window.localStorage.getItem(VOCABULARY_SCRIPT_STORAGE_KEY);
+    return stored === 'kana' || stored === 'kanji' || stored === 'romaji' ? stored : 'romaji';
+  } catch {
+    return 'romaji';
+  }
+}
+
+/** Chữ chính của từ theo chế độ đang chọn. Thiếu dữ liệu thì rơi dần kanji → kana → romaji. */
+function getVocabularyScriptText(item: CourseVocabularyItem, script: VocabularyScript): string {
+  if (script === 'kanji') return item.kanji || item.kana || getVocabularyDisplayName(item);
+  if (script === 'kana') return item.kana || getVocabularyDisplayName(item);
+  return getVocabularyDisplayName(item);
+}
+
+/** Dòng đọc kèm: xem kanji thì gợi kana, xem kana thì gợi romaji, còn lại là phiên âm. */
+function getVocabularyReadingHint(item: CourseVocabularyItem, script: VocabularyScript): string {
+  if (script === 'kanji' && item.kanji && item.kana) return item.kana;
+  if (script === 'kana' && item.kana) return item.word;
+  return item.pronunciation;
+}
+
+function getVocabularyExampleText(item: CourseVocabularyItem, script: VocabularyScript): string {
+  if (script === 'kanji') return item.example.kanji || item.example.kana || item.example.jp;
+  if (script === 'kana') return item.example.kana || item.example.jp;
+  return item.example.jp;
+}
+
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
@@ -99,6 +139,7 @@ export default function CourseLearningWorkspace() {
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
   const [vocabularyFilter, setVocabularyFilter] = useState<VocabularyFilter>('all');
+  const [vocabularyScript, setVocabularyScript] = useState<VocabularyScript>(readStoredVocabularyScript);
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [selectedVocabularyId, setSelectedVocabularyId] = useState(vocabulary[0]?.id ?? '');
   const [detailVocabularyId, setDetailVocabularyId] = useState<string | null>(null);
@@ -285,6 +326,15 @@ export default function CourseLearningWorkspace() {
     });
   };
 
+  const handleVocabularyScriptChange = (script: VocabularyScript) => {
+    setVocabularyScript(script);
+    try {
+      window.localStorage.setItem(VOCABULARY_SCRIPT_STORAGE_KEY, script);
+    } catch {
+      // Trình duyệt chặn storage (private mode) — vẫn đổi được trong phiên, chỉ không nhớ lần sau.
+    }
+  };
+
   const handleExitWorkspace = () => {
     // Luôn về danh sách khóa học. Workspace giờ là điểm vào trực tiếp (không còn trang
     // giới thiệu ở giữa) nên navigate(-1) không còn đoán được đích: tùy nơi vào mà nó
@@ -348,12 +398,14 @@ export default function CourseLearningWorkspace() {
                   searchQuery={vocabularySearchQuery}
                   selectedVocabulary={selectedVocabulary}
                   vocabularyFilter={vocabularyFilter}
+                  vocabularyScript={vocabularyScript}
                   onAudio={handleVocabularyAudio}
                   onFilterChange={setVocabularyFilter}
                   onOpenVocabularyDetail={(vocabularyId) => {
                     setSelectedVocabularyId(vocabularyId);
                     setDetailVocabularyId(vocabularyId);
                   }}
+                  onScriptChange={handleVocabularyScriptChange}
                   onSearchChange={setVocabularySearchQuery}
                 />
               )}
@@ -403,6 +455,7 @@ export default function CourseLearningWorkspace() {
       <VocabularyDetailDialog
         heardVocabularyId={heardVocabularyId}
         vocabulary={detailVocabulary}
+        vocabularyScript={vocabularyScript}
         onAudio={handleVocabularyAudio}
         onClose={() => setDetailVocabularyId(null)}
       />
@@ -570,13 +623,15 @@ interface VocabularyPanelProps {
   searchQuery: string;
   selectedVocabulary: CourseVocabularyItem;
   vocabularyFilter: VocabularyFilter;
+  vocabularyScript: VocabularyScript;
   onAudio: (vocabularyId: string) => void;
   onFilterChange: (filter: VocabularyFilter) => void;
   onOpenVocabularyDetail: (vocabularyId: string) => void;
+  onScriptChange: (script: VocabularyScript) => void;
   onSearchChange: (query: string) => void;
 }
 
-function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, searchQuery, selectedVocabulary, vocabularyFilter, onAudio, onFilterChange, onOpenVocabularyDetail, onSearchChange }: VocabularyPanelProps) {
+function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, searchQuery, selectedVocabulary, vocabularyFilter, vocabularyScript, onAudio, onFilterChange, onOpenVocabularyDetail, onScriptChange, onSearchChange }: VocabularyPanelProps) {
   const [viewMode, setViewMode] = useState<VocabularyViewMode>('list');
 
   return (
@@ -589,26 +644,50 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
           </h3>
         </div>
 
-        <div role="tablist" aria-label="Chế độ học từ vựng" className="flex shrink-0 gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1">
-          {vocabularyViewModes.map((mode) => {
-            const isActive = viewMode === mode.id;
-            return (
-              <button
-                key={mode.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setViewMode(mode.id)}
-                className={cn(
-                  'flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-xs font-black transition-colors',
-                  isActive ? 'bg-orange-700 text-white shadow-[0_12px_24px_-18px_rgba(201,106,27,0.5)]' : 'text-[#5f6b7c] hover:bg-orange-50',
-                  focusRing
-                )}
-              >
-                <mode.icon size={15} aria-hidden="true" focusable="false" />
-                {mode.label}
-              </button>
-            );
-          })}
+        <div className="flex w-full items-center justify-between gap-2 md:w-auto md:justify-end">
+          <div role="tablist" aria-label="Chế độ học từ vựng" className="flex shrink-0 gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1">
+            {vocabularyViewModes.map((mode) => {
+              const isActive = viewMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setViewMode(mode.id)}
+                  className={cn(
+                    'flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-xs font-black transition-colors',
+                    isActive ? 'bg-orange-700 text-white shadow-[0_12px_24px_-18px_rgba(201,106,27,0.5)]' : 'text-[#5f6b7c] hover:bg-orange-50',
+                    focusRing
+                  )}
+                >
+                  <mode.icon size={15} aria-hidden="true" focusable="false" />
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div role="group" aria-label="Kiểu chữ hiển thị" className="flex shrink-0 gap-0.5 rounded-2xl border border-[#e6ddd1] bg-white p-1">
+            {vocabularyScripts.map((script) => {
+              const isActive = vocabularyScript === script.id;
+              return (
+                <button
+                  key={script.id}
+                  onClick={() => onScriptChange(script.id)}
+                  aria-pressed={isActive}
+                  title={script.name}
+                  className={cn(
+                    'flex h-11 w-9 items-center justify-center rounded-xl text-sm font-black leading-none transition-colors',
+                    isActive ? 'bg-[#6f4aa8] text-white' : 'text-[#5f6b7c] hover:bg-[#f3eefb]',
+                    focusRing
+                  )}
+                >
+                  <span aria-hidden="true">{script.label}</span>
+                  <span className="sr-only">{script.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -665,8 +744,14 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
                       aria-current={selectedVocabulary.id === item.id ? 'true' : undefined}
                       className={cn('min-w-0 flex-1 rounded-xl py-1 text-left', focusRing)}
                     >
-                      <span className="block truncate text-[15px] font-black italic leading-tight text-[#172033]">
-                        {getVocabularyDisplayName(item)}
+                      <span
+                        className={cn(
+                          'block truncate text-[15px] font-black leading-tight text-[#172033]',
+                          vocabularyScript === 'romaji' ? 'italic' : 'text-base not-italic'
+                        )}
+                        lang={vocabularyScript === 'romaji' ? undefined : 'ja'}
+                      >
+                        {getVocabularyScriptText(item, vocabularyScript)}
                       </span>
                       <span className="mt-0.5 block truncate text-xs font-semibold leading-tight text-[#5f6b7c]">
                         {item.meaning}
@@ -703,6 +788,7 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
         <VocabularyFlashcards
           heardVocabularyId={heardVocabularyId}
           items={filteredVocabulary}
+          vocabularyScript={vocabularyScript}
           onAudio={onAudio}
           onOpenVocabularyDetail={onOpenVocabularyDetail}
         />
@@ -714,11 +800,12 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
 interface VocabularyFlashcardsProps {
   heardVocabularyId: string | null;
   items: CourseVocabularyItem[];
+  vocabularyScript: VocabularyScript;
   onAudio: (vocabularyId: string) => void;
   onOpenVocabularyDetail: (vocabularyId: string) => void;
 }
 
-function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabularyDetail }: VocabularyFlashcardsProps) {
+function VocabularyFlashcards({ heardVocabularyId, items, vocabularyScript, onAudio, onOpenVocabularyDetail }: VocabularyFlashcardsProps) {
   const prefersReducedMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -765,7 +852,7 @@ function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabul
       <button
         onClick={() => setIsRevealed((current) => !current)}
         aria-live="polite"
-        aria-label={isRevealed ? `Nghĩa: ${card.meaning}. Chạm để lật lại mặt từ.` : `Từ ${card.word}. Chạm để lật xem nghĩa.`}
+        aria-label={isRevealed ? `Nghĩa: ${card.meaning}. Chạm để lật lại mặt từ.` : `Từ ${getVocabularyScriptText(card, vocabularyScript)}. Chạm để lật xem nghĩa.`}
         className={cn('block w-full rounded-[1.75rem] [perspective:1200px]', focusRing)}
       >
         <motion.span
@@ -778,8 +865,15 @@ function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabul
             aria-hidden={isRevealed}
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border border-[#e6ddd1] bg-white px-5 py-6 text-center [backface-visibility:hidden]"
           >
-            <span className="text-3xl font-black italic leading-tight text-[#172033]">{getVocabularyDisplayName(card)}</span>
-            <span className="text-sm font-black text-orange-700">/{card.pronunciation}/</span>
+            <span
+              className={cn('font-black leading-tight text-[#172033]', vocabularyScript === 'romaji' ? 'text-3xl italic' : 'text-4xl')}
+              lang={vocabularyScript === 'romaji' ? undefined : 'ja'}
+            >
+              {getVocabularyScriptText(card, vocabularyScript)}
+            </span>
+            <span className="text-sm font-black text-orange-700" lang={vocabularyScript === 'kanji' ? 'ja' : undefined}>
+              {vocabularyScript === 'romaji' ? `/${card.pronunciation}/` : getVocabularyReadingHint(card, vocabularyScript)}
+            </span>
             <span className="mt-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#95a0af]">
               <RotateCcw size={13} aria-hidden="true" focusable="false" />
               Chạm để lật
@@ -849,11 +943,12 @@ function VocabularyFlashcards({ heardVocabularyId, items, onAudio, onOpenVocabul
 interface VocabularyDetailDialogProps {
   heardVocabularyId: string | null;
   vocabulary: CourseVocabularyItem | null;
+  vocabularyScript: VocabularyScript;
   onAudio: (vocabularyId: string) => void;
   onClose: () => void;
 }
 
-function VocabularyDetailDialog({ heardVocabularyId, vocabulary, onAudio, onClose }: VocabularyDetailDialogProps) {
+function VocabularyDetailDialog({ heardVocabularyId, vocabulary, vocabularyScript, onAudio, onClose }: VocabularyDetailDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -941,7 +1036,13 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, onAudio, onClos
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Chi tiết từ vựng</p>
-                <h3 id="course-vocabulary-detail-title" className="mt-2 text-3xl font-black italic leading-tight text-[#172033]">{getVocabularyDisplayName(vocabulary)}</h3>
+                <h3
+                  id="course-vocabulary-detail-title"
+                  className={cn('mt-2 font-black leading-tight text-[#172033]', vocabularyScript === 'romaji' ? 'text-3xl italic' : 'text-4xl')}
+                  lang={vocabularyScript === 'romaji' ? undefined : 'ja'}
+                >
+                  {getVocabularyScriptText(vocabulary, vocabularyScript)}
+                </h3>
                 <div className="mt-1.5 flex flex-wrap items-center gap-2">
                   <p className="text-sm font-black text-orange-700">/{vocabulary.pronunciation}/</p>
                   <button
@@ -968,6 +1069,29 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, onAudio, onClos
                 <p className="mt-1 text-xl font-black leading-snug text-[#172033]">{vocabulary.meaning}</p>
               </section>
 
+              {/* Luôn liệt kê đủ dạng chữ có sẵn, không phụ thuộc chế độ đang chọn. */}
+              <section className="rounded-2xl bg-white px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#95a0af]">Chữ viết</p>
+                <dl className="mt-1.5 space-y-1">
+                  {vocabulary.kanji && (
+                    <div className="flex items-baseline gap-3">
+                      <dt className="w-14 shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Kanji</dt>
+                      <dd className="text-lg font-black text-[#172033]" lang="ja">{vocabulary.kanji}</dd>
+                    </div>
+                  )}
+                  {vocabulary.kana && (
+                    <div className="flex items-baseline gap-3">
+                      <dt className="w-14 shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Kana</dt>
+                      <dd className="text-lg font-black text-[#172033]" lang="ja">{vocabulary.kana}</dd>
+                    </div>
+                  )}
+                  <div className="flex items-baseline gap-3">
+                    <dt className="w-14 shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Romaji</dt>
+                    <dd className="text-lg font-black italic text-[#172033]">{getVocabularyDisplayName(vocabulary)}</dd>
+                  </div>
+                </dl>
+              </section>
+
               {vocabulary.explanation && (
                 <section className="rounded-2xl bg-white px-4 py-3">
                   <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#95a0af]">
@@ -983,7 +1107,15 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, onAudio, onClos
                   <MessageSquareQuote size={13} aria-hidden="true" focusable="false" />
                   Ví dụ
                 </p>
-                <p className="mt-1.5 text-sm font-black leading-snug text-[#172033]">{vocabulary.example.jp}</p>
+                <p
+                  className={cn('mt-1.5 font-black leading-snug text-[#172033]', vocabularyScript === 'romaji' ? 'text-sm' : 'text-base')}
+                  lang={vocabularyScript === 'romaji' ? undefined : 'ja'}
+                >
+                  {getVocabularyExampleText(vocabulary, vocabularyScript)}
+                </p>
+                {vocabularyScript !== 'romaji' && (
+                  <p className="mt-1 text-xs font-bold italic leading-snug text-[#95a0af]">{vocabulary.example.jp}</p>
+                )}
                 <p className="mt-1 text-sm font-semibold leading-snug text-[#5f6b7c]">{vocabulary.example.vi}</p>
               </section>
 
