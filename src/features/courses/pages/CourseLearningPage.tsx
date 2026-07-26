@@ -5,7 +5,6 @@ import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/C
 import { DocumentsPanel, ExamsPanel, GamesPanel, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { ArrowLeft, Brain, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Home, Layers, Lightbulb, MessageSquareQuote, RotateCcw, Search, Sparkles, Volume2, X, Zap } from 'lucide-react';
 import {
-  type CourseDocumentItem,
   type CoursePodcastItem,
   type CourseReviewQuestion,
   type CourseVocabularyItem,
@@ -14,14 +13,19 @@ import {
   type VocabularyStatus,
 } from '@/src/features/courses/mock/courseLearningMock';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import {
+  type ReviewMode,
+  readStoredReviewMode,
+  readStoredVocabularyScript,
+  writeStoredReviewMode,
+  writeStoredVocabularyScript,
+} from '@/src/features/courses/lib/courseWorkspacePreferences';
 import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
-import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 
 type WorkspaceTab = 'vocabulary' | 'review' | 'documents' | 'games' | 'exams';
 type VocabularyFilter = 'all' | VocabularyStatus;
 type VocabularyViewMode = 'list' | 'flashcard';
-type ReviewMode = 'vocabulary' | 'questions';
 
 const workspaceTabs = [
   { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
@@ -79,18 +83,10 @@ const vocabularyScripts = [
   { id: 'kanji', label: '漢', name: 'Kanji' },
 ] satisfies Array<{ id: VocabularyScript; label: string; name: string }>;
 
-const VOCABULARY_SCRIPT_STORAGE_KEY = 'tokutei:vocabulary-script';
-
-/** Đọc lựa chọn kiểu chữ đã lưu. An toàn khi không có localStorage (test node, private mode). */
-function readStoredVocabularyScript(): VocabularyScript {
-  if (typeof window === 'undefined') return 'romaji';
-  try {
-    const stored = window.localStorage.getItem(VOCABULARY_SCRIPT_STORAGE_KEY);
-    return stored === 'kana' || stored === 'kanji' || stored === 'romaji' ? stored : 'romaji';
-  } catch {
-    return 'romaji';
-  }
-}
+const reviewModes = [
+  { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
+  { id: 'questions', label: 'Câu hỏi', icon: Brain },
+] satisfies Array<{ id: ReviewMode; label: string; icon: typeof Layers }>;
 
 /** Chữ chính của từ theo chế độ đang chọn. Thiếu dữ liệu thì rơi dần kanji → kana → romaji. */
 function getVocabularyScriptText(item: CourseVocabularyItem, script: VocabularyScript): string {
@@ -113,10 +109,6 @@ function getVocabularyExampleText(item: CourseVocabularyItem, script: Vocabulary
 }
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
-
-function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
-  return documents[0];
-}
 
 function getInitialPodcast(podcasts: NonEmptyArray<CoursePodcastItem>): CoursePodcastItem {
   return podcasts[0];
@@ -143,17 +135,15 @@ export default function CourseLearningWorkspace() {
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [selectedVocabularyId, setSelectedVocabularyId] = useState(vocabulary[0]?.id ?? '');
   const [detailVocabularyId, setDetailVocabularyId] = useState<string | null>(null);
-  const [reviewMode, setReviewMode] = useState<ReviewMode>('vocabulary');
+  const [reviewMode, setReviewMode] = useState<ReviewMode>(readStoredReviewMode);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [vocabularyQuestionIndex, setVocabularyQuestionIndex] = useState(0);
   const [selectedVocabularyAnswer, setSelectedVocabularyAnswer] = useState<string | null>(null);
-  const [selectedDocumentId, setSelectedDocumentId] = useState(getInitialDocument(documents).id);
-  const [activeGameType, setActiveGameType] = useState<CourseGameType>('flappy-vocab');
+  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
   const [activePodcastId, setActivePodcastId] = useState(getInitialPodcast(podcasts).id);
   const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
-  const [isReviewModeDialogOpen, setIsReviewModeDialogOpen] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
   const vocabularyAudioTimerRef = useRef<number | null>(null);
 
@@ -199,7 +189,6 @@ export default function CourseLearningWorkspace() {
   const detailVocabulary = detailVocabularyId ? vocabulary.find((item) => item.id === detailVocabularyId) ?? null : null;
   const activeQuestion = reviewQuestions[questionIndex] ?? reviewQuestions[0];
   const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
-  const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? getInitialDocument(documents);
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? getInitialPodcast(podcasts);
   const isAnswerCorrect = selectedAnswer === activeQuestion.answer;
   const dueVocabularyCount = vocabulary.filter((item) => item.status === 'due').length;
@@ -215,17 +204,16 @@ export default function CourseLearningWorkspace() {
     setVocabularySearchQuery('');
     setSelectedVocabularyId(vocabulary[0]?.id ?? '');
     setDetailVocabularyId(null);
-    setReviewMode('vocabulary');
+    // Chế độ ôn tập giữ theo lựa chọn đã lưu, không ép về từ vựng mỗi lần đổi khóa.
+    setReviewMode(readStoredReviewMode());
     setQuestionIndex(0);
     setSelectedAnswer(null);
     setVocabularyQuestionIndex(0);
     setSelectedVocabularyAnswer(null);
-    setSelectedDocumentId(getInitialDocument(documents).id);
-    setActiveGameType('flappy-vocab');
+    setExpandedDocumentId(null);
     setIsPodcastOpen(false);
     setActivePodcastId(getInitialPodcast(podcasts).id);
     setIsPodcastPlaying(false);
-    setIsReviewModeDialogOpen(false);
     setHeardVocabularyId(null);
 
     if (vocabularyAudioTimerRef.current !== null) {
@@ -275,14 +263,10 @@ export default function CourseLearningWorkspace() {
     }, 1200);
   };
 
-  const handleOpenReviewModeDialog = () => {
-    setIsReviewModeDialogOpen(true);
-  };
-
-  const handleReviewModeSelect = (mode: ReviewMode) => {
+  // Đổi chế độ ngay trong panel Ôn tập và nhớ cho lần sau — không còn modal chặn giữa đường.
+  const handleReviewModeChange = (mode: ReviewMode) => {
     setReviewMode(mode);
-    setActiveTab('review');
-    setIsReviewModeDialogOpen(false);
+    writeStoredReviewMode(mode);
 
     if (mode === 'vocabulary') {
       setSelectedVocabularyAnswer(null);
@@ -292,13 +276,8 @@ export default function CourseLearningWorkspace() {
     setSelectedAnswer(null);
   };
 
-  const handleWorkspaceTabSelect = (tab: WorkspaceTab) => {
-    if (tab === 'review') {
-      handleOpenReviewModeDialog();
-      return;
-    }
-
-    setActiveTab(tab);
+  const handleToggleDocument = (documentId: string) => {
+    setExpandedDocumentId((currentId) => (currentId === documentId ? null : documentId));
   };
 
   const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: WorkspaceTab) => {
@@ -328,11 +307,7 @@ export default function CourseLearningWorkspace() {
 
   const handleVocabularyScriptChange = (script: VocabularyScript) => {
     setVocabularyScript(script);
-    try {
-      window.localStorage.setItem(VOCABULARY_SCRIPT_STORAGE_KEY, script);
-    } catch {
-      // Trình duyệt chặn storage (private mode) — vẫn đổi được trong phiên, chỉ không nhớ lần sau.
-    }
+    writeStoredVocabularyScript(script);
   };
 
   const handleExitWorkspace = () => {
@@ -382,7 +357,7 @@ export default function CourseLearningWorkspace() {
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
               {workspaceTabs.map((tab) => (
                 <div key={tab.id} className="min-w-0" role="presentation">
-                  <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
+                  <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={setActiveTab} compact />
                 </div>
               ))}
             </div>
@@ -412,24 +387,25 @@ export default function CourseLearningWorkspace() {
               {activeTab === 'review' && (
                 <ReviewPanel
                   activeQuestion={reviewQuestion}
+                  questionCount={reviewQuestionsCount}
                   questionIndex={reviewQuestionIndex}
+                  reviewMode={reviewMode}
                   selectedAnswer={reviewSelectedAnswer}
                   onAnswer={reviewMode === 'vocabulary' ? setSelectedVocabularyAnswer : setSelectedAnswer}
                   onNext={reviewMode === 'vocabulary' ? handleVocabularyQuestionNext : handleQuestionNext}
+                  onReviewModeChange={handleReviewModeChange}
                 />
               )}
-              {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
+              {activeTab === 'documents' && <DocumentsPanel documents={documents} expandedDocumentId={expandedDocumentId} onToggleDocument={handleToggleDocument} />}
               {activeTab === 'games' && (
                 <GamesPanel
-                  activeGameType={activeGameType}
                   courseId={course.id}
                   courseTitle={course.title}
                   vocabulary={vocabulary}
                   reviewQuestions={reviewQuestions}
-                  onSelectGame={setActiveGameType}
                 />
               )}
-              {activeTab === 'exams' && <ExamsPanel courseId={course.id} exams={exams} />}
+              {activeTab === 'exams' && <ExamsPanel exams={exams} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -446,12 +422,6 @@ export default function CourseLearningWorkspace() {
         onTogglePlay={() => setIsPodcastPlaying((currentValue) => !currentValue)}
       />
       </div>
-      <ReviewModeDialog
-        isOpen={isReviewModeDialogOpen}
-        currentMode={reviewMode}
-        onClose={() => setIsReviewModeDialogOpen(false)}
-        onSelectMode={handleReviewModeSelect}
-      />
       <VocabularyDetailDialog
         heardVocabularyId={heardVocabularyId}
         vocabulary={detailVocabulary}
@@ -460,159 +430,6 @@ export default function CourseLearningWorkspace() {
         onClose={() => setDetailVocabularyId(null)}
       />
     </>
-  );
-}
-
-interface ReviewModeDialogProps {
-  currentMode: ReviewMode;
-  isOpen: boolean;
-  onClose: () => void;
-  onSelectMode: (mode: ReviewMode) => void;
-}
-
-function ReviewModeDialog({ currentMode, isOpen, onClose, onSelectMode }: ReviewModeDialogProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const onCloseRef = useRef(onClose);
-
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      if (previousFocusRef.current?.isConnected) {
-        previousFocusRef.current.focus();
-      }
-      previousFocusRef.current = null;
-      return;
-    }
-
-    if (!previousFocusRef.current) {
-      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    }
-
-    closeButtonRef.current?.focus();
-
-    const backgroundElement = document.querySelector<HTMLElement>('[data-course-workspace-background]');
-    backgroundElement?.setAttribute('inert', '');
-    backgroundElement?.setAttribute('aria-hidden', 'true');
-
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onCloseRef.current();
-        return;
-      }
-
-      if (event.key !== 'Tab' || !dialogRef.current) return;
-
-      const focusableElements = Array.from(
-        dialogRef.current.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
-      ).filter((element): element is HTMLElement => element instanceof HTMLElement && element.offsetParent !== null);
-
-      if (focusableElements.length === 0) return;
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-
-      if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault();
-        lastElement.focus();
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault();
-        firstElement.focus();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      backgroundElement?.removeAttribute('inert');
-      backgroundElement?.removeAttribute('aria-hidden');
-    };
-  }, [isOpen]);
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-[90] flex items-end bg-gray-950/32 px-3 pb-[calc(5.8rem+env(safe-area-inset-bottom))] pt-12 backdrop-blur-sm md:items-center md:justify-center md:p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="review-mode-dialog-title"
-            aria-describedby="review-mode-dialog-description"
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-md rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_30px_80px_-36px_rgba(17,24,39,0.42)]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Chọn chế độ ôn tập</p>
-                <h3 id="review-mode-dialog-title" className="mt-2 text-2xl font-black tracking-[-0.04em] text-gray-900">Anh muốn ôn theo dạng nào?</h3>
-                <p id="review-mode-dialog-description" className="mt-2 text-sm font-semibold leading-relaxed text-[#5f6b7c]">
-                  Chọn 1 chế độ để vào đúng bộ câu hỏi của phần ôn tập.
-                </p>
-              </div>
-              <button ref={closeButtonRef} onClick={onClose} className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-gray-500 shadow-sm', focusRing)} aria-label="Đóng chọn chế độ ôn tập">
-                <X size={18} aria-hidden="true" focusable="false" />
-              </button>
-            </div>
-
-            <div className="mt-5 grid gap-3">
-              {[
-                {
-                  id: 'vocabulary' as ReviewMode,
-                  title: 'Ôn từ vựng',
-                  description: 'Làm câu hỏi nghĩa của từ đang học trong khóa.',
-                  icon: Layers,
-                },
-                {
-                  id: 'questions' as ReviewMode,
-                  title: 'Ôn câu hỏi',
-                  description: 'Làm bộ câu hỏi kiến thức tổng hợp của khóa.',
-                  icon: Brain,
-                },
-              ].map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => onSelectMode(option.id)}
-                  className={cn(
-                    'w-full rounded-[1.6rem] border px-4 py-4 text-left transition-all',
-                    currentMode === option.id ? 'border-orange-200 bg-orange-50 shadow-[0_18px_36px_-30px_rgba(201,106,27,0.24)]' : 'border-[#e6ddd1] bg-white hover:border-orange-200 hover:bg-orange-50/50',
-                    focusRing
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl', currentMode === option.id ? 'bg-orange-700 text-white' : 'bg-orange-50 text-orange-700')}>
-                      <option.icon size={22} aria-hidden="true" focusable="false" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-base font-black text-[#172033]">{option.title}</span>
-                        {currentMode === option.id && <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-orange-700">Đang chọn</span>}
-                      </div>
-                      <p className="mt-1 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{option.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
 
@@ -638,8 +455,7 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
     <div className="workspace-panel space-y-3 rounded-[2.25rem] p-3.5 md:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Từ vựng khóa học</p>
-          <h3 className="mt-0.5 font-[var(--font-heading)] text-lg font-black leading-tight tracking-[-0.03em] text-[#172033] md:text-xl">
+          <h3 className="font-[var(--font-heading)] text-lg font-black leading-tight tracking-[-0.03em] text-[#172033] md:text-xl">
             Ưu tiên {dueCount} từ cần ôn hôm nay
           </h3>
         </div>
@@ -1147,13 +963,16 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, vocabularyScrip
 
 interface ReviewPanelProps {
   activeQuestion: CourseReviewQuestion;
+  questionCount: number;
   questionIndex: number;
+  reviewMode: ReviewMode;
   selectedAnswer: string | null;
   onAnswer: (answer: string) => void;
   onNext: () => void;
+  onReviewModeChange: (mode: ReviewMode) => void;
 }
 
-function ReviewPanel({ activeQuestion, questionIndex, selectedAnswer, onAnswer, onNext }: ReviewPanelProps) {
+function ReviewPanel({ activeQuestion, questionCount, questionIndex, reviewMode, selectedAnswer, onAnswer, onNext, onReviewModeChange }: ReviewPanelProps) {
   const answerFeedback = selectedAnswer
     ? `Đã chọn ${selectedAnswer}. ${selectedAnswer === activeQuestion.answer ? 'Đúng' : `Đáp án đúng là ${activeQuestion.answer}`}.`
     : '';
@@ -1199,10 +1018,37 @@ function ReviewPanel({ activeQuestion, questionIndex, selectedAnswer, onAnswer, 
   };
 
   return (
-    <div className="rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_24px_52px_-40px_rgba(148,163,184,0.2)] md:p-7">
+    <div className="rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-3.5 shadow-[0_24px_52px_-40px_rgba(148,163,184,0.2)] md:p-6">
       <p className="sr-only" role="status" aria-live="polite">{answerFeedback}</p>
-      <div className="rounded-[2rem] border border-orange-100 bg-orange-50/55 p-5 md:p-6">
-        <p className="text-xl font-black leading-snug text-gray-900 md:text-[1.65rem]">{activeQuestion.prompt}</p>
+
+      {/* Đổi chế độ ngay tại đây — cùng kiểu segmented như Danh sách/Flashcard bên tab Từ vựng. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div role="tablist" aria-label="Chế độ ôn tập" className="flex shrink-0 gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1">
+          {reviewModes.map((mode) => {
+            const isActive = reviewMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onReviewModeChange(mode.id)}
+                className={cn(
+                  'flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-xs font-black transition-colors',
+                  isActive ? 'bg-orange-700 text-white shadow-[0_12px_24px_-18px_rgba(201,106,27,0.5)]' : 'text-[#5f6b7c] hover:bg-orange-50',
+                  focusRing
+                )}
+              >
+                <mode.icon size={15} aria-hidden="true" focusable="false" />
+                {mode.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="px-1 text-xs font-black text-[#8b93a1]">Câu {Math.min(questionIndex + 1, questionCount)}/{questionCount}</p>
+      </div>
+
+      <div className="mt-3 rounded-[2rem] border border-orange-100 bg-orange-50/55 p-4 md:p-6">
+        <p className="text-lg font-black leading-snug text-gray-900 md:text-[1.65rem]">{activeQuestion.prompt}</p>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2" role="radiogroup" aria-label={activeQuestion.prompt}>

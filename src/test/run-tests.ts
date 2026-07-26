@@ -1,6 +1,7 @@
 import '@/src/features/admin/lib/adminDashboardModel.test';
 import '@/src/features/admin/repositories/adminOverviewRepository.test';
 import '@/src/features/auth/lib/authRouteDecisions.test';
+import '@/src/features/courses/lib/courseWorkspacePreferences.test';
 import '@/src/features/courses/repositories/coursesRepository.test';
 import '@/src/features/courses/repositories/courseLearningRepository.test';
 import '@/src/features/supabase/lib/seedValidation.test';

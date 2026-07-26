@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bird, BookOpen, BrainCircuit, FileText, Headphones, MessageSquareText, Play, Search, Sparkles, Target, type LucideIcon } from 'lucide-react';
+import { Bird, BookOpen, BrainCircuit, ChevronDown, FileText, Headphones, MessageSquareText, Play, Search, Sparkles, Target, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseDocumentKind,
@@ -85,13 +85,13 @@ export function MetricCard({ label, value, sub, tone }: MetricCardProps) {
 
 interface DocumentsPanelProps {
   documents: CourseDocumentItem[];
-  selectedDocument: CourseDocumentItem;
-  onSelectDocument: (documentId: string) => void;
+  expandedDocumentId: string | null;
+  onToggleDocument: (documentId: string) => void;
 }
 
 type DocumentFilter = 'all' | CourseDocumentKind;
 
-export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }: DocumentsPanelProps) {
+export function DocumentsPanel({ documents, expandedDocumentId, onToggleDocument }: DocumentsPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [documentFilter, setDocumentFilter] = useState<DocumentFilter>('all');
 
@@ -120,13 +120,8 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
   }, [documentFilter, documents, searchQuery]);
 
   return (
-    <div className="workspace-panel space-y-4 rounded-[2rem] p-4 md:p-5">
-      <div className="space-y-4">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Tài liệu trong khóa</p>
-          <h3 className={cn('mt-1 text-2xl font-black', headingClass)}>Đọc nhanh PDF và bài đăng</h3>
-        </div>
-
+    <div className="workspace-panel space-y-3 rounded-[2rem] p-3.5 md:p-5">
+      <div className="space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <label className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl border border-[#e6ddd1] bg-white px-4 py-2.5 text-sm font-bold text-[#5f6b7c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
             <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
@@ -162,41 +157,49 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
         </div>
       </div>
 
-      <div className="space-y-4">
+      <p className="px-1 text-xs font-black text-[#8b93a1]" role="status" aria-live="polite">{filteredDocuments.length} tài liệu</p>
+
+      <div className="space-y-2">
         {filteredDocuments.length > 0 ? filteredDocuments.map((document) => {
           const Icon = getDocumentIcon(document);
-          const isSelected = selectedDocument.id === document.id;
+          const isExpanded = expandedDocumentId === document.id;
+          const panelId = `course-document-preview-${document.id}`;
 
           return (
-            <button key={document.id} onClick={() => onSelectDocument(document.id)} aria-current={isSelected ? 'true' : undefined} className={cn('workspace-item w-full rounded-[1.75rem] p-4 text-left transition-all hover:border-orange-200 hover:bg-orange-50/35', isSelected ? 'border-orange-200 bg-orange-50/55 shadow-[0_20px_42px_-34px_rgba(201,106,27,0.35)]' : '', focusRing)}>
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#eadccc] bg-white text-orange-700 shadow-[0_12px_24px_-20px_rgba(99,71,42,0.3)]">
-                  <Icon size={23} aria-hidden="true" focusable="false" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="workspace-chip rounded-full px-2 py-0.5 text-[10px] font-black">{document.kind}</span>
-                    <span className="rounded-full bg-[#eef1ff] px-2 py-0.5 text-[10px] font-black text-[#6f4aa8]">{document.module}</span>
-                  </div>
-                  <h4 className={cn('mt-2 text-base font-black leading-snug', headingClass)}>{document.title}</h4>
-                  <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">{document.publishedAt} • {document.readTime} • {document.size}</p>
-                </div>
-              </div>
-              <p className="mt-3 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{document.summary}</p>
-              {isSelected && (
-                <div className="mt-3 rounded-2xl border border-orange-100 bg-white px-4 py-3 md:hidden">
-                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-orange-700">Preview nhanh</p>
-                  <p className="mt-1 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{document.preview}</p>
+            <div key={document.id} className={cn('workspace-item rounded-[1.5rem] transition-colors', isExpanded ? 'border-orange-200 bg-orange-50/45' : '')}>
+              <button
+                type="button"
+                onClick={() => onToggleDocument(document.id)}
+                aria-expanded={isExpanded}
+                aria-controls={panelId}
+                className={cn('flex w-full items-center gap-3 rounded-[1.5rem] p-3 text-left transition-colors hover:bg-orange-50/40', focusRing)}
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#eadccc] bg-white text-orange-700">
+                  <Icon size={20} aria-hidden="true" focusable="false" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cn('block truncate text-[0.95rem] font-black leading-snug', headingClass)}>{document.title}</span>
+                  <span className="mt-0.5 block truncate text-xs font-bold text-[#5f6b7c]">{document.kind} • {document.readTime} • {document.size}</span>
+                </span>
+                <span className={cn('flex min-h-11 shrink-0 items-center gap-1 rounded-xl px-2.5 text-[11px] font-black uppercase tracking-[0.1em]', isExpanded ? 'text-orange-700' : 'text-[#5f6b7c]')}>
+                  <span className="hidden sm:inline">{isExpanded ? 'Thu gọn' : 'Xem trước'}</span>
+                  <ChevronDown size={16} className={cn('transition-transform duration-200', isExpanded ? 'rotate-180' : '')} aria-hidden="true" focusable="false" />
+                </span>
+              </button>
+
+              {isExpanded && (
+                <div id={panelId} className="border-t border-orange-100 px-3 pb-3 pt-3">
+                  <p className="text-sm font-semibold leading-relaxed text-[#5f6b7c]">{document.preview}</p>
+                  {/* Bỏ tag trùng với loại tài liệu — dòng meta phía trên đã ghi PDF/Post rồi. */}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {document.tags.map((tag) => <span key={tag} className="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black text-orange-700">{tag}</span>)}
+                    {document.tags
+                      .filter((tag) => tag.toLowerCase() !== document.kind.toLowerCase())
+                      .map((tag) => <span key={tag} className="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black text-orange-700">{tag}</span>)}
                   </div>
+                  <p className="mt-3 text-xs font-bold text-[#95a0af]">Đây là phần xem trước. Bản đầy đủ đang được bổ sung.</p>
                 </div>
               )}
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
-                <span className="text-xs font-black text-[#5f6b7c]">Dữ liệu thuộc khóa hiện tại</span>
-                <span className="shrink-0 text-xs font-black uppercase tracking-[0.12em] text-orange-700">{isSelected ? 'Đang mở' : document.kind === 'PDF' ? 'Mở xem' : 'Đọc nhanh'}</span>
-              </div>
-            </button>
+            </div>
           );
         }) : (
           <div className="rounded-[1.5rem] border border-dashed border-[#e6ddd1] bg-[#fffdf8] p-6 text-center">
@@ -212,8 +215,6 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
 interface CourseGameCard {
   type: CourseGameType;
   title: string;
-  source: string;
-  description: string;
   rounds: number;
   duration: string;
   color: string;
@@ -228,8 +229,6 @@ function getAvailableCourseGames(vocabulary: CourseVocabularyItem[], reviewQuest
       {
         type: 'flappy-vocab',
         title: 'Flappy Vocab',
-        source: `${vocabulary.length} từ trong khóa`,
-        description: 'Bay qua thử thách và chọn đúng nghĩa của từ đang học trong khóa này.',
         rounds: vocabulary.length,
         duration: '2 phút',
         color: 'from-amber-500 to-orange-500',
@@ -238,8 +237,6 @@ function getAvailableCourseGames(vocabulary: CourseVocabularyItem[], reviewQuest
       {
         type: 'vocab-sprint',
         title: 'Vocab Sprint',
-        source: `${vocabulary.length} từ trong khóa`,
-        description: 'Chọn nghĩa đúng thật nhanh để củng cố nhóm từ vừa học.',
         rounds: vocabulary.length,
         duration: '1 phút',
         color: 'from-blue-500 to-cyan-500',
@@ -252,8 +249,6 @@ function getAvailableCourseGames(vocabulary: CourseVocabularyItem[], reviewQuest
     cards.push({
       type: 'situation-game',
       title: 'Tình huống',
-      source: `${reviewQuestions.length} câu ôn tập`,
-      description: 'Xử lý tình huống bằng câu hỏi review của chính khóa học này.',
       rounds: reviewQuestions.length,
       duration: '2 phút',
       color: 'from-emerald-500 to-teal-500',
@@ -265,19 +260,16 @@ function getAvailableCourseGames(vocabulary: CourseVocabularyItem[], reviewQuest
 }
 
 interface GamesPanelProps {
-  activeGameType: CourseGameType;
   courseId: string;
   courseTitle: string;
   vocabulary: CourseVocabularyItem[];
   reviewQuestions: CourseReviewQuestion[];
-  onSelectGame: (gameType: CourseGameType) => void;
 }
 
-export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, reviewQuestions, onSelectGame }: GamesPanelProps) {
+export function GamesPanel({ courseId, courseTitle, vocabulary, reviewQuestions }: GamesPanelProps) {
   const navigate = useNavigate();
   const setCourseGameContext = useCourseGameStore((state) => state.setCourseGameContext);
   const availableGames = useMemo(() => getAvailableCourseGames(vocabulary, reviewQuestions), [reviewQuestions, vocabulary]);
-  const activeGame = availableGames.find((game) => game.type === activeGameType) ?? availableGames[0];
   const lockedMessage = vocabulary.length < 4 ? `Cần ít nhất 4 từ trong khóa để mở game từ vựng. Hiện có ${vocabulary.length} từ.` : null;
 
   const handlePlay = (game: CourseGameCard) => {
@@ -292,7 +284,7 @@ export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, 
     navigate(`/app/game/${game.type}?courseId=${encodeURIComponent(courseId)}`);
   };
 
-  if (!activeGame) {
+  if (availableGames.length === 0) {
     return (
       <div className="workspace-panel rounded-[2rem] p-6 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-700">
@@ -306,122 +298,91 @@ export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, 
     );
   }
 
-  const ActiveIcon = activeGame.icon;
-
   return (
-    <div className="space-y-5">
-      <div className="relative hidden overflow-hidden rounded-[2.5rem] border border-[rgba(198,182,163,0.42)] bg-[linear-gradient(135deg,rgba(255,247,237,0.98)_0%,rgba(255,250,243,0.98)_56%,rgba(244,234,220,0.96)_100%)] p-6 shadow-[0_28px_58px_-40px_rgba(96,70,42,0.24)] md:block">
-        <div className="absolute right-0 top-0 h-full w-1/3 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.12),transparent_48%)]" />
-        <div className="relative z-10 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="flex items-start gap-4">
-            <div className={cn('flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-[0_18px_34px_-24px_rgba(99,71,42,0.38)]', activeGame.color)}>
-              <ActiveIcon size={28} aria-hidden="true" focusable="false" />
-            </div>
-            <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-700">Game tạo từ dữ liệu khóa này</p>
-            <h3 className="mt-2 font-[var(--font-heading)] text-3xl font-black tracking-[-0.04em] text-[#172033] md:text-4xl">{activeGame.title}</h3>
-            <p className="mt-3 max-w-xl text-sm font-semibold leading-relaxed text-[#5f6b7c]">{activeGame.description}</p>
-            <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-[#8b6d50]">{activeGame.source} • {activeGame.rounds} vòng</p>
-            </div>
-          </div>
-          <button type="button" onClick={() => handlePlay(activeGame)} className={cn('inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-700 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_32px_-22px_rgba(249,115,22,0.5)] transition-transform hover:scale-[1.02]', focusRing)} aria-label={`Chơi game ${activeGame.title}`}>
-            <Play size={15} aria-hidden="true" focusable="false" />
-            Chơi ngay
-          </button>
-        </div>
-      </div>
+    <div className="workspace-panel space-y-3 rounded-[2rem] p-3.5 md:p-5">
+      {/* Nguồn dữ liệu giống nhau ở mọi game nên nói một lần ở đây, không lặp trong từng thẻ. */}
+      <p className="px-1 text-xs font-black text-[#8b93a1]">Dữ liệu khóa này • {vocabulary.length} từ • {reviewQuestions.length} câu ôn</p>
 
-      <div className="workspace-panel rounded-[2rem] p-4 md:p-5">
-        <div className="mb-4 md:hidden">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Game từ dữ liệu khóa</p>
-          <h3 className={cn('mt-1 text-2xl font-black', headingClass)}>Chọn 1 game để luyện nhanh</h3>
-        </div>
+      <ul className="space-y-2">
+        {availableGames.map((game) => {
+          const Icon = game.icon;
 
-        <div className="grid gap-3 md:grid-cols-2">
-          {availableGames.map((game) => {
-            const Icon = game.icon;
-            const isActive = activeGame.type === game.type;
+          return (
+            <li key={game.type}>
+              <button
+                type="button"
+                onClick={() => handlePlay(game)}
+                className={cn('workspace-item flex w-full items-center gap-3 rounded-[1.5rem] p-3 text-left transition-colors hover:border-orange-200 hover:bg-orange-50/40', focusRing)}
+                aria-label={`Chơi ${game.title}, ${game.rounds} vòng, ${game.duration}`}
+              >
+                <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white', game.color)}>
+                  <Icon size={20} aria-hidden="true" focusable="false" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={cn('block truncate text-[0.95rem] font-black leading-snug', headingClass)}>{game.title}</span>
+                  <span className="mt-0.5 block truncate text-xs font-bold text-[#5f6b7c]">{game.rounds} vòng • {game.duration}</span>
+                </span>
+                <span className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-orange-700 px-3.5 text-[11px] font-black uppercase tracking-[0.1em] text-white">
+                  <Play size={13} aria-hidden="true" focusable="false" />
+                  Chơi
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
-            return (
-              <div key={game.type} aria-current={isActive ? 'true' : undefined} className={cn('workspace-item rounded-[1.75rem] p-4 transition-all md:p-5', isActive ? 'border-orange-200 bg-orange-50/55 shadow-[0_20px_42px_-34px_rgba(201,106,27,0.35)]' : '')}>
-                <button type="button" onClick={() => onSelectGame(game.type)} className={cn('w-full rounded-2xl text-left', focusRing)}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 gap-3">
-                      <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white', game.color)}>
-                        <Icon size={22} aria-hidden="true" focusable="false" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className={cn('text-lg font-black leading-snug', headingClass)}>{game.title}</h4>
-                      <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{game.description}</p>
-                      </div>
-                    </div>
-                    <span className="workspace-chip shrink-0 rounded-full px-3 py-1 text-[10px] font-black text-orange-700">{game.rounds} vòng</span>
-                  </div>
-                  <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs font-black text-[#5f6b7c]">Nguồn: {game.source}</p>
-                </button>
-                <div className="mt-3 grid grid-cols-[1fr_1fr_auto] items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-                  <span>
-                    <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Điểm tốt</span>
-                    <span className="text-base font-black text-[#172033]">Theo khóa</span>
-                  </span>
-                  <span>
-                    <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#95a0af]">Thời gian</span>
-                    <span className="text-base font-black text-[#172033]">{game.duration}</span>
-                  </span>
-                  <button type="button" onClick={() => handlePlay(game)} className={cn('rounded-2xl bg-orange-700 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-white', focusRing)} aria-label={`Chơi game ${game.title}`}>
-                    Chơi
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        {lockedMessage && <p className="mt-4 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-xs font-bold text-orange-700">{lockedMessage}</p>}
-      </div>
+      {lockedMessage && <p className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3 text-xs font-bold text-orange-700">{lockedMessage}</p>}
     </div>
   );
 }
 
 interface ExamsPanelProps {
-  courseId: string;
   exams: NonEmptyArray<CourseExamItem>;
 }
 
-export function ExamsPanel({ courseId, exams }: ExamsPanelProps) {
-  const statusLabels = {
-    ready: 'Sẵn sàng',
-    in_progress: 'Đang làm dở',
-    completed: 'Đã hoàn thành',
-  } satisfies Record<CourseExamItem['status'], string>;
+const examStatusLabels = {
+  ready: 'Sẵn sàng',
+  in_progress: 'Đang làm dở',
+  completed: 'Đã hoàn thành',
+} satisfies Record<CourseExamItem['status'], string>;
 
+const examStatusClasses = {
+  ready: 'bg-orange-50 text-orange-700',
+  in_progress: 'bg-blue-50 text-blue-700',
+  completed: 'bg-emerald-50 text-emerald-700',
+} satisfies Record<CourseExamItem['status'], string>;
+
+export function ExamsPanel({ exams }: ExamsPanelProps) {
   return (
-    <div className="workspace-panel space-y-4 rounded-[2rem] p-4 md:p-5">
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Thi thử của khóa</p>
-        <h3 className={cn('mt-1 text-2xl font-black', headingClass)}>Làm đề theo đúng dữ liệu đang học</h3>
-      </div>
+    <div className="workspace-panel space-y-3 rounded-[2rem] p-3.5 md:p-5">
+      <p className="px-1 text-xs font-black text-[#8b93a1]">{exams.length} đề thi thử</p>
 
-      {exams.map((exam) => (
-        <div key={exam.id} className="workspace-item rounded-[1.75rem] p-4 md:p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#eef1ff] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#6f4aa8]">Khóa {courseId}</span>
-                <span className="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-orange-700">{exam.duration}</span>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">{statusLabels[exam.status]}</span>
-              </div>
-              <h4 className={cn('text-xl font-black leading-snug', headingClass)}>{exam.title}</h4>
-              <p className="text-sm font-semibold text-[#5f6b7c]">Kỹ năng: {exam.skills.join(' • ')}</p>
+      <ul className="space-y-2">
+        {exams.map((exam) => (
+          <li key={exam.id} className="workspace-item flex items-center gap-3 rounded-[1.5rem] p-3">
+            <div className="min-w-0 flex-1">
+              {/* Tiêu đề chiếm trọn dòng — chip trạng thái xuống dòng dưới để tên đề không bị cắt sớm. */}
+              <h4 className={cn('truncate text-[0.95rem] font-black leading-snug', headingClass)}>{exam.title}</h4>
+              <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#5f6b7c]">
+                <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black', examStatusClasses[exam.status])}>{examStatusLabels[exam.status]}</span>
+                <span className="truncate">
+                  {exam.duration}
+                  {exam.latestScore !== undefined ? ` • Gần nhất ${exam.latestScore}%` : ''}
+                </span>
+              </p>
+              <p className="mt-0.5 line-clamp-1 text-xs font-semibold text-[#8b93a1]">{exam.skills.join(' • ')}</p>
             </div>
-            <div className="grid gap-2 md:flex md:items-center md:gap-3">
-              {exam.latestScore !== undefined && <span className="rounded-2xl bg-emerald-50 px-4 py-3 text-center text-sm font-black text-emerald-700">Điểm gần nhất: {exam.latestScore}%</span>}
-              <Link to={exam.status === 'completed' ? `/app/exams/${exam.id}/result` : `/app/exams/${exam.id}/start`} className={cn('flex min-h-12 items-center justify-center rounded-2xl bg-orange-700 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_16px_32px_-22px_rgba(249,115,22,0.55)]', focusRing)} aria-label={exam.status === 'completed' ? `Xem kết quả ${exam.title}` : `Làm đề ${exam.title}`}>
-                {exam.status === 'completed' ? 'Xem kết quả' : 'Làm đề'}
-              </Link>
-            </div>
-          </div>
-        </div>
-      ))}
+            <Link
+              to={exam.status === 'completed' ? `/app/exams/${exam.id}/result` : `/app/exams/${exam.id}/start`}
+              className={cn('flex min-h-11 shrink-0 items-center rounded-xl bg-orange-700 px-3.5 text-[11px] font-black uppercase tracking-[0.1em] text-white', focusRing)}
+              aria-label={exam.status === 'completed' ? `Xem kết quả ${exam.title}` : `Làm đề ${exam.title}`}
+            >
+              {exam.status === 'completed' ? 'Kết quả' : 'Làm đề'}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
