@@ -71,7 +71,7 @@ export default function LessonPlayer() {
             >
               Ôn lại bài này
             </button>
-            <Link to={`/app/courses/${id ?? '1'}`} className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200">
+            <Link to={`/app/courses/${id ?? '1'}/learn`} className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200">
               Về khóa học
             </Link>
           </div>

@@ -265,12 +265,10 @@ export default function CourseLearningWorkspace() {
   };
 
   const handleExitWorkspace = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate(`/app/courses/${id ?? course.id}`);
+    // Luôn về danh sách khóa học. Workspace giờ là điểm vào trực tiếp (không còn trang
+    // giới thiệu ở giữa) nên navigate(-1) không còn đoán được đích: tùy nơi vào mà nó
+    // trả về dashboard, tìm kiếm, hoặc thậm chí ra ngoài app khi mở từ link ngoài.
+    navigate('/app/courses');
   };
 
   const handleGoHome = () => {
@@ -289,7 +287,7 @@ export default function CourseLearningWorkspace() {
                 <Home size={18} className="text-[#172033]" aria-hidden="true" focusable="false" />
                 <span>Home</span>
               </button>
-              <button onClick={handleExitWorkspace} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#5f6b7c] transition-colors hover:bg-[#f1ebe2] hover:text-[#172033] sm:px-3', focusRing)} aria-label="Quay lại trang khóa học">
+              <button onClick={handleExitWorkspace} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#5f6b7c] transition-colors hover:bg-[#f1ebe2] hover:text-[#172033] sm:px-3', focusRing)} aria-label="Quay lại danh sách khóa học">
                 <ArrowLeft size={18} aria-hidden="true" focusable="false" />
                 <span className="hidden sm:inline">Khóa học</span>
               </button>

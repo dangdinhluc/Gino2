@@ -210,7 +210,7 @@ export default function SearchPage() {
             {courseResults.map((course) => (
               <Link
                 key={course.id}
-                to={`/app/courses/${course.id}`}
+                to={`/app/courses/${course.id}/learn`}
                 className="group rounded-[1.5rem] border border-[#eee5d8] bg-[#fffaf3] px-4 py-3.5 transition-all hover:border-emerald-200 hover:bg-white"
               >
                 <div className="flex items-center justify-between gap-2">

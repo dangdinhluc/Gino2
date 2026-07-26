@@ -238,7 +238,7 @@ export default function CourseList() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
-                onClick={() => navigate(`/app/courses/${course.id}`)}
+                onClick={() => navigate(`/app/courses/${course.id}/learn`)}
                 className="group flex cursor-pointer flex-col overflow-hidden rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] shadow-[0_20px_48px_-38px_rgba(148,163,184,0.16)] transition-all hover:border-[#dccfbe] hover:shadow-[0_24px_52px_-36px_rgba(180,138,91,0.14)]"
               >
                 <div className="relative h-48 overflow-hidden">
