@@ -123,14 +123,14 @@ export function DocumentsPanel({ documents, expandedDocumentId, onToggleDocument
     <div className="workspace-panel space-y-3 rounded-[2rem] p-3.5 md:p-5">
       <div className="space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <label className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl border border-[#e6ddd1] bg-white px-4 py-2.5 text-sm font-bold text-[#5f6b7c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
+          <label className="flex min-h-12 flex-1 items-center gap-3 rounded-2xl border border-[#e6ddd1] bg-white px-4 text-sm font-bold text-[#5f6b7c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
             <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
             <span className="sr-only">Tìm kiếm tài liệu</span>
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Tìm theo tiêu đề, nội dung, tag..."
-              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#172033] outline-none placeholder:text-[#95a0af]"
+              className="min-w-0 flex-1 self-stretch bg-transparent text-sm font-bold text-[#172033] outline-none placeholder:text-[#95a0af]"
             />
           </label>
 

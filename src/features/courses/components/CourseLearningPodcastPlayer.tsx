@@ -7,6 +7,8 @@ import { cn } from '@/src/lib/utils';
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 interface CourseLearningPodcastPlayerProps {
+  /** Ẩn nút nổi khi học viên đang làm bài, tránh che nút thao tác chính. */
+  isLauncherHidden?: boolean;
   activePodcast: CoursePodcastItem;
   isOpen: boolean;
   isPlaying: boolean;
@@ -17,7 +19,7 @@ interface CourseLearningPodcastPlayerProps {
   onTogglePlay: () => void;
 }
 
-export function CourseLearningPodcastPlayer({ activePodcast, isOpen, isPlaying, podcasts, onClose, onOpen, onSelectPodcast, onTogglePlay }: CourseLearningPodcastPlayerProps) {
+export function CourseLearningPodcastPlayer({ activePodcast, isLauncherHidden = false, isOpen, isPlaying, podcasts, onClose, onOpen, onSelectPodcast, onTogglePlay }: CourseLearningPodcastPlayerProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -57,11 +59,13 @@ export function CourseLearningPodcastPlayer({ activePodcast, isOpen, isPlaying, 
 
   return (
     <>
+      {!isLauncherHidden && (
       <button ref={triggerRef} type="button" onClick={onOpen} className={cn('fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex min-h-11 items-center gap-2 rounded-full border border-orange-200 bg-orange-700 px-4 py-3 text-white shadow-[0_22px_44px_-24px_rgba(249,115,22,0.7)] md:bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:right-8 xl:bottom-[calc(7rem+env(safe-area-inset-bottom))] xl:right-8', focusRing)} aria-label="Mở podcast nổi" aria-haspopup="dialog" aria-expanded={isOpen} aria-controls="course-podcast-popover">
         <Headphones size={20} aria-hidden="true" focusable="false" />
         <span className="hidden text-xs font-black uppercase tracking-[0.12em] sm:inline">Podcast</span>
         <span className="h-2 w-2 rounded-full bg-emerald-300" />
       </button>
+      )}
 
       <AnimatePresence>
         {isOpen && (

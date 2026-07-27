@@ -3,16 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
 import { DocumentsPanel, ExamsPanel, GamesPanel, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, Brain, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Home, Layers, Lightbulb, MessageSquareQuote, RotateCcw, Search, Sparkles, Volume2, X, Zap } from 'lucide-react';
+import { CourseReviewSession } from '@/src/features/courses/components/CourseReviewSession';
+import { CourseWorkspaceHeader, DailyMissionCard } from '@/src/features/courses/components/CourseWorkspaceHeader';
+import { Brain, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, MessageSquareQuote, RotateCcw, Search, Sparkles, Volume2, X, Zap } from 'lucide-react';
 import {
   type CoursePodcastItem,
-  type CourseReviewQuestion,
   type CourseVocabularyItem,
   type NonEmptyArray,
   type VocabularyScript,
   type VocabularyStatus,
 } from '@/src/features/courses/mock/courseLearningMock';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { buildDailyMission, countReviewedToday } from '@/src/features/courses/lib/dailyMission';
+import { type VocabularyFilter, countByFilter, matchesVocabularyFilter, vocabularyFilters } from '@/src/features/courses/lib/vocabularyFilters';
+import { useProgressStore } from '@/src/features/courses/store/progressStore';
+import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import {
   type ReviewMode,
   readStoredReviewMode,
@@ -20,11 +25,9 @@ import {
   writeStoredReviewMode,
   writeStoredVocabularyScript,
 } from '@/src/features/courses/lib/courseWorkspacePreferences';
-import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
 import { cn } from '@/src/lib/utils';
 
 type WorkspaceTab = 'vocabulary' | 'review' | 'documents' | 'games' | 'exams';
-type VocabularyFilter = 'all' | VocabularyStatus;
 type VocabularyViewMode = 'list' | 'flashcard';
 
 const workspaceTabs = [
@@ -34,14 +37,6 @@ const workspaceTabs = [
   { id: 'games', label: 'Game', icon: Gamepad2 },
   { id: 'exams', label: 'Thi thử', icon: GraduationCap },
 ] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers }>;
-
-const vocabularyFilters = [
-  { id: 'all', label: 'Tất cả' },
-  { id: 'due', label: 'Cần ôn' },
-  { id: 'learning', label: 'Đang học' },
-  { id: 'new', label: 'Từ mới' },
-  { id: 'remembered', label: 'Đã nhớ' },
-] satisfies Array<{ id: VocabularyFilter; label: string }>;
 
 const statusLabels: Record<VocabularyStatus, string> = {
   new: 'Từ mới',
@@ -73,20 +68,15 @@ const statusTextClasses: Record<VocabularyStatus, string> = {
 };
 
 const vocabularyViewModes = [
-  { id: 'list', label: 'Danh sách', icon: Layers },
-  { id: 'flashcard', label: 'Flashcard', icon: Sparkles },
-] satisfies Array<{ id: VocabularyViewMode; label: string; icon: typeof Layers }>;
+  { id: 'list', label: 'Danh sách' },
+  { id: 'flashcard', label: 'Flashcard' },
+] satisfies Array<{ id: VocabularyViewMode; label: string }>;
 
 const vocabularyScripts = [
   { id: 'romaji', label: 'A', name: 'Romaji' },
   { id: 'kana', label: 'あ', name: 'Kana (hiragana/katakana)' },
   { id: 'kanji', label: '漢', name: 'Kanji' },
 ] satisfies Array<{ id: VocabularyScript; label: string; name: string }>;
-
-const reviewModes = [
-  { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
-  { id: 'questions', label: 'Câu hỏi', icon: Brain },
-] satisfies Array<{ id: ReviewMode; label: string; icon: typeof Layers }>;
 
 /** Chữ chính của từ theo chế độ đang chọn. Thiếu dữ liệu thì rơi dần kanji → kana → romaji. */
 function getVocabularyScriptText(item: CourseVocabularyItem, script: VocabularyScript): string {
@@ -118,11 +108,6 @@ function getVocabularyDisplayName(item: CourseVocabularyItem) {
   return item.article !== '—' ? `${item.article} ${item.word}` : item.word;
 }
 
-function buildQuizOptions(answer: string, pool: string[], limit = 4) {
-  const uniqueDistractors = pool.filter((option, index, options) => option !== answer && options.indexOf(option) === index);
-  return [answer, ...uniqueDistractors].slice(0, limit).sort((a, b) => a.localeCompare(b, 'vi'));
-}
-
 export default function CourseLearningWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -136,10 +121,6 @@ export default function CourseLearningWorkspace() {
   const [selectedVocabularyId, setSelectedVocabularyId] = useState(vocabulary[0]?.id ?? '');
   const [detailVocabularyId, setDetailVocabularyId] = useState<string | null>(null);
   const [reviewMode, setReviewMode] = useState<ReviewMode>(readStoredReviewMode);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [vocabularyQuestionIndex, setVocabularyQuestionIndex] = useState(0);
-  const [selectedVocabularyAnswer, setSelectedVocabularyAnswer] = useState<string | null>(null);
   const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
   const [activePodcastId, setActivePodcastId] = useState(getInitialPodcast(podcasts).id);
@@ -149,7 +130,7 @@ export default function CourseLearningWorkspace() {
 
   const filteredVocabulary = useMemo(() => {
     const normalizedQuery = vocabularySearchQuery.trim().toLowerCase();
-    const filteredByStatus = vocabularyFilter === 'all' ? vocabulary : vocabulary.filter((item) => item.status === vocabularyFilter);
+    const filteredByStatus = vocabulary.filter((item) => matchesVocabularyFilter(item.status, vocabularyFilter));
 
     if (!normalizedQuery) {
       return filteredByStatus;
@@ -171,32 +152,16 @@ export default function CourseLearningWorkspace() {
     });
   }, [vocabulary, vocabularyFilter, vocabularySearchQuery]);
 
-  const vocabularyQuizQuestions = useMemo(() => {
-    const meaningPool = vocabulary.map((item) => item.meaning);
-
-    return vocabulary.map((item) => ({
-      id: `vq-${item.id}`,
-      type: 'meaning',
-      prompt: `"${getVocabularyDisplayName(item)}" nghĩa là gì?`,
-      options: buildQuizOptions(item.meaning, meaningPool),
-      answer: item.meaning,
-      explanation: `${getVocabularyDisplayName(item)} nghĩa là "${item.meaning}". Ví dụ: ${item.example.jp}`,
-      source: `Từ vựng: ${item.module}`,
-    })) satisfies CourseReviewQuestion[];
-  }, [vocabulary]);
-
   const selectedVocabulary = filteredVocabulary.find((item) => item.id === selectedVocabularyId) ?? filteredVocabulary[0] ?? vocabulary[0];
   const detailVocabulary = detailVocabularyId ? vocabulary.find((item) => item.id === detailVocabularyId) ?? null : null;
-  const activeQuestion = reviewQuestions[questionIndex] ?? reviewQuestions[0];
-  const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? getInitialPodcast(podcasts);
-  const isAnswerCorrect = selectedAnswer === activeQuestion.answer;
   const dueVocabularyCount = vocabulary.filter((item) => item.status === 'due').length;
-  const reviewQuestion = reviewMode === 'vocabulary' ? activeVocabularyQuestion : activeQuestion;
-  const reviewSelectedAnswer = reviewMode === 'vocabulary' ? selectedVocabularyAnswer : selectedAnswer;
-  const isReviewAnswerCorrect = reviewSelectedAnswer === reviewQuestion.answer;
-  const reviewQuestionIndex = reviewMode === 'vocabulary' ? vocabularyQuestionIndex : questionIndex;
-  const reviewQuestionsCount = reviewMode === 'vocabulary' ? vocabularyQuizQuestions.length : reviewQuestions.length;
+
+  // Nhiệm vụ hôm nay lấy từ log SRS thật, không phải số bịa.
+  const streak = useProgressStore((state) => state.streak);
+  const reviewLog = useReviewStore((state) => state.log);
+  const reviewedToday = useMemo(() => countReviewedToday(reviewLog, course.id, Date.now()), [course.id, reviewLog]);
+  const mission = useMemo(() => buildDailyMission({ vocabulary, reviewedToday }), [reviewedToday, vocabulary]);
 
   useEffect(() => {
     setActiveTab('vocabulary');
@@ -206,10 +171,6 @@ export default function CourseLearningWorkspace() {
     setDetailVocabularyId(null);
     // Chế độ ôn tập giữ theo lựa chọn đã lưu, không ép về từ vựng mỗi lần đổi khóa.
     setReviewMode(readStoredReviewMode());
-    setQuestionIndex(0);
-    setSelectedAnswer(null);
-    setVocabularyQuestionIndex(0);
-    setSelectedVocabularyAnswer(null);
     setExpandedDocumentId(null);
     setIsPodcastOpen(false);
     setActivePodcastId(getInitialPodcast(podcasts).id);
@@ -230,27 +191,6 @@ export default function CourseLearningWorkspace() {
     };
   }, []);
 
-  const handleQuestionNext = () => {
-    if (selectedAnswer) {
-      void saveReviewAttempt(activeQuestion.id, selectedAnswer === activeQuestion.answer).catch((error: unknown) => {
-        if (import.meta.env.DEV) console.error('[course-review] Failed to save attempt', error);
-      });
-    }
-    setSelectedAnswer(null);
-    setQuestionIndex((currentIndex) => (currentIndex + 1) % reviewQuestions.length);
-  };
-
-  const handleVocabularyQuestionNext = () => {
-    if (selectedVocabularyAnswer) {
-      const vocabularyItem = vocabulary[vocabularyQuestionIndex] ?? vocabulary[0];
-      void saveVocabularyReview(vocabularyItem.id, selectedVocabularyAnswer === activeVocabularyQuestion.answer).catch((error: unknown) => {
-        if (import.meta.env.DEV) console.error('[vocabulary-review] Failed to save progress', error);
-      });
-    }
-    setSelectedVocabularyAnswer(null);
-    setVocabularyQuestionIndex((currentIndex) => (currentIndex + 1) % vocabularyQuizQuestions.length);
-  };
-
   const handleVocabularyAudio = (vocabularyId: string) => {
     if (vocabularyAudioTimerRef.current !== null) {
       window.clearTimeout(vocabularyAudioTimerRef.current);
@@ -267,13 +207,6 @@ export default function CourseLearningWorkspace() {
   const handleReviewModeChange = (mode: ReviewMode) => {
     setReviewMode(mode);
     writeStoredReviewMode(mode);
-
-    if (mode === 'vocabulary') {
-      setSelectedVocabularyAnswer(null);
-      return;
-    }
-
-    setSelectedAnswer(null);
   };
 
   const handleToggleDocument = (documentId: string) => {
@@ -326,33 +259,19 @@ export default function CourseLearningWorkspace() {
   return (
     <>
       <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(7.25rem+env(safe-area-inset-bottom))] md:space-y-6 md:pb-[calc(7.75rem+env(safe-area-inset-bottom))]">
-        <section className="sticky top-0 z-40 -mx-3 border-b border-[#eadfd2]/80 bg-[#fbf6ef]/95 px-4 py-2.5 backdrop-blur-xl">
-          <div className="mx-auto flex w-full max-w-[1120px] items-center gap-3">
-            <div className="flex shrink-0 items-center gap-1 rounded-2xl border border-[#eadfd2] bg-white/60 p-1">
-              <button onClick={handleGoHome} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#172033] transition-colors hover:bg-[#f1ebe2] sm:px-3', focusRing)} aria-label="Về trang chủ">
-                <Home size={18} className="text-[#172033]" aria-hidden="true" focusable="false" />
-                <span>Home</span>
-              </button>
-              <button onClick={handleExitWorkspace} className={cn('flex h-9 items-center justify-center gap-2 rounded-xl px-2 text-sm font-black text-[#5f6b7c] transition-colors hover:bg-[#f1ebe2] hover:text-[#172033] sm:px-3', focusRing)} aria-label="Quay lại danh sách khóa học">
-                <ArrowLeft size={18} aria-hidden="true" focusable="false" />
-                <span className="hidden sm:inline">Khóa học</span>
-              </button>
-            </div>
-            <div className="min-w-0 flex-1 pr-2">
-              <div className="flex min-w-0 items-baseline gap-2">
-                <h1 className="truncate font-[var(--font-heading)] text-sm font-black tracking-[-0.03em] text-[#172033] md:text-base">{course.title}</h1>
-                <span className="hidden shrink-0 text-[10px] font-black uppercase tracking-[0.14em] text-orange-700 sm:inline">{course.progress}%</span>
-              </div>
-              <p className="mt-0.5 truncate text-[10px] font-bold text-[#5f6b7c]">{course.currentModule}</p>
-              <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-orange-100">
-                <div className="h-full rounded-full bg-orange-700" style={{ width: `${Math.max(0, Math.min(100, course.progress))}%` }} />
-              </div>
-            </div>
-          </div>
-        </section>
+        <CourseWorkspaceHeader
+          courseTitle={course.title}
+          currentModule={course.currentModule}
+          progress={course.progress}
+          streak={streak}
+          onExit={handleExitWorkspace}
+          onGoHome={handleGoHome}
+        />
 
       <section className="mx-auto w-full max-w-[980px] space-y-5 xl:max-w-[1040px] 2xl:max-w-[1120px]">
-        <div className="space-y-5">
+        <div className="space-y-4">
+          {activeTab !== 'review' && <DailyMissionCard mission={mission} onStart={() => setActiveTab(mission.target)} />}
+
           <div className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 rounded-[1.7rem] border border-[rgba(198,182,163,0.5)] bg-[rgba(255,250,243,0.94)] p-2 shadow-[0_24px_60px_-34px_rgba(88,63,38,0.34)] backdrop-blur-xl md:inset-x-8 md:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:mx-auto md:max-w-3xl md:rounded-[2rem] lg:max-w-4xl xl:bottom-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
               {workspaceTabs.map((tab) => (
@@ -367,7 +286,7 @@ export default function CourseLearningWorkspace() {
             <motion.div key={activeTab} id={`course-workspace-panel-${activeTab}`} role="tabpanel" aria-labelledby={activeTabPanelLabelId} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
               {activeTab === 'vocabulary' && (
                 <VocabularyPanel
-                  dueCount={dueVocabularyCount}
+                  allVocabulary={vocabulary}
                   filteredVocabulary={filteredVocabulary}
                   heardVocabularyId={heardVocabularyId}
                   searchQuery={vocabularySearchQuery}
@@ -385,14 +304,12 @@ export default function CourseLearningWorkspace() {
                 />
               )}
               {activeTab === 'review' && (
-                <ReviewPanel
-                  activeQuestion={reviewQuestion}
-                  questionCount={reviewQuestionsCount}
-                  questionIndex={reviewQuestionIndex}
+                <CourseReviewSession
+                  courseId={course.id}
                   reviewMode={reviewMode}
-                  selectedAnswer={reviewSelectedAnswer}
-                  onAnswer={reviewMode === 'vocabulary' ? setSelectedVocabularyAnswer : setSelectedAnswer}
-                  onNext={reviewMode === 'vocabulary' ? handleVocabularyQuestionNext : handleQuestionNext}
+                  reviewQuestions={reviewQuestions}
+                  vocabulary={vocabulary}
+                  onFinish={() => setActiveTab('vocabulary')}
                   onReviewModeChange={handleReviewModeChange}
                 />
               )}
@@ -413,6 +330,7 @@ export default function CourseLearningWorkspace() {
 
       <CourseLearningPodcastPlayer
         activePodcast={activePodcast}
+        isLauncherHidden={activeTab === 'review'}
         isOpen={isPodcastOpen}
         isPlaying={isPodcastPlaying}
         podcasts={podcasts}
@@ -434,7 +352,7 @@ export default function CourseLearningWorkspace() {
 }
 
 interface VocabularyPanelProps {
-  dueCount: number;
+  allVocabulary: CourseVocabularyItem[];
   filteredVocabulary: CourseVocabularyItem[];
   heardVocabularyId: string | null;
   searchQuery: string;
@@ -448,19 +366,13 @@ interface VocabularyPanelProps {
   onSearchChange: (query: string) => void;
 }
 
-function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, searchQuery, selectedVocabulary, vocabularyFilter, vocabularyScript, onAudio, onFilterChange, onOpenVocabularyDetail, onScriptChange, onSearchChange }: VocabularyPanelProps) {
+function VocabularyPanel({ allVocabulary, filteredVocabulary, heardVocabularyId, searchQuery, selectedVocabulary, vocabularyFilter, vocabularyScript, onAudio, onFilterChange, onOpenVocabularyDetail, onScriptChange, onSearchChange }: VocabularyPanelProps) {
   const [viewMode, setViewMode] = useState<VocabularyViewMode>('list');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <div className="workspace-panel space-y-3 rounded-[2.25rem] p-3.5 md:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-[var(--font-heading)] text-lg font-black leading-tight tracking-[-0.03em] text-[#172033] md:text-xl">
-            Ưu tiên {dueCount} từ cần ôn hôm nay
-          </h3>
-        </div>
-
-        <div className="flex w-full items-center justify-between gap-2 md:w-auto md:justify-end">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <div role="tablist" aria-label="Chế độ học từ vựng" className="flex shrink-0 gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1">
             {vocabularyViewModes.map((mode) => {
               const isActive = viewMode === mode.id;
@@ -471,12 +383,11 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
                   aria-selected={isActive}
                   onClick={() => setViewMode(mode.id)}
                   className={cn(
-                    'flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-xs font-black transition-colors',
+                    'flex min-h-11 items-center rounded-xl px-3 text-xs font-black transition-colors',
                     isActive ? 'bg-orange-700 text-white shadow-[0_12px_24px_-18px_rgba(201,106,27,0.5)]' : 'text-[#5f6b7c] hover:bg-orange-50',
                     focusRing
                   )}
                 >
-                  <mode.icon size={15} aria-hidden="true" focusable="false" />
                   {mode.label}
                 </button>
               );
@@ -493,7 +404,7 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
                   aria-pressed={isActive}
                   title={script.name}
                   className={cn(
-                    'flex h-11 w-9 items-center justify-center rounded-xl text-sm font-black leading-none transition-colors',
+                    'flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black leading-none transition-colors',
                     isActive ? 'bg-[#6f4aa8] text-white' : 'text-[#5f6b7c] hover:bg-[#f3eefb]',
                     focusRing
                   )}
@@ -505,28 +416,43 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
             })}
           </div>
         </div>
-      </div>
 
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5">
+        <div className="flex flex-1 gap-1.5 overflow-x-auto no-scrollbar">
         {vocabularyFilters.map((filter) => (
           <button
             key={filter.id}
             onClick={() => onFilterChange(filter.id)}
             aria-current={vocabularyFilter === filter.id ? 'true' : undefined}
             className={cn(
-              'min-h-11 whitespace-nowrap rounded-full border px-3 text-xs font-black transition-colors',
+              'flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 text-xs font-black transition-colors',
               vocabularyFilter === filter.id ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-[#e6ddd1] bg-white text-[#5f6b7c] hover:bg-orange-50',
               focusRing
             )}
           >
             {filter.label}
+            <span className="text-[11px] opacity-55">{countByFilter(allVocabulary, filter.id)}</span>
           </button>
         ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen((current) => !current)}
+          aria-expanded={isSearchOpen}
+          aria-label={isSearchOpen ? 'Đóng tìm kiếm từ vựng' : 'Tìm kiếm từ vựng'}
+          className={cn(
+            'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors',
+            isSearchOpen || searchQuery ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-[#e6ddd1] bg-white text-[#5f6b7c] hover:bg-orange-50',
+            focusRing
+          )}
+        >
+          <Search size={17} aria-hidden="true" focusable="false" />
+        </button>
       </div>
 
-      {viewMode === 'list' ? (
-        <>
-          <label className="flex min-h-11 items-center gap-2.5 rounded-2xl border border-[#e6ddd1] bg-white px-3.5 text-sm font-bold text-[#5f6b7c] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
+      {isSearchOpen && (
+        <label className="flex min-h-11 items-center gap-2.5 rounded-2xl border border-[#e6ddd1] bg-white px-3.5 text-sm font-bold text-[#5f6b7c] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
             <Search size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
             <span className="sr-only">Tìm kiếm từ vựng</span>
             <input
@@ -540,7 +466,11 @@ function VocabularyPanel({ dueCount, filteredVocabulary, heardVocabularyId, sear
                 <X size={15} aria-hidden="true" focusable="false" />
               </button>
             )}
-          </label>
+        </label>
+      )}
+
+      {viewMode === 'list' ? (
+        <>
 
           {filteredVocabulary.length > 0 ? (
             <ul className="space-y-1.5">
@@ -958,133 +888,5 @@ function VocabularyDetailDialog({ heardVocabularyId, vocabulary, vocabularyScrip
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-interface ReviewPanelProps {
-  activeQuestion: CourseReviewQuestion;
-  questionCount: number;
-  questionIndex: number;
-  reviewMode: ReviewMode;
-  selectedAnswer: string | null;
-  onAnswer: (answer: string) => void;
-  onNext: () => void;
-  onReviewModeChange: (mode: ReviewMode) => void;
-}
-
-function ReviewPanel({ activeQuestion, questionCount, questionIndex, reviewMode, selectedAnswer, onAnswer, onNext, onReviewModeChange }: ReviewPanelProps) {
-  const answerFeedback = selectedAnswer
-    ? `Đã chọn ${selectedAnswer}. ${selectedAnswer === activeQuestion.answer ? 'Đúng' : `Đáp án đúng là ${activeQuestion.answer}`}.`
-    : '';
-
-  useEffect(() => {
-    if (!selectedAnswer) {
-      return;
-    }
-
-    const nextQuestionTimer = window.setTimeout(() => {
-      onNext();
-    }, 520);
-
-    return () => {
-      window.clearTimeout(nextQuestionTimer);
-    };
-  }, [activeQuestion.answer, onNext, selectedAnswer]);
-
-  const handleAnswerKeyDown = (event: KeyboardEvent<HTMLButtonElement>, optionIndex: number) => {
-    if (selectedAnswer) {
-      return;
-    }
-
-    let nextIndex = optionIndex;
-
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      nextIndex = (optionIndex + 1) % activeQuestion.options.length;
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      nextIndex = (optionIndex - 1 + activeQuestion.options.length) % activeQuestion.options.length;
-    } else if (event.key === 'Home') {
-      nextIndex = 0;
-    } else if (event.key === 'End') {
-      nextIndex = activeQuestion.options.length - 1;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    onAnswer(activeQuestion.options[nextIndex]);
-    window.requestAnimationFrame(() => {
-      document.getElementById(`course-review-option-${questionIndex}-${nextIndex}`)?.focus();
-    });
-  };
-
-  return (
-    <div className="rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-3.5 shadow-[0_24px_52px_-40px_rgba(148,163,184,0.2)] md:p-6">
-      <p className="sr-only" role="status" aria-live="polite">{answerFeedback}</p>
-
-      {/* Đổi chế độ ngay tại đây — cùng kiểu segmented như Danh sách/Flashcard bên tab Từ vựng. */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div role="tablist" aria-label="Chế độ ôn tập" className="flex shrink-0 gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1">
-          {reviewModes.map((mode) => {
-            const isActive = reviewMode === mode.id;
-            return (
-              <button
-                key={mode.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => onReviewModeChange(mode.id)}
-                className={cn(
-                  'flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-xs font-black transition-colors',
-                  isActive ? 'bg-orange-700 text-white shadow-[0_12px_24px_-18px_rgba(201,106,27,0.5)]' : 'text-[#5f6b7c] hover:bg-orange-50',
-                  focusRing
-                )}
-              >
-                <mode.icon size={15} aria-hidden="true" focusable="false" />
-                {mode.label}
-              </button>
-            );
-          })}
-        </div>
-        <p className="px-1 text-xs font-black text-[#8b93a1]">Câu {Math.min(questionIndex + 1, questionCount)}/{questionCount}</p>
-      </div>
-
-      <div className="mt-3 rounded-[2rem] border border-orange-100 bg-orange-50/55 p-4 md:p-6">
-        <p className="text-lg font-black leading-snug text-gray-900 md:text-[1.65rem]">{activeQuestion.prompt}</p>
-      </div>
-
-      <div className="mt-5 grid gap-3 md:grid-cols-2" role="radiogroup" aria-label={activeQuestion.prompt}>
-        {activeQuestion.options.map((option, optionIndex) => {
-          const isSelected = selectedAnswer === option;
-          const isCorrectOption = option === activeQuestion.answer;
-          const isFocusable = isSelected || (!selectedAnswer && optionIndex === 0);
-
-          return (
-            <button
-              id={`course-review-option-${questionIndex}-${optionIndex}`}
-              key={option}
-              onClick={() => {
-                if (!selectedAnswer) {
-                  onAnswer(option);
-                }
-              }}
-              onKeyDown={(event) => handleAnswerKeyDown(event, optionIndex)}
-              role="radio"
-              aria-checked={isSelected}
-              tabIndex={isFocusable ? 0 : -1}
-              disabled={Boolean(selectedAnswer)}
-              className={cn(
-                'rounded-[1.5rem] border p-4 text-left text-sm font-black transition-all disabled:cursor-default md:p-5 md:text-base',
-                isSelected && isCorrectOption && 'border-emerald-200 bg-emerald-50 text-emerald-700',
-                isSelected && !isCorrectOption && 'border-red-200 bg-red-50 text-red-700',
-                !isSelected && selectedAnswer && isCorrectOption && 'border-emerald-200 bg-emerald-50/70 text-emerald-700',
-                !isSelected && !(selectedAnswer && isCorrectOption) && 'border-[#e6ddd1] bg-[#fffdf8] text-gray-700 hover:border-orange-200 hover:bg-orange-50/40',
-                focusRing
-              )}
-            >
-              <span>{option}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
   );
 }
