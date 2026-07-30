@@ -62,23 +62,23 @@ function ComingSoon({ title, accent, phaseLabel }: ComingSoonProps) {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-[#0F1419] p-6 text-center">
       <div
-        className="flex h-20 w-20 items-center justify-center rounded-3xl text-white shadow-lg"
-        style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+        className="flex h-20 w-20 items-center justify-center rounded-2xl text-white"
+        style={{ backgroundColor: accent }}
         aria-hidden="true"
       >
-        <Construction size={36} />
+        <Construction size={36} strokeWidth={1.8} />
       </div>
       <div>
-        <h1 className="text-2xl font-black text-white">{title}</h1>
-        <p className="mt-2 max-w-sm text-sm font-semibold text-white/60">
+        <h1 className="font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-white">{title}</h1>
+        <p className="mt-2 max-w-sm text-sm text-white/60">
           Game này đang được phát triển ở {phaseLabel}. Em sẽ ship sớm nhất có thể!
         </p>
       </div>
       <Link
         to="/app/hub"
-        className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
+        className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
       >
-        <ArrowLeft size={16} /> Về Hub
+        <ArrowLeft size={16} strokeWidth={1.8} /> Về Hub
       </Link>
     </div>
   );
