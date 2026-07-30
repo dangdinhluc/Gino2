@@ -10,7 +10,6 @@ import {
   type CourseReviewQuestion,
   type CourseVocabularyItem,
   type NonEmptyArray,
-  type VocabularyStatus,
 } from '@/src/features/courses/mock/courseLearningMock';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
 import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
@@ -18,7 +17,6 @@ import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 
 type WorkspaceTab = 'vocabulary' | 'review' | 'documents' | 'games' | 'exams';
-type VocabularyFilter = 'all' | VocabularyStatus;
 type ReviewMode = 'vocabulary' | 'questions';
 
 const workspaceTabs = [
@@ -29,35 +27,6 @@ const workspaceTabs = [
   { id: 'exams', label: 'Thi thử', icon: GraduationCap },
 ] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers }>;
 
-const vocabularyFilters = [
-  { id: 'due', label: 'Cần ôn' },
-  { id: 'learning', label: 'Đang học' },
-  { id: 'new', label: 'Từ mới' },
-  { id: 'remembered', label: 'Đã nhớ' },
-  { id: 'all', label: 'Tất cả' },
-] satisfies Array<{ id: VocabularyFilter; label: string }>;
-
-const statusLabels: Record<VocabularyStatus, string> = {
-  new: 'Từ mới',
-  learning: 'Đang học',
-  due: 'Cần ôn',
-  remembered: 'Đã nhớ',
-};
-
-const statusDotClasses: Record<VocabularyStatus, string> = {
-  new: 'bg-blue-500',
-  learning: 'bg-orange-500',
-  due: 'bg-red-500',
-  remembered: 'bg-emerald-500',
-};
-
-const statusChipClasses: Record<VocabularyStatus, string> = {
-  new: 'border-blue-100 bg-blue-50 text-blue-700',
-  learning: 'border-orange-100 bg-orange-50 text-orange-700',
-  due: 'border-red-100 bg-red-50 text-red-700',
-  remembered: 'border-emerald-100 bg-emerald-50 text-emerald-700',
-};
-
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
@@ -66,10 +35,6 @@ function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): Cours
 
 function getInitialPodcast(podcasts: NonEmptyArray<CoursePodcastItem>): CoursePodcastItem {
   return podcasts[0];
-}
-
-function getInitialVocabularyFilter(vocabulary: CourseVocabularyItem[]): VocabularyFilter {
-  return vocabulary.some((item) => item.status === 'due') ? 'due' : 'all';
 }
 
 function getVocabularyDisplayName(item: CourseVocabularyItem) {
@@ -88,7 +53,6 @@ export default function CourseLearningWorkspace() {
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
-  const [vocabularyFilter, setVocabularyFilter] = useState<VocabularyFilter>(() => getInitialVocabularyFilter(vocabulary));
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
   const [reviewMode, setReviewMode] = useState<ReviewMode>('vocabulary');
@@ -108,13 +72,12 @@ export default function CourseLearningWorkspace() {
 
   const filteredVocabulary = useMemo(() => {
     const normalizedQuery = vocabularySearchQuery.trim().toLowerCase();
-    const filteredByStatus = vocabularyFilter === 'all' ? vocabulary : vocabulary.filter((item) => item.status === vocabularyFilter);
 
     if (!normalizedQuery) {
-      return filteredByStatus;
+      return vocabulary;
     }
 
-    return filteredByStatus.filter((item) => {
+    return vocabulary.filter((item) => {
       const haystack = [
         item.word,
         item.article,
@@ -128,7 +91,7 @@ export default function CourseLearningWorkspace() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [vocabulary, vocabularyFilter, vocabularySearchQuery]);
+  }, [vocabulary, vocabularySearchQuery]);
 
   const vocabularyQuizQuestions = useMemo(() => {
     const meaningPool = vocabulary.map((item) => item.meaning);
@@ -148,7 +111,6 @@ export default function CourseLearningWorkspace() {
   const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? getInitialDocument(documents);
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? getInitialPodcast(podcasts);
-  const dueVocabularyCount = vocabulary.filter((item) => item.status === 'due').length;
   const reviewQuestion = reviewMode === 'vocabulary' ? activeVocabularyQuestion : activeQuestion;
   const reviewSelectedAnswer = reviewMode === 'vocabulary' ? selectedVocabularyAnswer : selectedAnswer;
   const reviewQuestionIndex = reviewMode === 'vocabulary' ? vocabularyQuestionIndex : questionIndex;
@@ -156,7 +118,6 @@ export default function CourseLearningWorkspace() {
 
   useEffect(() => {
     setActiveTab('vocabulary');
-    setVocabularyFilter(getInitialVocabularyFilter(vocabulary));
     setVocabularySearchQuery('');
     setExpandedVocabularyId(null);
     setReviewMode('vocabulary');
@@ -341,14 +302,12 @@ export default function CourseLearningWorkspace() {
           >
             {activeTab === 'vocabulary' && (
               <VocabularyPanel
-                dueCount={dueVocabularyCount}
                 expandedVocabularyId={expandedVocabularyId}
                 filteredVocabulary={filteredVocabulary}
                 heardVocabularyId={heardVocabularyId}
                 searchQuery={vocabularySearchQuery}
-                vocabularyFilter={vocabularyFilter}
+                totalCount={vocabulary.length}
                 onAudio={handleVocabularyAudio}
-                onFilterChange={setVocabularyFilter}
                 onSearchChange={setVocabularySearchQuery}
                 onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
               />
@@ -410,36 +369,36 @@ export default function CourseLearningWorkspace() {
 }
 
 interface VocabularyPanelProps {
-  dueCount: number;
   expandedVocabularyId: string | null;
   filteredVocabulary: CourseVocabularyItem[];
   heardVocabularyId: string | null;
   searchQuery: string;
-  vocabularyFilter: VocabularyFilter;
+  totalCount: number;
   onAudio: (vocabularyId: string) => void;
-  onFilterChange: (filter: VocabularyFilter) => void;
   onSearchChange: (query: string) => void;
   onToggleVocabulary: (vocabularyId: string) => void;
 }
 
 function VocabularyPanel({
-  dueCount,
   expandedVocabularyId,
   filteredVocabulary,
   heardVocabularyId,
   searchQuery,
-  vocabularyFilter,
+  totalCount,
   onAudio,
-  onFilterChange,
   onSearchChange,
   onToggleVocabulary,
 }: VocabularyPanelProps) {
+  const isSearching = searchQuery.trim().length > 0;
+
   return (
     <div className="workspace-panel space-y-4 rounded-[2.25rem] p-4 md:p-5">
       <div>
-        <h3 className="font-[var(--font-heading)] text-2xl font-black tracking-[-0.04em] text-[#172033]">
-          {dueCount > 0 ? `${dueCount} từ cần ôn hôm nay` : 'Từ vựng khóa học'}
-        </h3>
+        <h3 className="font-[var(--font-heading)] text-2xl font-black tracking-[-0.04em] text-[#172033]">Từ vựng khóa học</h3>
+        <p className="mt-1 text-sm font-semibold text-[#5f6b7c]">
+          {totalCount} từ
+          {isSearching ? ` · đang xem ${filteredVocabulary.length} kết quả` : ''}
+        </p>
       </div>
 
       <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-[#e6ddd1] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f6b7c] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
@@ -458,23 +417,6 @@ function VocabularyPanel({
         )}
       </label>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {vocabularyFilters.map((filter) => (
-          <button
-            key={filter.id}
-            onClick={() => onFilterChange(filter.id)}
-            aria-current={vocabularyFilter === filter.id ? 'true' : undefined}
-            className={cn(
-              'min-h-11 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors',
-              vocabularyFilter === filter.id ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-[#e6ddd1] bg-white text-[#5f6b7c] hover:bg-orange-50',
-              focusRing
-            )}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
       <div className="space-y-2">
         {filteredVocabulary.length > 0 ? filteredVocabulary.map((item) => {
           const isExpanded = expandedVocabularyId === item.id;
@@ -490,8 +432,6 @@ function VocabularyPanel({
                   aria-expanded={isExpanded}
                   className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-2xl text-left', focusRing)}
                 >
-                  <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', statusDotClasses[item.status])} aria-hidden="true" />
-                  <span className="sr-only">{statusLabels[item.status]}.</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-lg font-black text-[#172033]">{getVocabularyDisplayName(item)}</span>
                     <span className="block truncate text-sm font-semibold text-[#5f6b7c]">{item.meaning}</span>
@@ -526,11 +466,7 @@ function VocabularyPanel({
                         <p className="text-sm font-black text-[#172033]">{item.example.jp}</p>
                         <p className="mt-1 text-sm font-semibold text-[#5f6b7c]">{item.example.vi}</p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className={cn('rounded-full border px-3 py-1 text-xs font-bold', statusChipClasses[item.status])}>{statusLabels[item.status]}</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{item.strength}% chắc</span>
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{item.module}</span>
-                      </div>
+                      <p className="text-xs font-semibold text-[#95a0af]">{item.module}</p>
                     </div>
                   </motion.div>
                 )}
@@ -540,7 +476,7 @@ function VocabularyPanel({
         }) : (
           <div className="rounded-[1.5rem] border border-dashed border-[#e6ddd1] bg-[#fffdf8] p-6 text-center">
             <p className="text-sm font-black text-[#172033]">Không tìm thấy từ phù hợp</p>
-            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">Thử đổi bộ lọc hoặc nhập từ khóa ngắn hơn.</p>
+            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">Thử nhập từ khóa ngắn hơn.</p>
           </div>
         )}
       </div>
