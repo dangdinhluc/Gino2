@@ -13,6 +13,10 @@
   --color-app-surface-soft: #f8f2e8;
   --color-app-border: #e8dccb;
   --color-app-border-strong: #ddcfbc;
+
+  /* Chi 2 muc bo goc cho toan app. Khung dung panel, phan tu ben trong dung control. */
+  --radius-panel: 1rem;
+  --radius-control: 0.75rem;
 }
 
 @layer base {
@@ -34,9 +38,9 @@
 
   body {
     margin: 0;
+    /* Chi giu mot vet sang cam rat nhe. Dom mau tim cu khong nam trong bang mau nao cua app. */
     background:
-      radial-gradient(circle at top right, rgba(201, 106, 27, 0.1), transparent 22%),
-      radial-gradient(circle at bottom left, rgba(111, 74, 168, 0.08), transparent 24%),
+      radial-gradient(circle at top right, rgba(201, 106, 27, 0.06), transparent 28%),
       linear-gradient(180deg, #fbf6ef 0%, #f7f1e8 100%);
     color: #172033;
     -webkit-font-smoothing: antialiased;
@@ -74,9 +78,9 @@
   h5,
   h6 {
     font-family: var(--font-heading);
-    letter-spacing: -0.028em;
-    line-height: 1.1;
-    font-weight: 800;
+    letter-spacing: -0.024em;
+    line-height: 1.15;
+    font-weight: 700;
   }
 }
 
@@ -97,12 +101,29 @@
     line-height: 1.58;
   }
 
+  /*
+   * THANG CHU TOAN APP
+   *
+   * Van de cu: font-black map thanh 800, font-bold thanh 600, con than bai dung
+   * font-semibold cung la 600. Ket qua la moi chu tren man deu nam trong khoang
+   * 600-800 nen khong gi noi bat, mat khong biet nhin dau truoc.
+   *
+   * Gio tach ra 4 cap ro rang. Khong file .tsx nao phai sua.
+   */
   .app-route-shell .font-black {
-    font-weight: 800;
+    font-weight: 700;
   }
 
   .app-route-shell .font-bold {
     font-weight: 600;
+  }
+
+  .app-route-shell .font-semibold {
+    font-weight: 500;
+  }
+
+  .app-route-shell .font-medium {
+    font-weight: 450;
   }
 
   .app-route-shell :where(h1, h2, h3).italic {
@@ -134,29 +155,30 @@
     min-width: 0;
   }
 
-  .workspace-shell {
-    border: 1px solid rgba(232, 220, 203, 0.92);
-    background: linear-gradient(180deg, rgba(255, 250, 244, 0.98) 0%, rgba(255, 248, 238, 0.98) 100%);
-    box-shadow: 0 30px 80px -52px rgba(99, 71, 42, 0.2);
-  }
-
+  /*
+   * BE MAT
+   *
+   * Truoc day moi lop deu co gradient + bong rat lon (0 30px 80px), va panel con
+   * boc item cung co bong rieng nen thanh hop long hop. Gio lam phang het:
+   * mot duong vien 1px la du de tach khoi noi dung.
+   */
+  .workspace-shell,
   .workspace-panel {
-    border: 1px solid rgba(232, 220, 203, 0.96);
-    background: linear-gradient(180deg, rgba(255, 250, 244, 0.98) 0%, rgba(255, 248, 240, 0.98) 100%);
-    box-shadow: 0 26px 64px -46px rgba(99, 71, 42, 0.18);
+    border: 1px solid var(--color-app-border);
+    background: #fffaf3;
+    box-shadow: none;
   }
 
   .workspace-item {
-    border: 1px solid rgba(232, 220, 203, 0.9);
-    background: rgba(255, 252, 247, 0.98);
-    box-shadow: 0 18px 40px -34px rgba(82, 58, 36, 0.14);
+    border: 1px solid var(--color-app-border);
+    background: #fffdf8;
+    box-shadow: none;
   }
 
   .workspace-chip {
-    border: 1px solid rgba(201, 106, 27, 0.12);
-    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid var(--color-app-border);
+    background: #ffffff;
     color: #5f6b7c;
-    backdrop-filter: blur(10px);
   }
 }
 
@@ -191,6 +213,30 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/*
+ * CHUAN HOA BO GOC TOAN APP
+ *
+ * Cac trang dang dung toi 7 gia tri bo goc khac nhau: 2.75rem, 2.5rem, 2.25rem,
+ * 2rem, 1.8rem, 1.75rem, 1.5rem. Truoc day chi ep ve 2 muc o man hinh duoi 640px,
+ * nen tren may tinh van loan.
+ *
+ * Quy tac nay ap dung o moi kich thuoc man hinh va khong dung toi rounded-full
+ * (avatar, huy hieu, thanh tien do van tron nhu cu).
+ */
+.app-route-shell [class*="rounded-[2.75rem]"],
+.app-route-shell [class*="rounded-[2.5rem]"],
+.app-route-shell [class*="rounded-[2.25rem]"],
+.app-route-shell [class*="rounded-[2rem]"] {
+  border-radius: var(--radius-panel);
+}
+
+.app-route-shell [class*="rounded-[1.8rem]"],
+.app-route-shell [class*="rounded-[1.75rem]"],
+.app-route-shell [class*="rounded-[1.5rem]"],
+.app-route-shell [class*="rounded-3xl"] {
+  border-radius: var(--radius-control);
 }
 
 @media (min-width: 640px) {
@@ -245,16 +291,6 @@
 }
 
 @media (max-width: 639px) {
-  .app-route-shell [class*="rounded-[2.75rem]"],
-  .app-route-shell [class*="rounded-[2.5rem]"] {
-    border-radius: 1.5rem !important;
-  }
-
-  .app-route-shell [class*="rounded-[2.25rem]"],
-  .app-route-shell [class*="rounded-[2rem]"] {
-    border-radius: 1.25rem !important;
-  }
-
   .bottom-nav-label {
     font-size: 0.625rem;
     letter-spacing: -0.01em;
