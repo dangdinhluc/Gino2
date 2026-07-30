@@ -17,7 +17,7 @@ import {
   searchFieldClass,
   searchInputClass,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
+import { ArrowLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CoursePodcastItem,
@@ -530,6 +530,15 @@ function VocabularyPanel({
                 <p lang="ja" className="mt-2 text-base font-semibold leading-relaxed text-[#172033]">{selectedVocabulary.example.jp}</p>
                 <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{selectedVocabulary.example.vi}</p>
               </div>
+
+              {selectedVocabulary.mnemonic && (
+                <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/60 p-4">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">
+                    <Lightbulb size={13} aria-hidden="true" focusable="false" /> Mẹo nhớ
+                  </span>
+                  <p className="mt-2 text-sm leading-relaxed text-[#4d5a6b]">{selectedVocabulary.mnemonic}</p>
+                </div>
+              )}
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <span className="rounded-md bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">{selectedVocabulary.module}</span>

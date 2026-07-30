@@ -29,6 +29,7 @@ export interface CourseVocabularyItem {
   module: string;
   strength: number;
   tags: string[];
+  mnemonic?: string;
 }
 
 export interface CourseReviewQuestion {
@@ -117,6 +118,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Vào ca',
       strength: 92,
       tags: ['Greeting', 'JFT'],
+      mnemonic: 'Nghe như "Ô, hay ghê!" — mỗi sáng gặp điều hay nên chào "Ohayou".',
     },
     {
       id: 'tenchou',
@@ -129,6 +131,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Báo cáo & giao tiếp',
       strength: 48,
       tags: ['Workplace', 'People'],
+      mnemonic: '"chou" nghe như "trưởng" — tenchou là "trưởng" của cửa hàng, tức quản lý.',
     },
     {
       id: 'houkoku',
@@ -141,6 +144,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'An toàn & kỷ luật',
       strength: 64,
       tags: ['Safety', 'Routine'],
+      mnemonic: 'Đọc như "hô-cốc": có việc là "hô" lên báo cáo ngay cho sếp nghe.',
     },
     {
       id: 'kyukei',
@@ -153,6 +157,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Nhịp ca làm',
       strength: 58,
       tags: ['Shift', 'Routine'],
+      mnemonic: '"kyu" nghe như "cứu": hết ca mệt thì giờ nghỉ (kyukei) "cứu" lấy sức.',
     },
     {
       id: 'zairyu-card',
@@ -165,6 +170,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Hồ sơ',
       strength: 18,
       tags: ['Documents', 'Tokutei'],
+      mnemonic: '"zairyu" liên tưởng "giữ lưu": tấm thẻ cho phép mình lưu lại, cư trú ở Nhật.',
     },
     {
       id: 'mensetsu',
@@ -177,6 +183,7 @@ const tokuteiWorkspace: CourseLearningWorkspaceData = {
       module: 'Phỏng vấn',
       strength: 44,
       tags: ['Interview', 'Core'],
+      mnemonic: '"men-setsu" nghe như "men-set": vào phỏng vấn nhớ "set" lại phong thái chỉnh tề.',
     },
   ],
   reviewQuestions: [
