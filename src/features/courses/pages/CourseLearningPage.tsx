@@ -17,7 +17,7 @@ import {
   searchFieldClass,
   searchInputClass,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ChevronDown, FileText, Gamepad2, GraduationCap, Layers, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
+import { ArrowLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CoursePodcastItem,
@@ -112,10 +112,10 @@ export default function CourseLearningWorkspace() {
     return vocabulary.map((item) => ({
       id: `vq-${item.id}`,
       type: 'meaning',
-      prompt: `"${getVocabularyDisplayName(item)}" nghĩa là gì?`,
+      prompt: `\"${getVocabularyDisplayName(item)}\" nghĩa là gì?`,
       options: buildQuizOptions(item.meaning, meaningPool),
       answer: item.meaning,
-      explanation: `${getVocabularyDisplayName(item)} nghĩa là "${item.meaning}". Ví dụ: ${item.example.jp}`,
+      explanation: `${getVocabularyDisplayName(item)} nghĩa là \"${item.meaning}\". Ví dụ: ${item.example.jp}`,
       source: `Từ vựng: ${item.module}`,
     })) satisfies CourseReviewQuestion[];
   }, [vocabulary]);
@@ -405,6 +405,9 @@ function VocabularyPanel({
   onToggleVocabulary,
 }: VocabularyPanelProps) {
   const isSearching = searchQuery.trim().length > 0;
+  const selectedVocabulary = expandedVocabularyId
+    ? filteredVocabulary.find((item) => item.id === expandedVocabularyId) ?? null
+    : null;
 
   return (
     <section className={panelClass}>
@@ -432,64 +435,36 @@ function VocabularyPanel({
 
       {filteredVocabulary.length > 0 ? (
         <ul className={cn('mt-2', dividerListClass)}>
-          {filteredVocabulary.map((item) => {
-            const isExpanded = expandedVocabularyId === item.id;
-
-            return (
-              <li key={item.id}>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onToggleVocabulary(item.id)}
-                    aria-expanded={isExpanded}
-                    className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-base font-semibold text-[#172033]">{getVocabularyDisplayName(item)}</span>
-                      <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">{item.meaning}</span>
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={cn('shrink-0 text-[#95a0af] transition-transform', isExpanded ? 'rotate-180' : '')}
-                      aria-hidden="true"
-                      focusable="false"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onAudio(item.id)}
-                    className={cn(
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
-                      heardVocabularyId === item.id ? 'bg-orange-700 text-white' : 'text-[#95a0af] hover:text-orange-700',
-                      focusRing
-                    )}
-                    aria-label={`Nghe phát âm ${item.word}`}
-                  >
-                    <Volume2 size={18} aria-hidden="true" focusable="false" />
-                  </button>
-                </div>
-
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.16, ease: 'easeOut' }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pb-4 text-sm leading-relaxed">
-                        <p className="text-orange-700">/{item.pronunciation}/</p>
-                        <p className="mt-2 font-semibold text-[#172033]">{item.example.jp}</p>
-                        <p className="text-[#5f6b7c]">{item.example.vi}</p>
-                        <p className="mt-2 text-xs text-[#95a0af]">{item.module}</p>
-                      </div>
-                    </motion.div>
+          {filteredVocabulary.map((item) => (
+            <li key={item.id}>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onToggleVocabulary(item.id)}
+                  aria-haspopup="dialog"
+                  className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base font-semibold text-[#172033]">{getVocabularyDisplayName(item)}</span>
+                    <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">{item.meaning}</span>
+                  </span>
+                  <ChevronRight size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAudio(item.id)}
+                  className={cn(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
+                    heardVocabularyId === item.id ? 'bg-orange-700 text-white' : 'text-[#95a0af] hover:text-orange-700',
+                    focusRing
                   )}
-                </AnimatePresence>
-              </li>
-            );
-          })}
+                  aria-label={`Nghe phát âm ${item.word}`}
+                >
+                  <Volume2 size={18} aria-hidden="true" focusable="false" />
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
       ) : (
         <div className={cn(emptyStateClass, 'mt-4')}>
@@ -497,6 +472,75 @@ function VocabularyPanel({
           <p className="mt-1 text-xs text-[#95a0af]">Thử nhập từ khóa ngắn hơn.</p>
         </div>
       )}
+
+      <AnimatePresence>
+        {selectedVocabulary && (
+          <motion.div
+            className="fixed inset-0 z-[95] flex items-end justify-center bg-gray-950/30 p-3 backdrop-blur-sm sm:items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => onToggleVocabulary(selectedVocabulary.id)}
+          >
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="vocab-detail-title"
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              onClick={(event) => event.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Chi tiết từ vựng</span>
+                  <h3 id="vocab-detail-title" lang="ja" className="mt-1 font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-[#172033]">
+                    {getVocabularyDisplayName(selectedVocabulary)}
+                  </h3>
+                  <p className="mt-0.5 text-sm text-orange-700">/{selectedVocabulary.pronunciation}/</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onToggleVocabulary(selectedVocabulary.id)}
+                  className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-[#172033]', focusRing)}
+                  aria-label="Đóng chi tiết từ vựng"
+                >
+                  <X size={18} aria-hidden="true" focusable="false" />
+                </button>
+              </div>
+
+              <p className="mt-4 text-lg font-semibold text-[#172033]">{selectedVocabulary.meaning}</p>
+
+              <button
+                type="button"
+                onClick={() => onAudio(selectedVocabulary.id)}
+                className={cn(
+                  'mt-4 inline-flex items-center gap-2 rounded-xl border border-[#e8dccb] px-4 py-2.5 text-sm font-bold transition-colors',
+                  heardVocabularyId === selectedVocabulary.id ? 'bg-orange-700 text-white' : 'bg-[#fffdf8] text-orange-700 hover:bg-orange-50',
+                  focusRing
+                )}
+              >
+                <Volume2 size={16} aria-hidden="true" focusable="false" /> Nghe phát âm
+              </button>
+
+              <div className="mt-4 rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#95a0af]">Ví dụ</span>
+                <p lang="ja" className="mt-2 text-base font-semibold leading-relaxed text-[#172033]">{selectedVocabulary.example.jp}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{selectedVocabulary.example.vi}</p>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">{selectedVocabulary.module}</span>
+                {selectedVocabulary.tags.map((tag) => (
+                  <span key={tag} className="rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-xs font-medium text-[#5f6b7c]">{tag}</span>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
