@@ -6,6 +6,9 @@ import type { ThreadId } from '@/src/features/social/lib/autoReply';
 import { THREADS, getAutoReply, getThreadMeta, replyDelayMs } from '@/src/features/social/lib/autoReply';
 import { unreadCount, useCommunityStore } from '@/src/features/social/store/communityStore';
 
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]';
+
 const threadIcons: Record<ThreadId, typeof MessageCircle> = {
   'group-restaurant': Users,
   mentor: Sparkles,
@@ -75,28 +78,24 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="space-y-6 pb-16">
-      <section className="overflow-hidden rounded-[2rem] border border-[#e7ddcf] bg-[linear-gradient(180deg,rgba(255,250,243,0.94)_0%,rgba(247,243,236,0.98)_100%)] p-4 shadow-[0_30px_70px_-48px_rgba(180,138,91,0.22)] md:rounded-[2.5rem] md:p-7">
+    <div className="mx-auto max-w-6xl space-y-5 pb-16">
+      <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-500 shadow-sm md:px-4 md:py-1.5 md:text-[11px]">
-              <MessageCircle size={14} />
-              Tin nhắn
+          <div className="max-w-2xl space-y-2">
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-orange-700">
+              <MessageCircle size={14} /> Tin nhắn
             </div>
-            <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">Kênh học nhóm</h2>
-            <p className="max-w-2xl text-sm font-medium leading-relaxed text-gray-500">
-              Nhắn với nhóm học, mentor và phòng mock phỏng vấn. Tin nhắn lưu ngay trên máy anh, trả lời tự động theo ngữ cảnh học.
-            </p>
+            <h1 className="font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-[#172033] md:text-3xl">Kênh học nhóm</h1>
+            <p className="max-w-2xl text-sm text-[#5f6b7c]">Nhắn với nhóm học, mentor và phòng mock phỏng vấn. Tin nhắn lưu ngay trên máy anh, trả lời tự động theo ngữ cảnh học.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-2xl border border-pink-100 bg-pink-50 px-4 py-3 text-sm font-black text-pink-600">
-            <MessageCircle size={16} /> {totalUnread} tin chưa đọc
+          <div className="flex items-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-3 text-sm font-bold text-orange-700">
+            <MessageCircle size={16} strokeWidth={1.8} /> {totalUnread} tin chưa đọc
           </div>
         </div>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        {/* Danh sách kênh */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {THREADS.map((thread) => {
             const Icon = threadIcons[thread.id];
             const threadMessages = messages[thread.id] ?? [];
@@ -109,44 +108,44 @@ export default function MessagesPage() {
                 type="button"
                 onClick={() => setSelectedId(thread.id)}
                 className={cn(
-                  'flex w-full items-center gap-4 rounded-[2rem] border p-4 text-left shadow-[0_18px_42px_-34px_rgba(148,163,184,0.18)] transition-all',
-                  isActive ? 'border-orange-200 bg-orange-50/70' : 'border-[#e6ddd1] bg-[#fffaf3] hover:border-orange-200',
+                  'flex w-full items-center gap-3.5 rounded-2xl border p-4 text-left transition-colors',
+                  focusRing,
+                  isActive ? 'border-orange-300 bg-orange-50/60' : 'border-[#e8dccb] bg-[#fffaf3] hover:bg-[#fffdf8]',
                 )}
               >
-                <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl', isActive ? 'bg-orange-100 text-orange-500' : 'bg-blue-50 text-blue-500')}>
-                  <Icon size={22} />
-                </div>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+                  <Icon size={21} strokeWidth={1.8} />
+                </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="truncate text-sm font-black text-gray-900">{thread.name}</h3>
-                    <span className="shrink-0 text-[10px] font-bold text-gray-400">{lastMessage ? formatTime(lastMessage.at) : ''}</span>
+                    <h3 className="truncate font-bold text-[#172033]">{thread.name}</h3>
+                    <span className="shrink-0 text-[10px] font-bold text-[#95a0af]">{lastMessage ? formatTime(lastMessage.at) : ''}</span>
                   </div>
-                  <p className="truncate text-xs font-medium text-gray-500">
+                  <p className="truncate text-xs text-[#7b8796]">
                     {typingThreads.includes(thread.id) ? 'Đang gõ…' : lastMessage?.text ?? thread.description}
                   </p>
                 </div>
-                {unread > 0 && <span className="shrink-0 rounded-full bg-orange-500 px-2 py-1 text-[10px] font-black text-white">{unread}</span>}
+                {unread > 0 && <span className="shrink-0 rounded-md bg-orange-700 px-2 py-1 text-[10px] font-bold text-white">{unread}</span>}
               </button>
             );
           })}
 
-          <div className="rounded-[2rem] border border-[#e6ddd1] bg-white/60 p-4 text-[11px] font-medium leading-relaxed text-gray-400">
+          <div className="rounded-2xl border border-[#e8dccb] bg-[#fffdf8] p-4 text-[11px] leading-relaxed text-[#95a0af]">
             Các kênh chạy chế độ đồng hành tự động (offline) — mentor và nhóm sẽ luôn phản hồi để anh có môi trường luyện tập, kể cả khi chưa nối backend thật.
           </div>
         </div>
 
-        {/* Cửa sổ chat */}
-        <div className="flex min-h-[32rem] flex-col rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-4 shadow-[0_28px_60px_-42px_rgba(148,163,184,0.2)] md:p-5">
-          <div className="flex items-center gap-3 border-b border-[#eee5d8] pb-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
+        <div className="flex min-h-[32rem] flex-col rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
+          <div className="flex items-center gap-3 border-b border-[#efe5d7] pb-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
               {(() => {
                 const Icon = threadIcons[selectedId];
-                return <Icon size={20} />;
+                return <Icon size={20} strokeWidth={1.8} />;
               })()}
-            </div>
+            </span>
             <div className="min-w-0">
-              <h3 className="truncate text-base font-black text-gray-900">{selectedMeta.name}</h3>
-              <p className="truncate text-xs font-medium text-gray-400">{selectedMeta.description}</p>
+              <h3 className="truncate font-bold text-[#172033]">{selectedMeta.name}</h3>
+              <p className="truncate text-xs text-[#95a0af]">{selectedMeta.description}</p>
             </div>
           </div>
 
@@ -160,22 +159,22 @@ export default function MessagesPage() {
               >
                 <div
                   className={cn(
-                    'max-w-[85%] rounded-[1.5rem] px-4 py-3 text-sm font-medium leading-relaxed md:max-w-[75%]',
-                    message.from === 'me' ? 'rounded-br-md bg-orange-500 font-bold text-white' : 'rounded-bl-md bg-blue-50 text-blue-900',
+                    'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed md:max-w-[75%]',
+                    message.from === 'me' ? 'rounded-br-md bg-orange-700 font-medium text-white' : 'rounded-bl-md border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]',
                   )}
                 >
                   <p className="whitespace-pre-wrap break-words">{message.text}</p>
-                  <p className={cn('mt-1 text-[9px] font-bold', message.from === 'me' ? 'text-orange-100' : 'text-blue-400')}>{formatTime(message.at)}</p>
+                  <p className={cn('mt-1 text-[9px] font-bold', message.from === 'me' ? 'text-orange-100' : 'text-[#95a0af]')}>{formatTime(message.at)}</p>
                 </div>
               </motion.div>
             ))}
             {typingThread === selectedId && (
               <div className="flex justify-start">
-                <div className="flex items-center gap-1.5 rounded-[1.5rem] rounded-bl-md bg-blue-50 px-4 py-3">
+                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-[#e8dccb] bg-[#fffdf8] px-4 py-3">
                   {[0, 1, 2].map((dot) => (
                     <motion.span
                       key={dot}
-                      className="h-1.5 w-1.5 rounded-full bg-blue-400"
+                      className="h-1.5 w-1.5 rounded-full bg-orange-400"
                       animate={{ opacity: [0.3, 1, 0.3] }}
                       transition={{ repeat: Infinity, duration: 1, delay: dot * 0.2 }}
                     />
@@ -185,7 +184,7 @@ export default function MessagesPage() {
             )}
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex gap-2.5">
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
@@ -196,13 +195,13 @@ export default function MessagesPage() {
                 }
               }}
               placeholder={`Nhắn cho ${selectedMeta.name}...`}
-              className="min-w-0 flex-1 rounded-2xl border border-[#e1d8cb] bg-white px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-orange-100"
+              className="min-w-0 flex-1 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-3 text-sm font-medium text-[#172033] outline-none placeholder:text-[#95a0af] focus:ring-2 focus:ring-orange-500"
             />
             <button
               type="button"
               onClick={handleSend}
               disabled={!draft.trim()}
-              className="inline-flex items-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 transition-transform hover:scale-[1.02] disabled:opacity-45"
+              className={`inline-flex items-center gap-2 rounded-xl bg-orange-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-800 disabled:opacity-45 ${focusRing}`}
             >
               <Send size={15} /> Gửi
             </button>
