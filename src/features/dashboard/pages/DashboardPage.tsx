@@ -14,41 +14,14 @@ import {
   Users,
   Sparkles,
 } from 'lucide-react';
-
-type DashboardTool = {
-  label: string;
-  sub: string;
-  icon: string;
-  path: string;
-};
-
-/** So cong cu hien mac dinh. Phan con lai an sau nut "Xem tat ca". */
-const PRIMARY_TOOL_COUNT = 3;
-
-/** Thu tu quan trong: 3 muc dau la duong vao chinh moi ngay. */
-const tools: DashboardTool[] = [
-  { label: 'Lộ trình Tokutei', sub: 'JFT, workplace, interview', icon: 'https://cdn-icons-png.flaticon.com/512/3306/3306613.png', path: '/app/courses' },
-  { label: 'Thẻ ôn nhanh', sub: 'Cụm từ, hồ sơ, tình huống', icon: 'https://cdn-icons-png.flaticon.com/512/2951/2951237.png', path: '/app/review/flashcards' },
-  { label: 'Đề mô phỏng', sub: 'JFT, hồ sơ, HR', icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233514.png', path: '/app/exams/e1/start' },
-  { label: 'Thư viện Tokutei', sub: 'Checklist, tác phong, từ khóa', icon: 'https://cdn-icons-png.flaticon.com/512/2436/2436814.png', path: '/app/grammar' },
-  { label: 'Mini game ca làm', sub: 'Phản xạ 1-3 phút', icon: 'https://cdn-icons-png.flaticon.com/512/3128/3128211.png', path: '/app/hub' },
-  { label: 'Coach AI', sub: 'Sửa câu trả lời nhanh', icon: 'https://cdn-icons-png.flaticon.com/512/3474/3474360.png', path: '/app/ai-chat' },
-  { label: 'Thống kê', sub: 'Mức sẵn sàng của anh', icon: 'https://cdn-icons-png.flaticon.com/512/570/570223.png', path: '/app/stats' },
-];
-
-const tasks = [
-  { title: 'Ôn 8 cụm đầu ca', xp: '+12', status: '0/1', icon: 'https://cdn-icons-png.flaticon.com/512/2040/2040504.png', gradient: 'from-blue-400 to-blue-600', path: '/app/review/flashcards' },
-  { title: 'Shift Sprint', xp: '+25', status: '0/1', icon: 'https://cdn-icons-png.flaticon.com/512/5351/5351432.png', gradient: 'from-orange-400 to-orange-600', path: '/app/hub/gino-runner' },
-  { title: 'Mock interview 3 câu', xp: '+20', status: '0/1', icon: 'https://cdn-icons-png.flaticon.com/512/3128/3128211.png', gradient: 'from-green-400 to-green-600', path: '/app/ai-speak' },
-  { title: 'Checklist hồ sơ', xp: '+10', status: '0/1', icon: 'https://cdn-icons-png.flaticon.com/512/2951/2951237.png', gradient: 'from-purple-400 to-purple-600', path: '/app/grammar' },
-];
+import { dashboardTasks, dashboardTools, PRIMARY_TOOL_COUNT } from '@/src/data/dashboardMock';
 
 export default function Dashboard() {
   const [isInstallPromptVisible, setIsInstallPromptVisible] = useState(true);
   const [areAllToolsVisible, setAreAllToolsVisible] = useState(false);
 
-  const visibleTools = areAllToolsVisible ? tools : tools.slice(0, PRIMARY_TOOL_COUNT);
-  const hiddenToolCount = tools.length - PRIMARY_TOOL_COUNT;
+  const visibleTools = areAllToolsVisible ? dashboardTools : dashboardTools.slice(0, PRIMARY_TOOL_COUNT);
+  const hiddenToolCount = dashboardTools.length - PRIMARY_TOOL_COUNT;
 
   return (
     <div className="min-h-[calc(100dvh-1.5rem)] space-y-6 pb-4 md:space-y-8 md:pt-2">
@@ -199,11 +172,11 @@ export default function Dashboard() {
         <section className="rounded-[2.5rem] border border-[#e2d7c7] bg-[#fffaf3] p-5 shadow-[0_22px_50px_-38px_rgba(148,163,184,0.18)] md:p-6">
           <header className="mb-4 flex items-center justify-between">
             <h3 className="text-lg font-black text-gray-800">Nhiệm vụ hàng ngày</h3>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-bold text-orange-500">0/4</span>
+            <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-bold text-orange-500">0/{dashboardTasks.length}</span>
           </header>
 
           <div className="space-y-3">
-            {tasks.map((task) => (
+            {dashboardTasks.map((task) => (
               <motion.div key={task.title} whileHover={{ y: -2 }}>
                 <Link
                   to={task.path}
