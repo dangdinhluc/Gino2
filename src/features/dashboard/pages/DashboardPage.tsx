@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Clock, Download, Flame, Layers, Search, Users, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, Download, Flame, Search, Users, X } from 'lucide-react';
 import { dashboardTasks, dashboardTools, PRIMARY_TOOL_COUNT } from '@/src/data/dashboardMock';
 
 const focusRing =
@@ -204,7 +204,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Clock giu de tuong thich import cu neu can; dung o day cho nhip hoc */}
       <p className="flex items-center justify-center gap-1.5 text-xs text-[#95a0af]">
         <Clock size={13} strokeWidth={1.8} /> Nhịp đề xuất: 15-20 phút mỗi phiên
       </p>
