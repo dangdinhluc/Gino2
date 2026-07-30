@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { BookOpen, ChevronRight, FileText, GraduationCap, Layers, Search, Volume2, X } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { TOKUTEI_TOPICS, getTopic, searchVocab } from '@/src/data/tokutei/vocabDeck';
@@ -11,6 +10,12 @@ import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import { speakJapanese } from '@/src/shared/lib/tts';
 
 const SUGGESTIONS = ['houkoku', 'an toàn', '面接', 'chào', 'giấy tờ', 'kyuukei'];
+
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]';
+const sectionTitleClass = 'font-[var(--font-heading)] text-lg font-bold tracking-[-0.02em] text-[#172033]';
+const resultCardClass =
+  'group flex items-center gap-3 rounded-xl border border-[#e8dccb] bg-[#fffaf3] px-4 py-3 transition-colors hover:bg-[#fffdf8]';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
@@ -44,44 +49,43 @@ export default function SearchPage() {
   const totalResults = vocabResults.length + grammarResults.length + courseResults.length;
 
   return (
-    <div className="space-y-6 pb-16">
-      <section className="overflow-hidden rounded-[2rem] border border-[#e7ddcf] bg-[linear-gradient(180deg,rgba(255,250,243,0.94)_0%,rgba(247,243,236,0.98)_100%)] p-4 shadow-[0_30px_70px_-48px_rgba(180,138,91,0.22)] md:rounded-[2.5rem] md:p-7">
-        <div className="mx-auto max-w-2xl space-y-4 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-500 shadow-sm">
-            <Search size={14} />
-            Tìm kiếm
+    <div className="mx-auto max-w-3xl space-y-5 pb-16">
+      <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6">
+        <div className="mx-auto max-w-xl space-y-4">
+          <div>
+            <h1 className={cn(sectionTitleClass, 'text-xl md:text-2xl')}>Tra cứu trong app</h1>
+            <p className="mt-1 text-sm text-[#5f6b7c]">Gõ kanji, romaji hoặc tiếng Việt — kết quả gom từ vựng, ngữ pháp và khóa học.</p>
           </div>
-          <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">Tra cứu mọi thứ trong app</h2>
-          <p className="text-sm font-medium leading-relaxed text-gray-500">Gõ kanji, romaji hoặc tiếng Việt — kết quả gom từ vựng, ngữ pháp và khóa học.</p>
           <div className="relative">
-            <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#95a0af]" strokeWidth={1.8} />
             <input
               ref={inputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Ví dụ: houkoku, 報告, báo cáo..."
-              className="w-full rounded-[1.5rem] border border-[#e1d8cb] bg-white py-4 pl-13 pr-12 text-base font-bold outline-none transition-shadow focus:ring-2 focus:ring-orange-200"
-              style={{ paddingLeft: '3.25rem' }}
+              className={cn(
+                'w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3 pl-11 pr-11 text-sm font-medium text-[#172033] outline-none transition-shadow placeholder:text-[#95a0af] focus:ring-2 focus:ring-orange-500',
+              )}
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="absolute right-4 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-[#95a0af] transition-colors hover:text-[#5f6b7c]"
                 aria-label="Xóa tìm kiếm"
               >
-                <X size={14} />
+                <X size={15} />
               </button>
             )}
           </div>
           {!normalized && (
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap gap-2">
               {SUGGESTIONS.map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"
                   onClick={() => setQuery(suggestion)}
-                  className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-bold text-gray-500 transition-all hover:border-orange-200 hover:text-orange-500"
+                  className={`rounded-lg border border-[#e8dccb] bg-[#fffdf8] px-3 py-1.5 text-xs font-bold text-[#5f6b7c] transition-colors hover:border-orange-300 hover:text-orange-700 ${focusRing}`}
                 >
                   {suggestion}
                 </button>
@@ -94,21 +98,21 @@ export default function SearchPage() {
       {!normalized && (
         <section className="space-y-3">
           <div className="flex items-center gap-2 px-1">
-            <Layers size={16} className="text-orange-500" />
-            <h3 className="text-lg font-black tracking-tight text-gray-900">Duyệt theo chủ đề</h3>
+            <Layers size={16} className="text-orange-700" strokeWidth={1.8} />
+            <h2 className={sectionTitleClass}>Duyệt theo chủ đề</h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             {TOKUTEI_TOPICS.map((topic) => (
               <Link
                 key={topic.id}
                 to={`/app/review/flashcards?mode=topic:${topic.id}`}
-                className="group rounded-[1.75rem] border border-[#e6ddd1] bg-[#fffaf3] p-4 shadow-[0_18px_42px_-34px_rgba(148,163,184,0.16)] transition-all hover:-translate-y-0.5 hover:border-orange-200"
+                className={`group rounded-xl border border-[#e8dccb] bg-[#fffaf3] p-4 transition-colors hover:bg-[#fffdf8] ${focusRing}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-gray-900">{topic.label}</span>
-                  <ChevronRight size={15} className="text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-orange-500" />
+                  <span className="font-bold text-[#172033]">{topic.label}</span>
+                  <ChevronRight size={15} className="text-[#95a0af] transition-colors group-hover:text-orange-700" />
                 </div>
-                <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-relaxed text-gray-500">{topic.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-[#7b8796]">{topic.description}</p>
               </Link>
             ))}
           </div>
@@ -116,60 +120,50 @@ export default function SearchPage() {
       )}
 
       {normalized && totalResults === 0 && (
-        <section className="rounded-[2rem] border border-dashed border-[#dccfbe] bg-white/60 px-4 py-12 text-center">
-          <p className="text-base font-black text-gray-700">Không tìm thấy kết quả cho "{query}"</p>
-          <p className="mt-1 text-sm font-medium text-gray-400">Thử gõ romaji (houkoku) hoặc nghĩa tiếng Việt (báo cáo).</p>
+        <section className="rounded-2xl border border-dashed border-[#ddcfbc] bg-[#fffdf8] px-4 py-12 text-center">
+          <p className="font-bold text-[#172033]">Không tìm thấy kết quả cho "{query}"</p>
+          <p className="mt-1 text-sm text-[#7b8796]">Thử gõ romaji (houkoku) hoặc nghĩa tiếng Việt (báo cáo).</p>
         </section>
       )}
 
       {vocabResults.length > 0 && (
-        <section className="space-y-3">
+        <section className="space-y-2.5">
           <div className="flex items-center gap-2 px-1">
-            <BookOpen size={16} className="text-orange-500" />
-            <h3 className="text-lg font-black tracking-tight text-gray-900">Từ vựng ({vocabResults.length})</h3>
+            <BookOpen size={16} className="text-orange-700" strokeWidth={1.8} />
+            <h2 className={sectionTitleClass}>Từ vựng ({vocabResults.length})</h2>
           </div>
-          <div className="grid gap-2.5 md:grid-cols-2">
-            {vocabResults.map((card, index) => {
+          <div className="grid gap-2 md:grid-cols-2">
+            {vocabResults.map((card) => {
               const strength = cardStrength(states[card.id]);
               return (
-                <motion.div
-                  key={card.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                >
-                  <Link
-                    to={`/app/vocabulary/${card.id}`}
-                    className="group flex items-center gap-3 rounded-[1.5rem] border border-[#eee5d8] bg-[#fffaf3] px-4 py-3 transition-all hover:border-orange-200 hover:bg-white"
+                <Link key={card.id} to={`/app/vocabulary/${card.id}`} className={resultCardClass}>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      speakJapanese(card.reading === card.word ? card.word : card.reading);
+                    }}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700 transition-colors hover:bg-orange-100"
+                    aria-label={`Nghe ${card.romaji}`}
                   >
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        speakJapanese(card.reading === card.word ? card.word : card.reading);
-                      }}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-orange-100 bg-orange-50 text-orange-500 transition-transform hover:scale-105"
-                      aria-label={`Nghe ${card.romaji}`}
-                    >
-                      <Volume2 size={16} />
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-2">
-                        <span lang="ja" className="truncate text-base font-black text-gray-900">{card.word}</span>
-                        <span className="truncate text-[11px] font-bold italic text-gray-400">{card.romaji}</span>
-                      </div>
-                      <div className="truncate text-xs font-bold text-gray-500">{card.meaning} · {getTopic(card.topicId).label}</div>
+                    <Volume2 size={15} strokeWidth={1.8} />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <span lang="ja" className="truncate font-bold text-[#172033]">{card.word}</span>
+                      <span className="truncate text-[11px] italic text-[#95a0af]">{card.romaji}</span>
                     </div>
-                    <div className="hidden h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[#efe7dc] sm:block">
-                      <div
-                        className={cn('h-full rounded-full', strength >= 70 ? 'bg-emerald-500' : strength >= 35 ? 'bg-amber-400' : 'bg-gray-300')}
-                        style={{ width: `${strength}%` }}
-                      />
-                    </div>
-                    <ChevronRight size={15} className="shrink-0 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-orange-500" />
-                  </Link>
-                </motion.div>
+                    <div className="truncate text-xs text-[#7b8796]">{card.meaning} · {getTopic(card.topicId).label}</div>
+                  </div>
+                  <div className="hidden h-1.5 w-14 shrink-0 overflow-hidden rounded-full bg-[#efe5d7] sm:block">
+                    <div
+                      className={cn('h-full rounded-full', strength >= 70 ? 'bg-orange-700' : strength >= 35 ? 'bg-orange-400' : 'bg-[#d8ccbb]')}
+                      style={{ width: `${strength}%` }}
+                    />
+                  </div>
+                  <ChevronRight size={15} className="shrink-0 text-[#95a0af] transition-colors group-hover:text-orange-700" />
+                </Link>
               );
             })}
           </div>
@@ -177,23 +171,21 @@ export default function SearchPage() {
       )}
 
       {grammarResults.length > 0 && (
-        <section className="space-y-3">
+        <section className="space-y-2.5">
           <div className="flex items-center gap-2 px-1">
-            <FileText size={16} className="text-blue-500" />
-            <h3 className="text-lg font-black tracking-tight text-gray-900">Ngữ pháp & tác phong ({grammarResults.length})</h3>
+            <FileText size={16} className="text-orange-700" strokeWidth={1.8} />
+            <h2 className={sectionTitleClass}>Ngữ pháp & tác phong ({grammarResults.length})</h2>
           </div>
-          <div className="grid gap-2.5 md:grid-cols-2">
+          <div className="grid gap-2 md:grid-cols-2">
             {grammarResults.map((topic) => (
-              <Link
-                key={topic.id}
-                to={`/app/grammar/${topic.id}`}
-                className="group rounded-[1.5rem] border border-[#eee5d8] bg-[#fffaf3] px-4 py-3.5 transition-all hover:border-blue-200 hover:bg-white"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-black text-gray-900">{topic.title}</span>
-                  <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-500">{topic.level}</span>
+              <Link key={topic.id} to={`/app/grammar/${topic.id}`} className={cn(resultCardClass, 'items-start')}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-bold text-[#172033]">{topic.title}</span>
+                    <span className="shrink-0 rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-700">{topic.level}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs text-[#7b8796]">{topic.summary}</p>
                 </div>
-                <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-gray-500">{topic.summary}</p>
               </Link>
             ))}
           </div>
@@ -201,23 +193,21 @@ export default function SearchPage() {
       )}
 
       {courseResults.length > 0 && (
-        <section className="space-y-3">
+        <section className="space-y-2.5">
           <div className="flex items-center gap-2 px-1">
-            <GraduationCap size={16} className="text-emerald-500" />
-            <h3 className="text-lg font-black tracking-tight text-gray-900">Khóa học ({courseResults.length})</h3>
+            <GraduationCap size={16} className="text-orange-700" strokeWidth={1.8} />
+            <h2 className={sectionTitleClass}>Khóa học ({courseResults.length})</h2>
           </div>
-          <div className="grid gap-2.5 md:grid-cols-2">
+          <div className="grid gap-2 md:grid-cols-2">
             {courseResults.map((course) => (
-              <Link
-                key={course.id}
-                to={`/app/courses/${course.id}`}
-                className="group rounded-[1.5rem] border border-[#eee5d8] bg-[#fffaf3] px-4 py-3.5 transition-all hover:border-emerald-200 hover:bg-white"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-black text-gray-900">{course.title}</span>
-                  <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-600">{course.level}</span>
+              <Link key={course.id} to={`/app/courses/${course.id}`} className={cn(resultCardClass, 'items-start')}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-bold text-[#172033]">{course.title}</span>
+                    <span className="shrink-0 rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-700">{course.level}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs text-[#7b8796]">{course.description}</p>
                 </div>
-                <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-gray-500">{course.description}</p>
               </Link>
             ))}
           </div>
