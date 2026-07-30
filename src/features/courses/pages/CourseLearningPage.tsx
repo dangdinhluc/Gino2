@@ -2,7 +2,21 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
-import { DocumentsPanel, ExamsPanel, GamesPanel, TabButton } from '@/src/features/courses/components/CourseLearningResourcePanels';
+import {
+  DocumentsPanel,
+  ExamsPanel,
+  GamesPanel,
+  TabButton,
+  dividerListClass,
+  emptyStateClass,
+  focusRing,
+  panelClass,
+  panelSubtitleClass,
+  panelTitleClass,
+  primaryButtonClass,
+  searchFieldClass,
+  searchInputClass,
+} from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { ArrowLeft, ChevronDown, FileText, Gamepad2, GraduationCap, Layers, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
@@ -16,18 +30,17 @@ import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/
 import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 
-type WorkspaceTab = 'vocabulary' | 'review' | 'documents' | 'games' | 'exams';
+type WorkspaceTab = 'vocabulary' | 'documents' | 'review' | 'games' | 'exams';
 type ReviewMode = 'vocabulary' | 'questions';
 
+// Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> ôn -> chơi -> thi.
 const workspaceTabs = [
   { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
-  { id: 'review', label: 'Ôn tập', icon: Zap },
   { id: 'documents', label: 'Tài liệu', icon: FileText },
+  { id: 'review', label: 'Ôn tập', icon: Zap },
   { id: 'games', label: 'Game', icon: Gamepad2 },
   { id: 'exams', label: 'Thi thử', icon: GraduationCap },
 ] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers }>;
-
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
   return documents[0];
@@ -263,42 +276,44 @@ export default function CourseLearningWorkspace() {
     navigate(`/app/courses/${id ?? course.id}`);
   };
 
+  const clampedProgress = Math.max(0, Math.min(100, course.progress));
   const activeTabPanelLabelId = `course-workspace-compact-tab-${activeTab}`;
 
   return (
-    <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] md:space-y-6">
-      <section className="sticky top-0 z-40 -mx-3 border-b border-[#eadfd2]/80 bg-[#fbf6ef]/95 px-4 py-2.5 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-[1120px] items-center gap-3">
+    <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))]">
+      <header className="sticky top-0 z-40 -mx-3 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[980px] items-center gap-3">
           <button
+            type="button"
             onClick={handleExitWorkspace}
-            className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#eadfd2] bg-white/70 text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
+            className={cn('-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
             aria-label="Quay lại trang khóa học"
           >
-            <ArrowLeft size={18} aria-hidden="true" focusable="false" />
+            <ArrowLeft size={20} aria-hidden="true" focusable="false" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-[var(--font-heading)] text-sm font-black tracking-[-0.03em] text-[#172033] md:text-base">{course.title}</h1>
+            <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{course.title}</h1>
             <div className="mt-1.5 flex items-center gap-2">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-orange-100">
-                <div className="h-full rounded-full bg-orange-700" style={{ width: `${Math.max(0, Math.min(100, course.progress))}%` }} />
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#e8dccb]">
+                <div className="h-full rounded-full bg-orange-700" style={{ width: `${clampedProgress}%` }} />
               </div>
-              <span className="shrink-0 text-xs font-bold text-[#5f6b7c]">{course.progress}%</span>
+              <span className="shrink-0 text-xs text-[#5f6b7c]">{clampedProgress}%</span>
             </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      <section className="mx-auto w-full max-w-[980px] xl:max-w-[1040px] 2xl:max-w-[1120px]">
+      <main className="mx-auto w-full max-w-[980px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
             id={`course-workspace-panel-${activeTab}`}
             role="tabpanel"
             aria-labelledby={activeTabPanelLabelId}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             {activeTab === 'vocabulary' && (
               <VocabularyPanel
@@ -312,6 +327,7 @@ export default function CourseLearningWorkspace() {
                 onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
               />
             )}
+            {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
             {activeTab === 'review' && (
               <ReviewPanel
                 activeQuestion={reviewQuestion}
@@ -328,7 +344,6 @@ export default function CourseLearningWorkspace() {
                 onRestartSession={handleRestartReviewSession}
               />
             )}
-            {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
             {activeTab === 'games' && (
               <GamesPanel
                 activeGameType={activeGameType}
@@ -339,12 +354,12 @@ export default function CourseLearningWorkspace() {
                 onSelectGame={setActiveGameType}
               />
             )}
-            {activeTab === 'exams' && <ExamsPanel courseId={course.id} exams={exams} />}
+            {activeTab === 'exams' && <ExamsPanel exams={exams} />}
           </motion.div>
         </AnimatePresence>
-      </section>
+      </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#eadfd2] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
         <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
           {workspaceTabs.map((tab) => (
             <div key={tab.id} className="min-w-0" role="presentation">
@@ -392,95 +407,97 @@ function VocabularyPanel({
   const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <div className="workspace-panel space-y-4 rounded-[2.25rem] p-4 md:p-5">
-      <div>
-        <h3 className="font-[var(--font-heading)] text-2xl font-black tracking-[-0.04em] text-[#172033]">Từ vựng khóa học</h3>
-        <p className="mt-1 text-sm font-semibold text-[#5f6b7c]">
-          {totalCount} từ
-          {isSearching ? ` · đang xem ${filteredVocabulary.length} kết quả` : ''}
-        </p>
-      </div>
+    <section className={panelClass}>
+      <h2 className={panelTitleClass}>Từ vựng</h2>
+      <p className={cn('mt-1', panelSubtitleClass)}>
+        {totalCount} từ
+        {isSearching ? ` · đang xem ${filteredVocabulary.length}` : ''}
+      </p>
 
-      <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-[#e6ddd1] bg-white px-4 py-2.5 text-sm font-semibold text-[#5f6b7c] focus-within:border-orange-200 focus-within:ring-2 focus-within:ring-orange-100">
+      <label className={cn(searchFieldClass, 'mt-4')}>
         <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
-        <span className="sr-only">Tìm kiếm từ vựng</span>
+        <span className="sr-only">Tìm từ vựng</span>
         <input
           value={searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Tìm từ hoặc nghĩa..."
-          className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#95a0af]"
+          className={searchInputClass}
         />
         {searchQuery && (
-          <button type="button" onClick={() => onSearchChange('')} className={cn('flex h-8 w-8 items-center justify-center rounded-xl bg-slate-50 text-[#95a0af]', focusRing)} aria-label="Xóa tìm kiếm">
+          <button type="button" onClick={() => onSearchChange('')} className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#95a0af] hover:text-[#172033]', focusRing)} aria-label="Xóa tìm kiếm">
             <X size={15} aria-hidden="true" focusable="false" />
           </button>
         )}
       </label>
 
-      <div className="space-y-2">
-        {filteredVocabulary.length > 0 ? filteredVocabulary.map((item) => {
-          const isExpanded = expandedVocabularyId === item.id;
+      {filteredVocabulary.length > 0 ? (
+        <ul className={cn('mt-2', dividerListClass)}>
+          {filteredVocabulary.map((item) => {
+            const isExpanded = expandedVocabularyId === item.id;
 
-          return (
-            <div
-              key={item.id}
-              className={cn('workspace-item rounded-[1.5rem] transition-colors', isExpanded ? 'border-orange-200 bg-orange-50/45' : 'hover:border-orange-200 hover:bg-orange-50/25')}
-            >
-              <div className="flex items-center gap-2 p-3.5">
-                <button
-                  onClick={() => onToggleVocabulary(item.id)}
-                  aria-expanded={isExpanded}
-                  className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-2xl text-left', focusRing)}
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-lg font-black text-[#172033]">{getVocabularyDisplayName(item)}</span>
-                    <span className="block truncate text-sm font-semibold text-[#5f6b7c]">{item.meaning}</span>
-                  </span>
-                  <ChevronDown size={18} className={cn('shrink-0 text-[#95a0af] transition-transform', isExpanded ? 'rotate-180' : '')} aria-hidden="true" focusable="false" />
-                </button>
-                <button
-                  onClick={() => onAudio(item.id)}
-                  className={cn(
-                    'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors',
-                    heardVocabularyId === item.id ? 'border-orange-200 bg-orange-700 text-white' : 'border-[#e6ddd1] bg-white text-[#5f6b7c] hover:text-orange-700',
-                    focusRing
-                  )}
-                  aria-label={`Nghe phát âm ${item.word}`}
-                >
-                  <Volume2 size={18} aria-hidden="true" focusable="false" />
-                </button>
-              </div>
-
-              <AnimatePresence initial={false}>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.18, ease: 'easeOut' }}
-                    className="overflow-hidden"
+            return (
+              <li key={item.id}>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onToggleVocabulary(item.id)}
+                    aria-expanded={isExpanded}
+                    className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
                   >
-                    <div className="space-y-3 px-3.5 pb-4">
-                      <p className="text-sm font-bold text-orange-700">/{item.pronunciation}/</p>
-                      <div className="rounded-2xl border border-orange-100 bg-white px-4 py-3">
-                        <p className="text-sm font-black text-[#172033]">{item.example.jp}</p>
-                        <p className="mt-1 text-sm font-semibold text-[#5f6b7c]">{item.example.vi}</p>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-base font-semibold text-[#172033]">{getVocabularyDisplayName(item)}</span>
+                      <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">{item.meaning}</span>
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={cn('shrink-0 text-[#95a0af] transition-transform', isExpanded ? 'rotate-180' : '')}
+                      aria-hidden="true"
+                      focusable="false"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAudio(item.id)}
+                    className={cn(
+                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
+                      heardVocabularyId === item.id ? 'bg-orange-700 text-white' : 'text-[#95a0af] hover:text-orange-700',
+                      focusRing
+                    )}
+                    aria-label={`Nghe phát âm ${item.word}`}
+                  >
+                    <Volume2 size={18} aria-hidden="true" focusable="false" />
+                  </button>
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.16, ease: 'easeOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pb-4 text-sm leading-relaxed">
+                        <p className="text-orange-700">/{item.pronunciation}/</p>
+                        <p className="mt-2 font-semibold text-[#172033]">{item.example.jp}</p>
+                        <p className="text-[#5f6b7c]">{item.example.vi}</p>
+                        <p className="mt-2 text-xs text-[#95a0af]">{item.module}</p>
                       </div>
-                      <p className="text-xs font-semibold text-[#95a0af]">{item.module}</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        }) : (
-          <div className="rounded-[1.5rem] border border-dashed border-[#e6ddd1] bg-[#fffdf8] p-6 text-center">
-            <p className="text-sm font-black text-[#172033]">Không tìm thấy từ phù hợp</p>
-            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">Thử nhập từ khóa ngắn hơn.</p>
-          </div>
-        )}
-      </div>
-    </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className={cn(emptyStateClass, 'mt-4')}>
+          <p className="text-sm font-semibold text-[#172033]">Không tìm thấy từ phù hợp</p>
+          <p className="mt-1 text-xs text-[#95a0af]">Thử nhập từ khóa ngắn hơn.</p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -545,124 +562,107 @@ function ReviewPanel({
   };
 
   const modeOptions = [
-    { id: 'vocabulary' as ReviewMode, label: 'Ôn từ vựng' },
-    { id: 'questions' as ReviewMode, label: 'Ôn câu hỏi' },
+    { id: 'vocabulary' as ReviewMode, label: 'Từ vựng' },
+    { id: 'questions' as ReviewMode, label: 'Câu hỏi' },
   ];
 
+  if (isSummaryOpen) {
+    return (
+      <section className={cn(panelClass, 'text-center')}>
+        <h2 className={panelTitleClass}>Kết quả phiên ôn</h2>
+        <p className="mt-4 font-[var(--font-heading)] text-4xl font-bold text-orange-700">
+          {stats.correct}/{stats.answered}
+        </p>
+        <p className={cn('mt-2', panelSubtitleClass)}>
+          {stats.answered === 0 ? 'Anh chưa trả lời câu nào trong phiên này.' : `Đúng ${stats.correct} trên ${stats.answered} câu đã làm.`}
+        </p>
+        <button type="button" onClick={onRestartSession} className={cn(primaryButtonClass, 'mx-auto mt-5', focusRing)}>
+          <RotateCcw size={15} aria-hidden="true" focusable="false" />
+          Bắt đầu phiên mới
+        </button>
+      </section>
+    );
+  }
+
   return (
-    <div className="workspace-panel space-y-4 rounded-[2.25rem] p-4 md:p-6">
-      <div className="flex gap-1 rounded-2xl border border-[#e6ddd1] bg-white p-1" role="group" aria-label="Chọn chế độ ôn tập">
-        {modeOptions.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => onModeChange(option.id)}
-            aria-pressed={reviewMode === option.id}
-            className={cn(
-              'min-h-11 flex-1 rounded-xl px-3 py-2 text-sm font-bold transition-colors',
-              reviewMode === option.id ? 'bg-orange-700 text-white' : 'text-[#5f6b7c] hover:bg-orange-50',
-              focusRing
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
+    <section className={panelClass}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex gap-4" role="group" aria-label="Chọn nội dung ôn tập">
+          {modeOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => onModeChange(option.id)}
+              aria-pressed={reviewMode === option.id}
+              className={cn(
+                'rounded-lg py-1 text-sm transition-colors',
+                reviewMode === option.id ? 'font-bold text-orange-700 underline decoration-2 underline-offset-8' : 'text-[#7b8796] hover:text-[#172033]',
+                focusRing
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="shrink-0 text-xs text-[#95a0af]">
+          Câu {Math.min(questionIndex + 1, questionsCount)}/{questionsCount} · Đúng {stats.correct}/{stats.answered}
+        </p>
       </div>
 
-      {isSummaryOpen ? (
-        <div className="rounded-[2rem] border border-[#e6ddd1] bg-white p-6 text-center">
-          <h3 className="font-[var(--font-heading)] text-2xl font-black tracking-[-0.04em] text-[#172033]">Kết quả phiên ôn tập</h3>
-          <p className="mt-3 text-4xl font-black text-orange-700">
-            {stats.correct}/{stats.answered}
-          </p>
-          <p className="mt-1 text-sm font-semibold text-[#5f6b7c]">
-            {stats.answered === 0 ? 'Anh chưa trả lời câu nào trong phiên này.' : `Đúng ${stats.correct} câu trên ${stats.answered} câu đã làm.`}
-          </p>
-          <button
-            type="button"
-            onClick={onRestartSession}
-            className={cn('mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-700 px-5 py-3 text-sm font-black text-white', focusRing)}
-          >
-            <RotateCcw size={16} aria-hidden="true" focusable="false" />
-            Bắt đầu phiên mới
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-bold text-[#5f6b7c]">Câu {Math.min(questionIndex + 1, questionsCount)}/{questionsCount}</p>
-            <p className="text-sm font-bold text-[#5f6b7c]">Đúng {stats.correct}/{stats.answered}</p>
-          </div>
+      <p className="sr-only" role="status" aria-live="polite">{answerFeedback}</p>
 
-          <p className="sr-only" role="status" aria-live="polite">{answerFeedback}</p>
+      <p className="mt-6 font-[var(--font-heading)] text-xl font-bold leading-snug tracking-[-0.02em] text-[#172033]">{activeQuestion.prompt}</p>
 
-          <div className="rounded-[2rem] border border-orange-100 bg-orange-50/55 p-5 md:p-6">
-            <p className="text-xl font-black leading-snug text-[#172033] md:text-[1.6rem]">{activeQuestion.prompt}</p>
-          </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-2" role="radiogroup" aria-label={activeQuestion.prompt}>
+        {activeQuestion.options.map((option, optionIndex) => {
+          const isSelected = selectedAnswer === option;
+          const isCorrectOption = option === activeQuestion.answer;
+          const isFocusable = isSelected || (!isAnswered && optionIndex === 0);
 
-          <div className="grid gap-3 md:grid-cols-2" role="radiogroup" aria-label={activeQuestion.prompt}>
-            {activeQuestion.options.map((option, optionIndex) => {
-              const isSelected = selectedAnswer === option;
-              const isCorrectOption = option === activeQuestion.answer;
-              const isFocusable = isSelected || (!isAnswered && optionIndex === 0);
-
-              return (
-                <button
-                  id={`course-review-option-${questionIndex}-${optionIndex}`}
-                  key={option}
-                  onClick={() => onAnswer(option)}
-                  onKeyDown={(event) => handleAnswerKeyDown(event, optionIndex)}
-                  role="radio"
-                  aria-checked={isSelected}
-                  tabIndex={isFocusable ? 0 : -1}
-                  disabled={isAnswered}
-                  className={cn(
-                    'min-h-14 rounded-[1.5rem] border p-4 text-left text-base font-bold transition-colors disabled:cursor-default',
-                    isSelected && isCorrectOption && 'border-emerald-300 bg-emerald-50 text-emerald-700',
-                    isSelected && !isCorrectOption && 'border-red-300 bg-red-50 text-red-700',
-                    !isSelected && isAnswered && isCorrectOption && 'border-emerald-300 bg-emerald-50/70 text-emerald-700',
-                    !isSelected && !(isAnswered && isCorrectOption) && 'border-[#e6ddd1] bg-[#fffdf8] text-[#172033] hover:border-orange-200 hover:bg-orange-50/40',
-                    focusRing
-                  )}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-
-          {isAnswered && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18 }}
-              className={cn('rounded-[1.75rem] border p-4 md:p-5', isCorrect ? 'border-emerald-200 bg-emerald-50/70' : 'border-red-200 bg-red-50/70')}
+          return (
+            <button
+              id={`course-review-option-${questionIndex}-${optionIndex}`}
+              key={option}
+              onClick={() => onAnswer(option)}
+              onKeyDown={(event) => handleAnswerKeyDown(event, optionIndex)}
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={isFocusable ? 0 : -1}
+              disabled={isAnswered}
+              className={cn(
+                'min-h-13 rounded-xl border bg-white px-4 py-3 text-left text-base transition-colors disabled:cursor-default',
+                isSelected && isCorrectOption && 'border-emerald-500 text-emerald-700',
+                isSelected && !isCorrectOption && 'border-red-400 text-red-600',
+                !isSelected && isAnswered && isCorrectOption && 'border-emerald-500 text-emerald-700',
+                !isSelected && !(isAnswered && isCorrectOption) && 'border-[#e8dccb] text-[#172033] hover:border-orange-300',
+                focusRing
+              )}
             >
-              <p className={cn('text-base font-black', isCorrect ? 'text-emerald-700' : 'text-red-700')}>
-                {isCorrect ? 'Chính xác!' : `Chưa đúng. Đáp án đúng: ${activeQuestion.answer}`}
-              </p>
-              <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5f6b7c]">{activeQuestion.explanation}</p>
+              {option}
+            </button>
+          );
+        })}
+      </div>
 
-              <button
-                type="button"
-                onClick={onNext}
-                autoFocus
-                className={cn('mt-4 flex min-h-12 w-full items-center justify-center rounded-2xl bg-orange-700 px-5 py-3 text-sm font-black text-white', focusRing)}
-              >
-                Tiếp tục
-              </button>
-            </motion.div>
-          )}
-
-          <button
-            type="button"
-            onClick={onFinishSession}
-            className={cn('mx-auto block rounded-xl px-4 py-2 text-sm font-bold text-[#5f6b7c] underline-offset-4 hover:underline', focusRing)}
-          >
-            Kết thúc phiên
+      {isAnswered && (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="mt-4">
+          <p className={cn('text-base font-bold', isCorrect ? 'text-emerald-700' : 'text-red-600')}>
+            {isCorrect ? 'Chính xác' : `Đáp án đúng: ${activeQuestion.answer}`}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{activeQuestion.explanation}</p>
+          <button type="button" onClick={onNext} autoFocus className={cn(primaryButtonClass, 'mt-4 w-full', focusRing)}>
+            Tiếp tục
           </button>
-        </>
+        </motion.div>
       )}
-    </div>
+
+      <button
+        type="button"
+        onClick={onFinishSession}
+        className={cn('mx-auto mt-6 block rounded-lg px-3 py-2 text-sm text-[#7b8796] underline-offset-4 hover:text-[#172033] hover:underline', focusRing)}
+      >
+        Kết thúc phiên
+      </button>
+    </section>
   );
 }
