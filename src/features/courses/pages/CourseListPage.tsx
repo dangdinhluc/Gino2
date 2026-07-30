@@ -48,24 +48,25 @@ export default function CourseList() {
 
   return (
     <div className="space-y-5 pb-16">
-      <section className="rounded-[2rem] border border-[#e7ddcf] bg-[linear-gradient(180deg,rgba(255,250,243,0.94)_0%,rgba(247,243,236,0.98)_100%)] p-5 shadow-[0_30px_70px_-48px_rgba(180,138,91,0.22)] md:rounded-[2.5rem] md:p-7">
-        <h2 className="text-[2rem] font-black tracking-[-0.06em] text-[#172033] md:text-4xl">Khóa học</h2>
-        <p className="mt-2 text-sm font-semibold text-[#5f6b7c]">
+      <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6">
+        <h2 className="font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">Khóa học</h2>
+        <p className="mt-2 text-sm text-[#5f6b7c]">
           {courses.length} khóa học
           {isFiltering ? ` · đang xem ${filteredCourses.length} kết quả` : ''}
         </p>
         <CourseListErrorNotice result={courseList} />
       </section>
 
-      <section className="space-y-4 rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_20px_48px_-36px_rgba(148,163,184,0.2)]">
+      <section className="space-y-4 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
         <div className="flex items-center gap-3">
           <div className="group relative flex-1">
             {isSearching ? (
-              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 animate-spin text-orange-500" size={20} />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin text-orange-700" size={20} strokeWidth={1.8} />
             ) : (
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-orange-500"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#95a0af] transition-colors group-focus-within:text-orange-700"
                 size={20}
+                strokeWidth={1.8}
               />
             )}
             <input
@@ -73,7 +74,7 @@ export default function CourseList() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Tìm khóa học..."
-              className="w-full rounded-2xl border border-[#e1d8cb] bg-[#f5efe6]/80 py-3.5 pl-12 pr-4 text-sm font-medium text-gray-700 outline-none transition-all focus:border-orange-200 focus:bg-[#fffaf3] focus:ring-2 focus:ring-orange-100/70"
+              className="w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3.5 pl-12 pr-4 text-sm text-[#172033] outline-none transition-colors placeholder:text-[#95a0af] focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]"
             />
           </div>
 
@@ -81,18 +82,18 @@ export default function CourseList() {
             type="button"
             onClick={() => setIsFilterSheetOpen(true)}
             className={cn(
-              'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all md:hidden',
+              'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-colors md:hidden',
               hasActiveLevelFilter
-                ? 'border-orange-200 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
-                : 'border-[#e1d8cb] bg-white text-gray-500'
+                ? 'border-orange-200 bg-orange-50 text-orange-700'
+                : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
             )}
             aria-label="Mở bộ lọc khóa học"
             aria-haspopup="dialog"
             aria-expanded={isFilterSheetOpen}
           >
-            <SlidersHorizontal size={18} />
+            <SlidersHorizontal size={18} strokeWidth={1.8} />
             {hasActiveLevelFilter && (
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-[#fffaf3]" />
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-orange-700 ring-2 ring-[#fffaf3]" />
             )}
           </button>
         </div>
@@ -104,10 +105,10 @@ export default function CourseList() {
               type="button"
               onClick={() => setActiveLevel(level)}
               className={cn(
-                'rounded-full border px-4 py-2 text-sm font-bold transition-all',
+                'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
                 activeLevel === level
-                  ? 'border-orange-200 bg-orange-500 text-white shadow-sm shadow-orange-200'
-                  : 'border-[#e1d8cb] bg-white text-gray-600 hover:border-orange-200 hover:text-orange-600'
+                  ? 'border-orange-700 bg-orange-700 text-white'
+                  : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:border-orange-300 hover:text-orange-700'
               )}
             >
               {level === ALL_LEVELS ? level : `Cấp độ ${level}`}
@@ -134,19 +135,19 @@ export default function CourseList() {
               exit={{ opacity: 0, y: 16, scale: 0.97 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
               onClick={(event) => event.stopPropagation()}
-              className="w-full rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_30px_80px_-36px_rgba(17,24,39,0.42)]"
+              className="w-full rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5"
             >
               <div className="flex items-start justify-between gap-3">
-                <h3 id="course-filter-title" className="text-xl font-black tracking-tight text-gray-900">
+                <h3 id="course-filter-title" className="font-[var(--font-heading)] text-xl font-bold tracking-[-0.02em] text-[#172033]">
                   Chọn cấp độ
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(false)}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-gray-500 shadow-sm"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]"
                   aria-label="Đóng bộ lọc khóa học"
                 >
-                  <X size={18} />
+                  <X size={18} strokeWidth={1.8} />
                 </button>
               </div>
 
@@ -160,10 +161,10 @@ export default function CourseList() {
                       setIsFilterSheetOpen(false);
                     }}
                     className={cn(
-                      'rounded-full border px-4 py-2.5 text-sm font-bold transition-all',
+                      'rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors',
                       activeLevel === level
-                        ? 'border-orange-200 bg-orange-500 text-white shadow-sm shadow-orange-200'
-                        : 'border-[#e1d8cb] bg-white text-gray-600'
+                        ? 'border-orange-700 bg-orange-700 text-white'
+                        : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
                     )}
                   >
                     {level === ALL_LEVELS ? level : `Cấp độ ${level}`}
@@ -180,12 +181,12 @@ export default function CourseList() {
           {[1, 2, 3].map((index) => (
             <div
               key={index}
-              className="flex h-80 animate-pulse flex-col space-y-4 rounded-[2rem] border border-[#ece5da] bg-[#fffaf3] p-6"
+              className="flex h-80 animate-pulse flex-col space-y-4 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-6"
             >
-              <div className="h-44 w-full rounded-2xl bg-gray-100" />
-              <div className="h-6 w-2/3 rounded-lg bg-gray-100" />
-              <div className="h-4 w-full rounded-lg bg-gray-100" />
-              <div className="mt-auto h-10 w-full rounded-xl bg-gray-100" />
+              <div className="h-44 w-full rounded-xl bg-[#f1e7d9]" />
+              <div className="h-6 w-2/3 rounded-lg bg-[#f1e7d9]" />
+              <div className="h-4 w-full rounded-lg bg-[#f1e7d9]" />
+              <div className="mt-auto h-10 w-full rounded-xl bg-[#f1e7d9]" />
             </div>
           ))}
         </div>
@@ -202,7 +203,7 @@ export default function CourseList() {
               >
                 <Link
                   to={`/app/courses/${course.id}`}
-                  className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] shadow-[0_20px_48px_-38px_rgba(148,163,184,0.16)] transition-all hover:border-orange-200 hover:shadow-[0_24px_52px_-36px_rgba(180,138,91,0.18)]"
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
                 >
                   <div className="relative h-44 overflow-hidden">
                     <img
@@ -210,24 +211,24 @@ export default function CourseList() {
                       alt=""
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <span className="absolute left-4 top-4 rounded-xl bg-white/92 px-3 py-1.5 text-xs font-black text-orange-700 ring-1 ring-orange-100 backdrop-blur-sm">
+                    <span className="absolute left-4 top-4 rounded-lg border border-[#e8dccb] bg-white/92 px-3 py-1.5 text-xs font-semibold text-orange-700 backdrop-blur-sm">
                       {course.level}
                     </span>
                   </div>
 
                   <div className="flex flex-1 flex-col gap-3 p-5">
-                    <h4 className="text-lg font-black leading-tight text-gray-800 transition-colors group-hover:text-orange-700">
+                    <h4 className="font-[var(--font-heading)] text-lg font-bold leading-tight tracking-[-0.02em] text-[#172033] transition-colors group-hover:text-orange-700">
                       {course.title}
                     </h4>
-                    <p className="line-clamp-2 text-sm font-medium leading-relaxed text-gray-500">
+                    <p className="line-clamp-2 text-sm leading-relaxed text-[#5f6b7c]">
                       {course.description}
                     </p>
 
                     <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#efe5d7] pt-4">
-                      <span className="text-xs font-bold text-gray-500">
+                      <span className="text-xs font-semibold text-[#7b8796]">
                         {course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang đồng bộ'}
                       </span>
-                      <span className="rounded-xl bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-[0_14px_28px_-20px_rgba(249,115,22,0.7)] transition-transform group-hover:scale-[1.03]">
+                      <span className="rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
                         Học ngay
                       </span>
                     </div>
@@ -239,12 +240,12 @@ export default function CourseList() {
         </div>
       ) : (
         <div className="space-y-4 py-20 text-center">
-          <div className="inline-flex rounded-[2rem] border border-[#ece5da] bg-[#fffaf3] p-8 text-gray-300">
-            <BookOpen size={48} />
+          <div className="inline-flex rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-8 text-[#95a0af]">
+            <BookOpen size={48} strokeWidth={1.8} />
           </div>
           <div className="space-y-1">
-            <p className="text-base font-black text-gray-700">Chưa thấy khóa học phù hợp</p>
-            <p className="text-sm font-semibold text-gray-500">Thử từ khóa khác hoặc bỏ bộ lọc để xem toàn bộ danh sách.</p>
+            <p className="font-[var(--font-heading)] text-base font-bold text-[#172033]">Chưa thấy khóa học phù hợp</p>
+            <p className="text-sm text-[#5f6b7c]">Thử từ khóa khác hoặc bỏ bộ lọc để xem toàn bộ danh sách.</p>
           </div>
           <button
             type="button"
@@ -252,7 +253,7 @@ export default function CourseList() {
               setSearchQuery('');
               setActiveLevel(ALL_LEVELS);
             }}
-            className="rounded-2xl border border-orange-200 bg-white px-6 py-3 text-sm font-black text-orange-700 transition-colors hover:bg-orange-50"
+            className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-6 py-3 text-sm font-semibold text-orange-700 transition-colors hover:bg-orange-50"
           >
             Xóa tìm kiếm và bộ lọc
           </button>
@@ -266,17 +267,12 @@ interface CourseListErrorNoticeProps {
   result: ReturnType<typeof useCourseList>;
 }
 
-/**
- * Chi canh bao khi that su co loi tai du lieu.
- * Truoc day component nay con phoi ca "Du lieu Supabase" / "Du lieu mau local"
- * ra man hinh hoc vien - do la thong tin danh cho dev, khong phai cho nguoi hoc.
- */
 function CourseListErrorNotice({ result }: CourseListErrorNoticeProps) {
   if (result.status !== 'error') return null;
 
   return (
-    <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-xs font-bold text-amber-700">
-      <AlertTriangle size={14} />
+    <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-xs font-semibold text-amber-700">
+      <AlertTriangle size={14} strokeWidth={1.8} />
       Không tải được dữ liệu mới · đang hiển thị danh sách tạm
     </p>
   );
