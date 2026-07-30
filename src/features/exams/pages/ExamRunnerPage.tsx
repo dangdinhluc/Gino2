@@ -143,65 +143,65 @@ export default function ExamRunner() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-24">
-      <section className="sticky top-0 z-40 -mx-4 border-b border-[#e6ddd1] bg-[#f8f4ee]/92 px-4 py-3 backdrop-blur-md md:static md:mx-0 md:rounded-[2rem] md:border md:bg-[#fffaf3]/92 md:p-4 md:shadow-[0_18px_44px_-38px_rgba(96,70,42,0.18)]">
+    <div className="mx-auto max-w-7xl space-y-5 pb-24">
+      <section className="sticky top-0 z-40 -mx-4 border-b border-[#e8dccb] bg-[#f8f4ee]/92 px-4 py-3 backdrop-blur-md md:static md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/app/exams" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e1d8cb] bg-[#fffaf3] text-gray-700">
-              <ArrowLeft size={20} />
+            <Link to="/app/exams" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] transition-colors hover:text-orange-700">
+              <ArrowLeft size={20} strokeWidth={1.8} />
             </Link>
             <div className="min-w-0">
-              <p className="truncate text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{examShell.provider} · readiness mock</p>
-              <h1 className="truncate text-base font-black text-gray-900 md:text-xl">{examShell.title}</h1>
+              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-orange-700">{examShell.provider} · readiness mock</p>
+              <h1 className="truncate font-[var(--font-heading)] text-base font-bold tracking-[-0.02em] text-[#172033] md:text-xl">{examShell.title}</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-black text-blue-600">
-              <Clock3 size={16} />
+            <div className="inline-flex items-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-3 text-sm font-semibold text-[#5f6b7c]">
+              <Clock3 size={16} strokeWidth={1.8} className="text-[#95a0af]" />
               {examShell.duration}
             </div>
-            <button onClick={handleSubmit} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-200">
+            <button onClick={handleSubmit} className="inline-flex items-center gap-2 rounded-xl bg-orange-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-800">
               Nộp bài
-              <Send size={16} />
+              <Send size={16} strokeWidth={1.8} />
             </button>
           </div>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#efe5d7]">
-          <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-orange-700 transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.32fr]">
-        <div className="overflow-hidden rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] shadow-[0_28px_60px_-42px_rgba(148,163,184,0.22)]">
-          <div className="border-b border-[#efe6da] bg-[linear-gradient(135deg,#fffaf3_0%,#fff7ed_100%)] p-5 md:p-7">
+      <section className="grid gap-5 xl:grid-cols-[1fr_0.32fr]">
+        <div className="overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3]">
+          <div className="border-b border-[#efe5d7] bg-[#fffdf8] p-5 md:p-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 shadow-sm">
-                  <BookOpenCheck size={14} />
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#e8dccb] bg-orange-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-orange-700">
+                  <BookOpenCheck size={14} strokeWidth={1.8} />
                   Trắc nghiệm lý thuyết
                 </div>
-                <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">Câu {activeIndex + 1}: {activeQuestion.topic}</h2>
-                <p className="max-w-3xl text-sm font-medium leading-relaxed text-gray-500">
+                <h2 className="font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-[#172033] md:text-3xl">Câu {activeIndex + 1}: {activeQuestion.topic}</h2>
+                <p className="max-w-3xl text-sm leading-relaxed text-[#5f6b7c]">
                   Bài thi mock hiện dùng dạng chọn phản xạ đúng. Anh có thể nhảy câu ở bảng bên phải hoặc dùng nút chuyển câu bên dưới.
                 </p>
               </div>
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-blue-500">
+              <div className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#5f6b7c]">
                 {answeredCount}/{theoryQuestions.length} đã làm
               </div>
             </div>
           </div>
 
           <div className="space-y-5 p-5 md:p-7">
-            <div className="rounded-[2rem] border border-[#eadfce] bg-white p-5 md:p-6">
+            <div className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-5 md:p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-500 shadow-sm">
-                  <ListChecks size={24} />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+                  <ListChecks size={24} strokeWidth={1.8} />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-bold text-orange-600">Đề bài</p>
-                  <h3 className="text-xl font-black tracking-tight text-gray-900">{activeQuestion.prompt}</h3>
-                  <p className="text-sm font-medium leading-relaxed text-gray-500">{activeQuestion.context}</p>
+                  <p className="text-sm font-semibold text-orange-700">Đề bài</p>
+                  <h3 className="font-[var(--font-heading)] text-xl font-bold tracking-[-0.02em] text-[#172033]">{activeQuestion.prompt}</h3>
+                  <p className="text-sm leading-relaxed text-[#5f6b7c]">{activeQuestion.context}</p>
                 </div>
               </div>
             </div>
@@ -214,47 +214,47 @@ export default function ExamRunner() {
                     key={option}
                     onClick={() => handleAnswer(option)}
                     className={cn(
-                      'flex min-h-20 items-center gap-4 rounded-[1.5rem] border px-5 py-4 text-left transition-all',
-                      isSelected ? 'border-orange-200 bg-orange-50 text-orange-700 shadow-sm' : 'border-[#e6ddd1] bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50/70'
+                      'flex min-h-20 items-center gap-4 rounded-xl border px-5 py-4 text-left transition-colors',
+                      isSelected ? 'border-orange-300 bg-orange-50 text-orange-800' : 'border-[#e8dccb] bg-[#fffdf8] text-[#172033] hover:border-orange-300 hover:bg-orange-50/60'
                     )}
                   >
-                    <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-black', isSelected ? 'border-orange-200 bg-white text-orange-500' : 'border-gray-200 bg-gray-50 text-gray-400')}>
+                    <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-sm font-bold', isSelected ? 'border-orange-300 bg-white text-orange-700' : 'border-[#e8dccb] bg-white text-[#95a0af]')}>
                       {String.fromCharCode(65 + index)}
                     </span>
-                    <span className="text-sm font-black md:text-base">{option}</span>
+                    <span className="text-sm font-semibold md:text-base">{option}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[#efe6da] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-[#efe5d7] pt-5 sm:flex-row sm:items-center sm:justify-between">
               <button
                 onClick={goToPreviousQuestion}
                 disabled={activeIndex === 0}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#e6ddd1] bg-white px-5 py-3 text-sm font-black text-gray-700 transition-all hover:border-orange-200 hover:text-orange-500 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-5 py-3 text-sm font-semibold text-[#5f6b7c] transition-colors hover:border-orange-300 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={16} strokeWidth={1.8} />
                 Câu trước
               </button>
-              <div className="text-center text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
+              <div className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#95a0af]">
                 Câu {activeIndex + 1} / {theoryQuestions.length}
               </div>
               <button
                 onClick={goToNextQuestion}
                 disabled={activeIndex === theoryQuestions.length - 1}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-[0_16px_34px_-22px_rgba(249,115,22,0.65)] transition-all hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 Câu sau
-                <ArrowRight size={16} />
+                <ArrowRight size={16} strokeWidth={1.8} />
               </button>
             </div>
           </div>
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-4 shadow-[0_20px_48px_-38px_rgba(148,163,184,0.2)]">
-            <div className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-orange-500">
-              <Flag size={14} /> Danh sách câu
+          <div className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4">
+            <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-orange-700">
+              <Flag size={14} strokeWidth={1.8} /> Danh sách câu
             </div>
             <div className="grid grid-cols-4 gap-2 xl:grid-cols-3 2xl:grid-cols-4">
               {theoryQuestions.map((question, index) => {
@@ -265,24 +265,24 @@ export default function ExamRunner() {
                     key={question.id}
                     onClick={() => setActiveIndex(index)}
                     className={cn(
-                      'flex h-11 items-center justify-center rounded-xl border text-xs font-black transition-all',
+                      'flex h-11 items-center justify-center rounded-lg border text-xs font-bold transition-colors',
                       isActive
-                        ? 'border-orange-200 bg-orange-500 text-white shadow-sm shadow-orange-100'
+                        ? 'border-orange-700 bg-orange-700 text-white'
                         : isAnswered
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
-                          : 'border-[#e6ddd1] bg-white text-gray-400 hover:border-orange-200 hover:text-orange-500'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                          : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300 hover:text-orange-700'
                     )}
                   >
-                    {isAnswered && !isActive ? <CheckCircle2 size={15} /> : index + 1}
+                    {isAnswered && !isActive ? <CheckCircle2 size={15} strokeWidth={1.8} /> : index + 1}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-orange-100 bg-orange-50/70 p-5">
-            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-500">Ghi chú</div>
-            <p className="mt-3 text-sm font-medium leading-relaxed text-gray-600">
+          <div className="rounded-2xl border border-[#e8dccb] bg-orange-50/60 p-5">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-orange-700">Ghi chú</div>
+            <p className="mt-3 text-sm leading-relaxed text-[#5f6b7c]">
               Màn này đang ưu tiên phần trắc nghiệm readiness để chốt flow nhanh. Sau này nếu cần mô phỏng sâu hơn, mình tách riêng mode JFT, workplace và HR interview.
             </p>
           </div>
