@@ -28,23 +28,23 @@ export function AITutorChatPanel({
   showCloseButton = false,
 }: AITutorChatPanelProps) {
   return (
-    <section className={cn('flex min-h-0 flex-col overflow-hidden rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] shadow-[0_28px_60px_-42px_rgba(148,163,184,0.22)]', className)}>
-      <header className={cn('border-b border-[#e6ddd1] bg-[#fffaf3]/95 backdrop-blur-md md:px-6', compactHeader ? 'px-4 py-3' : 'px-5 py-4')}>
+    <section className={cn('flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3]', className)}>
+      <header className={cn('border-b border-[#e8dccb] bg-[#fffaf3] md:px-6', compactHeader ? 'px-4 py-3' : 'px-5 py-4')}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {!compactHeader && <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Tokutei AI Coach</p>}
-            <h2 className={cn('font-black text-gray-900', compactHeader ? 'text-lg' : 'text-xl')}>Hỏi nhanh về Tokutei</h2>
+            {!compactHeader && <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-orange-700">Tokutei AI Coach</p>}
+            <h2 className={cn('font-[var(--font-heading)] font-bold tracking-[-0.02em] text-[#172033]', compactHeader ? 'text-lg' : 'text-xl')}>Hỏi nhanh về Tokutei</h2>
           </div>
 
           <div className="flex items-center gap-2">
-            {!compactHeader && <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-600">Mock online</div>}
+            {!compactHeader && <div className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700">Mock online</div>}
             {showCloseButton && onClose && (
               <button
                 type="button"
                 onClick={onClose}
                 className={cn(
-                  'shrink-0 border border-[#e1d8cb] bg-white text-gray-500 transition-colors hover:bg-orange-50 hover:text-orange-600',
-                  compactHeader ? 'flex h-9 w-9 items-center justify-center rounded-xl' : 'flex h-10 w-10 items-center justify-center rounded-2xl'
+                  'shrink-0 border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] transition-colors hover:text-orange-700',
+                  compactHeader ? 'flex h-9 w-9 items-center justify-center rounded-lg' : 'flex h-10 w-10 items-center justify-center rounded-xl'
                 )}
                 aria-label="Đóng chat AI"
               >
@@ -61,7 +61,7 @@ export function AITutorChatPanel({
                 key={chip}
                 type="button"
                 onClick={() => onSendMessage(chip)}
-                className="shrink-0 rounded-full border border-orange-100 bg-white px-4 py-2 text-xs font-bold text-orange-600 transition-all hover:border-orange-200 hover:bg-orange-50"
+                className="shrink-0 rounded-lg border border-[#e8dccb] bg-[#fffdf8] px-3.5 py-2 text-xs font-bold text-[#5f6b7c] transition-colors hover:text-orange-700"
               >
                 {chip}
               </button>
@@ -70,7 +70,7 @@ export function AITutorChatPanel({
         )}
       </header>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-5 md:px-6">
         {messages.map((message, index) => {
           const isUser = message.role === 'user';
 
@@ -84,10 +84,10 @@ export function AITutorChatPanel({
             >
               <div
                 className={cn(
-                  'max-w-[85%] rounded-[1.5rem] px-5 py-4 text-sm font-medium leading-relaxed md:max-w-[68%]',
+                  'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed md:max-w-[68%]',
                   isUser
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-100'
-                    : 'border border-[#e6ddd1] bg-white text-gray-600'
+                    ? 'bg-orange-700 text-white'
+                    : 'border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
                 )}
               >
                 {message.text}
@@ -97,18 +97,18 @@ export function AITutorChatPanel({
         })}
       </div>
 
-      <form onSubmit={onSubmit} className="border-t border-[#e6ddd1] bg-[#fffaf3]/95 p-4 md:p-5">
-        <div className="flex gap-3 rounded-[1.75rem] border border-[#e1d8cb] bg-white p-2 shadow-[0_18px_34px_-30px_rgba(148,163,184,0.16)]">
+      <form onSubmit={onSubmit} className="border-t border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
+        <div className="flex gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-2">
           <input
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
             placeholder="Nhập câu trả lời, câu hỏi hồ sơ hoặc câu hỏi phỏng vấn của anh..."
-            className="min-w-0 flex-1 bg-transparent px-3 text-sm font-medium text-gray-700 outline-none"
+            className="min-w-0 flex-1 bg-transparent px-3 text-sm font-medium text-[#172033] outline-none placeholder:text-[#95a0af]"
           />
           <button
             type="submit"
             disabled={draft.trim().length === 0}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-100 transition-all disabled:cursor-not-allowed disabled:opacity-45"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-700 text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Send size={18} />
           </button>
