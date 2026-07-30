@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import type { LucideIcon } from 'lucide-react';
 
 interface GameCardProps {
@@ -7,41 +6,30 @@ interface GameCardProps {
   icon: LucideIcon;
   title: string;
   subtitle: string;
-  /** màu accent — dùng cho icon background gradient */
-  accent: string;
-  /** ví dụ "A1 → A2" */
+  /** vi du "A1 -> A2" */
   level: string;
 }
 
 /**
- * Card reusable cho mỗi game trong Learning Hub.
- * Design tham chiếu: docs/design/new-games-mvp.md §9 (Hub Card Spec).
+ * Card reusable cho moi game trong Learning Hub.
+ * Thiet ke phang, mot mau nhan cam — dong bo voi he thong chung.
  */
-export function GameCard({ to, icon: Icon, title, subtitle, accent, level }: GameCardProps) {
+export function GameCard({ to, icon: Icon, title, subtitle, level }: GameCardProps) {
   return (
-    <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
-      <Link
-        to={to}
-        className="flex items-center gap-4 rounded-3xl border border-[#E4D8C9] bg-white p-5 shadow-[0_8px_24px_-12px_rgba(96,70,42,0.12)] transition-shadow hover:shadow-[0_16px_36px_-16px_rgba(96,70,42,0.2)]"
-      >
-        <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-md"
-          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
-          aria-hidden="true"
-        >
-          <Icon size={26} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-black text-gray-900">{title}</h3>
-          <p className="mt-0.5 truncate text-xs font-semibold text-gray-500">{subtitle}</p>
-        </div>
-        <span
-          className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider"
-          style={{ backgroundColor: `${accent}1a`, color: accent }}
-        >
-          {level}
-        </span>
-      </Link>
-    </motion.div>
+    <Link
+      to={to}
+      className="group flex items-center gap-3.5 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 transition-colors hover:bg-[#fffdf8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+        <Icon size={23} strokeWidth={1.8} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate font-bold text-[#172033]">{title}</h3>
+        <p className="mt-0.5 truncate text-xs text-[#7b8796]">{subtitle}</p>
+      </div>
+      <span className="shrink-0 rounded-lg bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700">
+        {level}
+      </span>
+    </Link>
   );
 }
