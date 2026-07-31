@@ -148,7 +148,7 @@ export default function CourseLearningWorkspace() {
 
     return vocabulary.map((item) => ({
       id: `vq-${item.id}`,
-      type: 'meaning',
+      type: 'meaning' as const,
       prompt: `\"${getVocabularyDisplayName(item)}\" nghĩa là gì?`,
       options: buildQuizOptions(item.meaning, meaningPool),
       answer: item.meaning,
