@@ -58,6 +58,35 @@ function getVocabularyJapanese(item: CourseVocabularyItem) {
   return item.kanji ?? item.kana ?? getVocabularyDisplayName(item);
 }
 
+function VocabularyHeadword({
+  item,
+  showFurigana,
+  rtClassName,
+  className,
+}: {
+  item: CourseVocabularyItem;
+  showFurigana: boolean;
+  rtClassName?: string;
+  className?: string;
+}) {
+  if (showFurigana && item.kanji && item.kana) {
+    return (
+      <ruby lang="ja" className={className}>
+        {item.kanji}
+        <rp>(</rp>
+        <rt className={cn('font-medium text-[#7b8796]', rtClassName)}>{item.kana}</rt>
+        <rp>)</rp>
+      </ruby>
+    );
+  }
+
+  return (
+    <span lang="ja" className={className}>
+      {getVocabularyJapanese(item)}
+    </span>
+  );
+}
+
 function buildQuizOptions(answer: string, pool: string[], limit = 4) {
   const uniqueDistractors = pool.filter((option, index, options) => option !== answer && options.indexOf(option) === index);
   return [answer, ...uniqueDistractors].slice(0, limit).sort((a, b) => a.localeCompare(b, 'vi'));
@@ -72,6 +101,8 @@ export default function CourseLearningWorkspace() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
+  const [showFurigana, setShowFurigana] = useState(true);
+  const [showRomaji, setShowRomaji] = useState(true);
   const [reviewMode, setReviewMode] = useState<ReviewMode>('vocabulary');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -327,9 +358,13 @@ export default function CourseLearningWorkspace() {
                 filteredVocabulary={filteredVocabulary}
                 heardVocabularyId={heardVocabularyId}
                 searchQuery={vocabularySearchQuery}
+                showFurigana={showFurigana}
+                showRomaji={showRomaji}
                 totalCount={vocabulary.length}
                 onAudio={handleVocabularyAudio}
                 onSearchChange={setVocabularySearchQuery}
+                onToggleFurigana={() => setShowFurigana((value) => !value)}
+                onToggleRomaji={() => setShowRomaji((value) => !value)}
                 onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
               />
             )}
@@ -394,9 +429,13 @@ interface VocabularyPanelProps {
   filteredVocabulary: CourseVocabularyItem[];
   heardVocabularyId: string | null;
   searchQuery: string;
+  showFurigana: boolean;
+  showRomaji: boolean;
   totalCount: number;
   onAudio: (vocabularyId: string) => void;
   onSearchChange: (query: string) => void;
+  onToggleFurigana: () => void;
+  onToggleRomaji: () => void;
   onToggleVocabulary: (vocabularyId: string) => void;
 }
 
@@ -405,15 +444,26 @@ function VocabularyPanel({
   filteredVocabulary,
   heardVocabularyId,
   searchQuery,
+  showFurigana,
+  showRomaji,
   totalCount,
   onAudio,
   onSearchChange,
+  onToggleFurigana,
+  onToggleRomaji,
   onToggleVocabulary,
 }: VocabularyPanelProps) {
   const isSearching = searchQuery.trim().length > 0;
   const selectedVocabulary = expandedVocabularyId
     ? filteredVocabulary.find((item) => item.id === expandedVocabularyId) ?? null
     : null;
+
+  const toggleChipClass = (active: boolean) =>
+    cn(
+      'rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
+      active ? 'border-orange-700 bg-orange-700 text-white' : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-[#172033]',
+      focusRing
+    );
 
   return (
     <section className={panelClass}>
@@ -439,6 +489,16 @@ function VocabularyPanel({
         )}
       </label>
 
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-[#95a0af]">Hiển thị</span>
+        <button type="button" onClick={onToggleFurigana} aria-pressed={showFurigana} className={toggleChipClass(showFurigana)}>
+          Furigana
+        </button>
+        <button type="button" onClick={onToggleRomaji} aria-pressed={showRomaji} className={toggleChipClass(showRomaji)}>
+          Romaji
+        </button>
+      </div>
+
       {filteredVocabulary.length > 0 ? (
         <ul className={cn('mt-2', dividerListClass)}>
           {filteredVocabulary.map((item) => (
@@ -451,13 +511,14 @@ function VocabularyPanel({
                   className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
                 >
                   <span className="min-w-0 flex-1">
-                    <span lang="ja" className="block truncate text-base font-semibold text-[#172033]">{getVocabularyJapanese(item)}</span>
-                    <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">
-                      {item.kana && item.kanji ? (
-                        <><span lang="ja">{item.kana}</span>{` · ${item.meaning}`}</>
-                      ) : (
-                        item.meaning
-                      )}
+                    <VocabularyHeadword
+                      item={item}
+                      showFurigana={showFurigana}
+                      className="block text-base font-semibold leading-tight text-[#172033]"
+                      rtClassName="text-[0.55em]"
+                    />
+                    <span className="mt-1 block truncate text-sm text-[#5f6b7c]">
+                      {showRomaji ? `${item.pronunciation} · ${item.meaning}` : item.meaning}
                     </span>
                   </span>
                   <ChevronRight size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
@@ -508,13 +569,12 @@ function VocabularyPanel({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Chi tiết từ vựng</span>
-                  <h3 id="vocab-detail-title" lang="ja" className="mt-1 font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-[#172033]">
-                    {getVocabularyJapanese(selectedVocabulary)}
+                  <h3 id="vocab-detail-title" className="mt-2 font-[var(--font-heading)] text-2xl font-bold leading-tight tracking-[-0.02em] text-[#172033]">
+                    <VocabularyHeadword item={selectedVocabulary} showFurigana={showFurigana} rtClassName="text-[0.4em]" />
                   </h3>
-                  {selectedVocabulary.kana && selectedVocabulary.kanji && (
-                    <p lang="ja" className="mt-1 text-base text-[#5f6b7c]">{selectedVocabulary.kana}</p>
+                  {showRomaji && (
+                    <p className="mt-1 text-sm text-orange-700">/{selectedVocabulary.pronunciation}/</p>
                   )}
-                  <p className="mt-0.5 text-sm text-orange-700">/{selectedVocabulary.pronunciation}/</p>
                 </div>
                 <button
                   type="button"
@@ -523,6 +583,15 @@ function VocabularyPanel({
                   aria-label="Đóng chi tiết từ vựng"
                 >
                   <X size={18} aria-hidden="true" focusable="false" />
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button type="button" onClick={onToggleFurigana} aria-pressed={showFurigana} className={toggleChipClass(showFurigana)}>
+                  Furigana
+                </button>
+                <button type="button" onClick={onToggleRomaji} aria-pressed={showRomaji} className={toggleChipClass(showRomaji)}>
+                  Romaji
                 </button>
               </div>
 
