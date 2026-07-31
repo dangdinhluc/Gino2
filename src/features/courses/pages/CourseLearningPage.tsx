@@ -54,6 +54,10 @@ function getVocabularyDisplayName(item: CourseVocabularyItem) {
   return item.article !== '—' ? `${item.article} ${item.word}` : item.word;
 }
 
+function getVocabularyJapanese(item: CourseVocabularyItem) {
+  return item.kanji ?? item.kana ?? getVocabularyDisplayName(item);
+}
+
 function buildQuizOptions(answer: string, pool: string[], limit = 4) {
   const uniqueDistractors = pool.filter((option, index, options) => option !== answer && options.indexOf(option) === index);
   return [answer, ...uniqueDistractors].slice(0, limit).sort((a, b) => a.localeCompare(b, 'vi'));
@@ -96,6 +100,8 @@ export default function CourseLearningWorkspace() {
         item.article,
         item.meaning,
         item.pronunciation,
+        item.kanji ?? '',
+        item.kana ?? '',
         item.module,
         item.example.jp,
         item.example.vi,
@@ -445,8 +451,14 @@ function VocabularyPanel({
                   className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base font-semibold text-[#172033]">{getVocabularyDisplayName(item)}</span>
-                    <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">{item.meaning}</span>
+                    <span lang="ja" className="block truncate text-base font-semibold text-[#172033]">{getVocabularyJapanese(item)}</span>
+                    <span className="mt-0.5 block truncate text-sm text-[#5f6b7c]">
+                      {item.kana && item.kanji ? (
+                        <><span lang="ja">{item.kana}</span>{` · ${item.meaning}`}</>
+                      ) : (
+                        item.meaning
+                      )}
+                    </span>
                   </span>
                   <ChevronRight size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
                 </button>
@@ -497,8 +509,11 @@ function VocabularyPanel({
                 <div className="min-w-0">
                   <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Chi tiết từ vựng</span>
                   <h3 id="vocab-detail-title" lang="ja" className="mt-1 font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] text-[#172033]">
-                    {getVocabularyDisplayName(selectedVocabulary)}
+                    {getVocabularyJapanese(selectedVocabulary)}
                   </h3>
+                  {selectedVocabulary.kana && selectedVocabulary.kanji && (
+                    <p lang="ja" className="mt-1 text-base text-[#5f6b7c]">{selectedVocabulary.kana}</p>
+                  )}
                   <p className="mt-0.5 text-sm text-orange-700">/{selectedVocabulary.pronunciation}/</p>
                 </div>
                 <button
