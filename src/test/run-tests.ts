@@ -3,6 +3,7 @@ import '@/src/features/admin/repositories/adminOverviewRepository.test';
 import '@/src/features/auth/lib/authRouteDecisions.test';
 import '@/src/features/courses/repositories/coursesRepository.test';
 import '@/src/features/courses/repositories/courseLearningRepository.test';
+import '@/src/features/dashboard/lib/dailySession.test';
 import '@/src/features/supabase/lib/seedValidation.test';
 import '@/src/features/supabase/lib/supabaseClient.test';
 import '@/src/test/games/memoryGenerator.test';

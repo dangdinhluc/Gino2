@@ -75,6 +75,7 @@ const emptyCounts: RatingCounts = { again: 0, hard: 0, good: 0, easy: 0 };
 export default function FlashcardSession() {
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
+  const isFocusMode = searchParams.get('focus') === '1';
 
   const rate = useReviewStore((state) => state.rate);
   const restoreCardState = useReviewStore((state) => state.restoreCardState);
@@ -333,7 +334,10 @@ export default function FlashcardSession() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-24">
-      <section className="sticky top-0 z-40 -mx-4 border-b border-[#e8dccb] bg-[#f7f1e8]/92 px-4 py-3 backdrop-blur-md md:static md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4">
+      <section className={cn(
+        'z-40 border-[#e8dccb] bg-[#f7f1e8]/92 px-4 py-3 backdrop-blur-md',
+        isFocusMode ? 'sticky top-0 -mx-4 border-b md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4' : 'sticky top-0 -mx-4 border-b md:static md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4',
+      )}>
         <div className="flex items-center justify-between gap-3">
           <Link to="/app/review" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] transition-colors hover:text-orange-700 ${focusRing}`}>
             <ArrowLeft size={20} />
@@ -352,8 +356,8 @@ export default function FlashcardSession() {
           >
             <Undo2 size={18} />
           </button>
-          <div className="shrink-0 rounded-xl border border-[#e8dccb] bg-orange-50 px-3 py-2 text-sm font-bold text-orange-700">
-            Còn {remaining}
+          <div className="shrink-0 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-bold text-orange-800" aria-label={`${remaining} thẻ còn lại`}>
+            {remaining} thẻ còn lại
           </div>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#efe5d7]">
@@ -421,8 +425,8 @@ export default function FlashcardSession() {
                     </span>
                   )}
                 </div>
-                <span className={cn('shrink-0 rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em]', isRevealed ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700')}>
-                  {isRevealed ? 'Mặt sau' : 'Mặt trước'}
+                <span className={cn('shrink-0 rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em]', isRevealed ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800')}>
+                  {isRevealed ? 'Đáp án' : 'Câu hỏi'}
                 </span>
               </div>
 
@@ -436,7 +440,9 @@ export default function FlashcardSession() {
                     <p lang="ja" className="mt-3 text-xl font-bold text-[#5f6b7c] md:text-2xl">{card.reading}</p>
                   )}
                   <p className="mt-2 text-base font-bold italic text-orange-700/90 md:text-lg">{card.romaji}</p>
-                  <p className="mt-6 text-sm font-medium text-[#7b8796]">Bấm vào thẻ để xem đáp án</p>
+                  <span className="mt-6 inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-white px-4 py-2 text-sm font-bold text-orange-800 shadow-sm">
+                    Xem đáp án <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[11px]">Space</span>
+                  </span>
                 </div>
               ) : (
                 <div className="flex min-h-[17rem] flex-col justify-center text-center md:min-h-[19rem]">
