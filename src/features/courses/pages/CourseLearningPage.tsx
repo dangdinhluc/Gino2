@@ -17,7 +17,7 @@ import {
   searchFieldClass,
   searchInputClass,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CoursePodcastItem,
@@ -32,6 +32,7 @@ import { cn } from '@/src/lib/utils';
 
 type WorkspaceTab = 'vocabulary' | 'documents' | 'review' | 'games' | 'exams';
 type ReviewMode = 'vocabulary' | 'questions';
+type VocabularyView = 'list' | 'flashcard';
 
 // Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> ôn -> chơi -> thi.
 const workspaceTabs = [
@@ -58,6 +59,8 @@ function getVocabularyJapanese(item: CourseVocabularyItem) {
   return item.kanji ?? item.kana ?? getVocabularyDisplayName(item);
 }
 
+// Quan trọng: KHÔNG đặt display:block (class "block") lên chính thẻ <ruby>, vì nó phá
+// display:ruby khiến furigana không nổi lên trên kanji. Block để ở span bọc ngoài.
 function VocabularyHeadword({
   item,
   showFurigana,
@@ -69,20 +72,18 @@ function VocabularyHeadword({
   rtClassName?: string;
   className?: string;
 }) {
-  if (showFurigana && item.kanji && item.kana) {
-    return (
-      <ruby lang="ja" className={className}>
-        {item.kanji}
-        <rp>(</rp>
-        <rt className={cn('font-medium text-[#7b8796]', rtClassName)}>{item.kana}</rt>
-        <rp>)</rp>
-      </ruby>
-    );
-  }
-
   return (
-    <span lang="ja" className={className}>
-      {getVocabularyJapanese(item)}
+    <span className={className}>
+      {showFurigana && item.kanji && item.kana ? (
+        <ruby lang="ja">
+          {item.kanji}
+          <rp>(</rp>
+          <rt className={cn('font-medium text-[#7b8796]', rtClassName)}>{item.kana}</rt>
+          <rp>)</rp>
+        </ruby>
+      ) : (
+        <span lang="ja">{getVocabularyJapanese(item)}</span>
+      )}
     </span>
   );
 }
@@ -453,6 +454,7 @@ function VocabularyPanel({
   onToggleRomaji,
   onToggleVocabulary,
 }: VocabularyPanelProps) {
+  const [view, setView] = useState<VocabularyView>('list');
   const isSearching = searchQuery.trim().length > 0;
   const selectedVocabulary = expandedVocabularyId
     ? filteredVocabulary.find((item) => item.id === expandedVocabularyId) ?? null
@@ -465,29 +467,39 @@ function VocabularyPanel({
       focusRing
     );
 
+  const segmentClass = (active: boolean) =>
+    cn(
+      'flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
+      active ? 'bg-orange-700 text-white' : 'text-[#5f6b7c] hover:text-[#172033]',
+      focusRing
+    );
+
+  const viewOptions = [
+    { id: 'list' as VocabularyView, label: 'Danh sách' },
+    { id: 'flashcard' as VocabularyView, label: 'Flashcard' },
+  ];
+
   return (
     <section className={panelClass}>
       <h2 className={panelTitleClass}>Từ vựng</h2>
       <p className={cn('mt-1', panelSubtitleClass)}>
         {totalCount} từ
-        {isSearching ? ` · đang xem ${filteredVocabulary.length}` : ''}
+        {view === 'list' && isSearching ? ` · đang xem ${filteredVocabulary.length}` : ''}
       </p>
 
-      <label className={cn(searchFieldClass, 'mt-4')}>
-        <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
-        <span className="sr-only">Tìm từ vựng</span>
-        <input
-          value={searchQuery}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Tìm từ hoặc nghĩa..."
-          className={searchInputClass}
-        />
-        {searchQuery && (
-          <button type="button" onClick={() => onSearchChange('')} className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#95a0af] hover:text-[#172033]', focusRing)} aria-label="Xóa tìm kiếm">
-            <X size={15} aria-hidden="true" focusable="false" />
+      <div className="mt-4 flex gap-1 rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-1" role="group" aria-label="Chọn cách học từ vựng">
+        {viewOptions.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setView(option.id)}
+            aria-pressed={view === option.id}
+            className={segmentClass(view === option.id)}
+          >
+            {option.label}
           </button>
-        )}
-      </label>
+        ))}
+      </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-[#95a0af]">Hiển thị</span>
@@ -499,51 +511,79 @@ function VocabularyPanel({
         </button>
       </div>
 
-      {filteredVocabulary.length > 0 ? (
-        <ul className={cn('mt-2', dividerListClass)}>
-          {filteredVocabulary.map((item) => (
-            <li key={item.id}>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onToggleVocabulary(item.id)}
-                  aria-haspopup="dialog"
-                  className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
-                >
-                  <span className="min-w-0 flex-1">
-                    <VocabularyHeadword
-                      item={item}
-                      showFurigana={showFurigana}
-                      className="block text-base font-semibold leading-tight text-[#172033]"
-                      rtClassName="text-[0.55em]"
-                    />
-                    <span className="mt-1 block truncate text-sm text-[#5f6b7c]">
-                      {showRomaji ? `${item.pronunciation} · ${item.meaning}` : item.meaning}
-                    </span>
-                  </span>
-                  <ChevronRight size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onAudio(item.id)}
-                  className={cn(
-                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
-                    heardVocabularyId === item.id ? 'bg-orange-700 text-white' : 'text-[#95a0af] hover:text-orange-700',
-                    focusRing
-                  )}
-                  aria-label={`Nghe phát âm ${item.word}`}
-                >
-                  <Volume2 size={18} aria-hidden="true" focusable="false" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {view === 'flashcard' ? (
+        <VocabularyFlashcards
+          items={filteredVocabulary}
+          showFurigana={showFurigana}
+          showRomaji={showRomaji}
+          heardVocabularyId={heardVocabularyId}
+          onAudio={onAudio}
+        />
       ) : (
-        <div className={cn(emptyStateClass, 'mt-4')}>
-          <p className="text-sm font-semibold text-[#172033]">Không tìm thấy từ phù hợp</p>
-          <p className="mt-1 text-xs text-[#95a0af]">Thử nhập từ khóa ngắn hơn.</p>
-        </div>
+        <>
+          <label className={cn(searchFieldClass, 'mt-4')}>
+            <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
+            <span className="sr-only">Tìm từ vựng</span>
+            <input
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Tìm từ hoặc nghĩa..."
+              className={searchInputClass}
+            />
+            {searchQuery && (
+              <button type="button" onClick={() => onSearchChange('')} className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#95a0af] hover:text-[#172033]', focusRing)} aria-label="Xóa tìm kiếm">
+                <X size={15} aria-hidden="true" focusable="false" />
+              </button>
+            )}
+          </label>
+
+          {filteredVocabulary.length > 0 ? (
+            <ul className={cn('mt-2', dividerListClass)}>
+              {filteredVocabulary.map((item) => (
+                <li key={item.id}>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onToggleVocabulary(item.id)}
+                      aria-haspopup="dialog"
+                      className={cn('flex min-w-0 flex-1 items-center gap-3 rounded-xl py-3.5 text-left', focusRing)}
+                    >
+                      <span className="min-w-0 flex-1">
+                        <VocabularyHeadword
+                          item={item}
+                          showFurigana={showFurigana}
+                          className="block text-base font-semibold text-[#172033]"
+                          rtClassName="text-[0.55em]"
+                        />
+                        <span className="mt-1 block truncate text-sm text-[#5f6b7c]">
+                          {showRomaji ? `${item.pronunciation} · ${item.meaning}` : item.meaning}
+                        </span>
+                      </span>
+                      <ChevronRight size={16} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAudio(item.id)}
+                      className={cn(
+                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors',
+                        heardVocabularyId === item.id ? 'bg-orange-700 text-white' : 'text-[#95a0af] hover:text-orange-700',
+                        focusRing
+                      )}
+                      aria-label={`Nghe phát âm ${item.word}`}
+                    >
+                      <Volume2 size={18} aria-hidden="true" focusable="false" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={cn(emptyStateClass, 'mt-4')}>
+              <p className="text-sm font-semibold text-[#172033]">Không tìm thấy từ phù hợp</p>
+              <p className="mt-1 text-xs text-[#95a0af]">Thử nhập từ khóa ngắn hơn.</p>
+            </div>
+          )}
+        </>
       )}
 
       <AnimatePresence>
@@ -635,6 +675,117 @@ function VocabularyPanel({
         )}
       </AnimatePresence>
     </section>
+  );
+}
+
+interface VocabularyFlashcardsProps {
+  items: CourseVocabularyItem[];
+  showFurigana: boolean;
+  showRomaji: boolean;
+  heardVocabularyId: string | null;
+  onAudio: (vocabularyId: string) => void;
+}
+
+function VocabularyFlashcards({ items, showFurigana, showRomaji, heardVocabularyId, onAudio }: VocabularyFlashcardsProps) {
+  const [index, setIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const total = items.length;
+  const safeIndex = total > 0 ? Math.min(index, total - 1) : 0;
+  const card = items[safeIndex];
+
+  const goTo = (nextIndex: number) => {
+    if (total === 0) return;
+    setIsFlipped(false);
+    setIndex(((nextIndex % total) + total) % total);
+  };
+
+  if (!card) {
+    return (
+      <div className={cn(emptyStateClass, 'mt-4')}>
+        <p className="text-sm font-semibold text-[#172033]">Chưa có từ để học</p>
+        <p className="mt-1 text-xs text-[#95a0af]">Danh sách từ vựng đang trống.</p>
+      </div>
+    );
+  }
+
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setIsFlipped((value) => !value);
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-pressed={isFlipped}
+        aria-label="Chạm để lật thẻ từ vựng"
+        onClick={() => setIsFlipped((value) => !value)}
+        onKeyDown={handleCardKeyDown}
+        className={cn('flex min-h-[17rem] w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-[#e8dccb] bg-[#fffdf8] p-6 text-center', focusRing)}
+      >
+        <AnimatePresence mode="wait">
+          {isFlipped ? (
+            <motion.div key="back" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="w-full">
+              <VocabularyHeadword item={card} showFurigana={showFurigana} className="text-lg font-semibold text-[#7b8796]" rtClassName="text-[0.5em]" />
+              <p className="mt-2 text-2xl font-bold text-[#172033]">{card.meaning}</p>
+              <div className="mx-auto mt-4 max-w-sm rounded-xl border border-[#e8dccb] bg-[#fffaf3] p-3 text-left">
+                <p lang="ja" className="text-sm font-semibold leading-relaxed text-[#172033]">{card.example.jp}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{card.example.vi}</p>
+              </div>
+              {card.mnemonic && (
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[#4d5a6b]">💡 {card.mnemonic}</p>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div key="front" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="w-full">
+              <VocabularyHeadword item={card} showFurigana={showFurigana} className="text-4xl font-bold text-[#172033]" rtClassName="text-[0.38em]" />
+              {showRomaji && <p className="mt-3 text-sm text-orange-700">/{card.pronunciation}/</p>}
+              <p className="mt-6 text-xs text-[#95a0af]">Chạm để xem nghĩa</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => goTo(safeIndex - 1)}
+          className={cn('flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
+          aria-label="Từ trước"
+        >
+          <ChevronLeft size={20} aria-hidden="true" focusable="false" />
+        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onAudio(card.id)}
+            className={cn(
+              'flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8dccb] transition-colors',
+              heardVocabularyId === card.id ? 'bg-orange-700 text-white' : 'bg-[#fffdf8] text-orange-700 hover:bg-orange-50',
+              focusRing
+            )}
+            aria-label={`Nghe phát âm ${card.word}`}
+          >
+            <Volume2 size={18} aria-hidden="true" focusable="false" />
+          </button>
+          <span className="text-sm font-semibold text-[#5f6b7c]">{safeIndex + 1} / {total}</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => goTo(safeIndex + 1)}
+          className={cn('flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
+          aria-label="Từ sau"
+        >
+          <ChevronRight size={20} aria-hidden="true" focusable="false" />
+        </button>
+      </div>
+    </div>
   );
 }
 
