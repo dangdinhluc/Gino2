@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Bird, BookOpen, BrainCircuit, FileText, MessageSquareText, Play, Search, Sparkles, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
@@ -296,9 +296,10 @@ export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, 
 
 interface ExamsPanelProps {
   exams: NonEmptyArray<CourseExamItem>;
+  onStartExam: (examId: string) => void;
 }
 
-export function ExamsPanel({ exams }: ExamsPanelProps) {
+export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
   const statusLabels = {
     ready: 'Sẵn sàng',
     in_progress: 'Đang làm dở',
@@ -308,7 +309,7 @@ export function ExamsPanel({ exams }: ExamsPanelProps) {
   return (
     <section className={panelClass}>
       <h2 className={panelTitleClass}>Thi thử</h2>
-      <p className={cn('mt-1', panelSubtitleClass)}>{exams.length} đề trong khóa</p>
+      <p className={cn('mt-1', panelSubtitleClass)}>{exams.length} đề trong khóa · làm ngay tại đây</p>
 
       <ul className={cn('mt-2', dividerListClass)}>
         {exams.map((exam) => (
@@ -320,13 +321,14 @@ export function ExamsPanel({ exams }: ExamsPanelProps) {
                 {exam.latestScore !== undefined ? ` · Gần nhất ${exam.latestScore}%` : ''}
               </p>
             </div>
-            <Link
-              to={exam.status === 'completed' ? `/app/exams/${exam.id}/result` : `/app/exams/${exam.id}/start`}
+            <button
+              type="button"
+              onClick={() => onStartExam(exam.id)}
               className={cn(primaryButtonClass, 'shrink-0', focusRing)}
-              aria-label={exam.status === 'completed' ? `Xem kết quả ${exam.title}` : `Làm đề ${exam.title}`}
+              aria-label={exam.status === 'completed' ? `Làm lại đề ${exam.title}` : `Làm đề ${exam.title}`}
             >
-              {exam.status === 'completed' ? 'Xem kết quả' : 'Làm đề'}
-            </Link>
+              {exam.status === 'completed' ? 'Làm lại' : 'Làm đề'}
+            </button>
           </li>
         ))}
       </ul>

@@ -2,6 +2,7 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
+import { CourseExamRunner, type CourseExamQuestion } from '@/src/features/courses/components/CourseExamRunner';
 import {
   DocumentsPanel,
   ExamsPanel,
@@ -17,9 +18,10 @@ import {
   searchFieldClass,
   searchInputClass,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
+  type CourseExamItem,
   type CoursePodcastItem,
   type CourseReviewQuestion,
   type CourseVocabularyItem,
@@ -43,6 +45,14 @@ const workspaceTabs = [
   { id: 'exams', label: 'Thi thử', icon: GraduationCap },
 ] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers }>;
 
+const stepLabels: Record<WorkspaceTab, string> = {
+  vocabulary: 'Từ vựng',
+  documents: 'Tài liệu',
+  review: 'Ôn tập',
+  games: 'Game',
+  exams: 'Thi thử',
+};
+
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
   return documents[0];
 }
@@ -57,6 +67,21 @@ function getVocabularyDisplayName(item: CourseVocabularyItem) {
 
 function getVocabularyJapanese(item: CourseVocabularyItem) {
   return item.kanji ?? item.kana ?? getVocabularyDisplayName(item);
+}
+
+function reviewSkillLabel(type: CourseReviewQuestion['type']) {
+  switch (type) {
+    case 'meaning':
+      return 'Từ vựng';
+    case 'article':
+      return 'Tình huống';
+    case 'sentence':
+      return 'Phỏng vấn';
+    case 'listening':
+      return 'Nghe hiểu';
+    default:
+      return 'Tổng ôn';
+  }
 }
 
 // Quan trọng: KHÔNG đặt display:block (class "block") lên chính thẻ <ruby>, vì nó phá
@@ -100,6 +125,8 @@ export default function CourseLearningWorkspace() {
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
+  const [completedSteps, setCompletedSteps] = useState<WorkspaceTab[]>([]);
+  const [activeExam, setActiveExam] = useState<CourseExamItem | null>(null);
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
   const [showFurigana, setShowFurigana] = useState(true);
@@ -158,6 +185,27 @@ export default function CourseLearningWorkspace() {
     })) satisfies CourseReviewQuestion[];
   }, [vocabulary]);
 
+  const courseExamQuestions = useMemo<CourseExamQuestion[]>(() => {
+    const meaningPool = vocabulary.map((item) => item.meaning);
+    const fromReview: CourseExamQuestion[] = reviewQuestions.map((question) => ({
+      id: `exam-${question.id}`,
+      prompt: question.prompt,
+      options: question.options,
+      answer: question.answer,
+      explanation: question.explanation,
+      skill: reviewSkillLabel(question.type),
+    }));
+    const fromVocabulary: CourseExamQuestion[] = vocabulary.slice(0, 6).map((item) => ({
+      id: `exam-vocab-${item.id}`,
+      prompt: `\"${getVocabularyDisplayName(item)}\" nghĩa là gì?`,
+      options: buildQuizOptions(item.meaning, meaningPool),
+      answer: item.meaning,
+      explanation: `${getVocabularyDisplayName(item)} nghĩa là \"${item.meaning}\". Ví dụ: ${item.example.jp}`,
+      skill: 'Từ vựng',
+    }));
+    return [...fromReview, ...fromVocabulary];
+  }, [reviewQuestions, vocabulary]);
+
   const activeQuestion = reviewQuestions[questionIndex] ?? reviewQuestions[0];
   const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? getInitialDocument(documents);
@@ -167,8 +215,17 @@ export default function CourseLearningWorkspace() {
   const reviewQuestionIndex = reviewMode === 'vocabulary' ? vocabularyQuestionIndex : questionIndex;
   const reviewQuestionsCount = reviewMode === 'vocabulary' ? vocabularyQuizQuestions.length : reviewQuestions.length;
 
+  const pathOrder = workspaceTabs.map((tab) => tab.id);
+  const currentStepPosition = pathOrder.indexOf(activeTab);
+  const nextStep =
+    pathOrder.slice(currentStepPosition + 1).find((stepId) => !completedSteps.includes(stepId)) ??
+    pathOrder.find((stepId) => stepId !== activeTab && !completedSteps.includes(stepId)) ??
+    null;
+
   useEffect(() => {
     setActiveTab('vocabulary');
+    setCompletedSteps([]);
+    setActiveExam(null);
     setVocabularySearchQuery('');
     setExpandedVocabularyId(null);
     setReviewMode('vocabulary');
@@ -198,6 +255,25 @@ export default function CourseLearningWorkspace() {
       }
     };
   }, []);
+
+  const markStepCompleted = (stepId: WorkspaceTab) => {
+    setCompletedSteps((prev) => (prev.includes(stepId) ? prev : [...prev, stepId]));
+  };
+
+  const handleContinuePath = () => {
+    markStepCompleted(activeTab);
+    if (nextStep) {
+      setActiveTab(nextStep);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleStartExam = (examId: string) => {
+    const exam = exams.find((item) => item.id === examId);
+    if (exam) {
+      setActiveExam(exam);
+    }
+  };
 
   const handleAnswerSelect = (option: string) => {
     if (reviewMode === 'vocabulary') {
@@ -317,6 +393,13 @@ export default function CourseLearningWorkspace() {
   const clampedProgress = Math.max(0, Math.min(100, course.progress));
   const activeTabPanelLabelId = `course-workspace-compact-tab-${activeTab}`;
 
+  const stepChipClass = (current: boolean, done: boolean) =>
+    cn(
+      'flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors',
+      current ? 'border-orange-700 bg-orange-700 text-white' : done ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-[#172033]',
+      focusRing
+    );
+
   return (
     <div data-course-workspace-background className="relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))]">
       <header className="sticky top-0 z-40 -mx-3 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 backdrop-blur-xl">
@@ -342,6 +425,42 @@ export default function CourseLearningWorkspace() {
       </header>
 
       <main className="mx-auto w-full max-w-[980px]">
+        <div className="mb-4 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-3 md:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Lộ trình học</p>
+            <span className="text-xs text-[#95a0af]">{completedSteps.length}/{pathOrder.length} bước</span>
+          </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {workspaceTabs.map((tab, index) => {
+              const done = completedSteps.includes(tab.id);
+              const current = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-current={current ? 'step' : undefined}
+                  className={stepChipClass(current, done)}
+                >
+                  <span className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[11px]', current ? 'bg-white/20 text-white' : done ? 'bg-emerald-100 text-emerald-700' : 'bg-[#efe5d7] text-[#7b8796]')}>
+                    {done ? <Check size={12} aria-hidden="true" focusable="false" /> : index + 1}
+                  </span>
+                  {stepLabels[tab.id]}
+                </button>
+              );
+            })}
+          </div>
+          {nextStep ? (
+            <button type="button" onClick={handleContinuePath} className={cn(primaryButtonClass, 'mt-3 w-full', focusRing)}>
+              Tiếp tục: {stepLabels[nextStep]} <ArrowRight size={15} aria-hidden="true" focusable="false" />
+            </button>
+          ) : (
+            <p className="mt-3 rounded-xl border border-dashed border-[#e8dccb] px-4 py-3 text-center text-xs text-[#95a0af]">
+              Anh đã đi hết lộ trình học. Ôn lại phần nào cũng được!
+            </p>
+          )}
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -396,7 +515,7 @@ export default function CourseLearningWorkspace() {
                 onSelectGame={setActiveGameType}
               />
             )}
-            {activeTab === 'exams' && <ExamsPanel exams={exams} />}
+            {activeTab === 'exams' && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -421,6 +540,21 @@ export default function CourseLearningWorkspace() {
         onSelectPodcast={setActivePodcastId}
         onTogglePlay={() => setIsPodcastPlaying((currentValue) => !currentValue)}
       />
+
+      <AnimatePresence>
+        {activeExam && (
+          <CourseExamRunner
+            exam={activeExam}
+            questions={courseExamQuestions}
+            onExit={() => setActiveExam(null)}
+            onGoToReview={() => {
+              setActiveExam(null);
+              setActiveTab('review');
+            }}
+            onCompleted={() => markStepCompleted('exams')}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
