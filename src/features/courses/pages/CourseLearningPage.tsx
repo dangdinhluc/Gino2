@@ -18,7 +18,7 @@ import {
   searchFieldClass,
   searchInputClass,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, FileText, Gamepad2, GraduationCap, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
+import { ArrowRight, Bird, Check, ChevronLeft, ChevronRight, FileText, Flame, Gamepad2, GraduationCap, Home, Layers, Lightbulb, RotateCcw, Search, Volume2, X, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -28,6 +28,7 @@ import {
   type NonEmptyArray,
 } from '@/src/features/courses/mock/courseLearningMock';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
 import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
@@ -123,6 +124,10 @@ export default function CourseLearningWorkspace() {
   const navigate = useNavigate();
   const workspace = useCourseLearningWorkspace(id);
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
+
+  const streak = useProgressStore((state) => state.streak);
+  const weeklyXp = useProgressStore((state) => state.weeklyXp);
+  const learnerLevel = Math.floor(weeklyXp / 500) + 1;
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
   const [completedSteps, setCompletedSteps] = useState<WorkspaceTab[]>([]);
@@ -381,13 +386,8 @@ export default function CourseLearningWorkspace() {
     });
   };
 
-  const handleExitWorkspace = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate(`/app/courses/${id ?? course.id}`);
+  const handleGoHome = () => {
+    navigate('/app/dashboard');
   };
 
   const clampedProgress = Math.max(0, Math.min(100, course.progress));
@@ -406,11 +406,16 @@ export default function CourseLearningWorkspace() {
         <div className="mx-auto flex w-full max-w-[980px] items-center gap-3">
           <button
             type="button"
-            onClick={handleExitWorkspace}
-            className={cn('-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
-            aria-label="Quay lại trang khóa học"
+            onClick={handleGoHome}
+            className={cn('group -ml-1 flex shrink-0 items-center rounded-2xl p-1 transition-colors hover:bg-orange-50', focusRing)}
+            aria-label="Về trang chủ"
           >
-            <ArrowLeft size={20} aria-hidden="true" focusable="false" />
+            <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#fb923c_0%,#c2410c_100%)] text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
+              <Bird size={22} strokeWidth={2.2} aria-hidden="true" focusable="false" />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#fbf6ef] bg-white text-orange-700">
+                <Home size={9} strokeWidth={3} aria-hidden="true" focusable="false" />
+              </span>
+            </span>
           </button>
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{course.title}</h1>
@@ -420,6 +425,23 @@ export default function CourseLearningWorkspace() {
               </div>
               <span className="shrink-0 text-xs text-[#5f6b7c]">{clampedProgress}%</span>
             </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span
+              className="flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-700"
+              title="Chuỗi ngày học liên tiếp"
+            >
+              <Flame size={14} aria-hidden="true" focusable="false" />
+              {streak}
+              <span className="sr-only">ngày streak</span>
+            </span>
+            <span
+              className="flex items-center gap-1 rounded-full border border-[#e8dccb] bg-[#fffdf8] px-2.5 py-1 text-xs font-bold text-[#5f6b7c]"
+              title="Cấp độ hiện tại"
+            >
+              <Zap size={14} className="text-orange-600" aria-hidden="true" focusable="false" />
+              Lv.{learnerLevel}
+            </span>
           </div>
         </div>
       </header>
