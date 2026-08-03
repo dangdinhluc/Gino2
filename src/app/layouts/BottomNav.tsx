@@ -1,4 +1,4 @@
-import { Home, GraduationCap, Bookmark, Layout, RotateCcw } from 'lucide-react';
+import { Home, GraduationCap, Bookmark, Route, RotateCcw } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { motion } from 'motion/react';
@@ -12,7 +12,7 @@ export function BottomNav() {
 
   const navItems: { icon: typeof Home; label: string; path: string; badge?: number }[] = [
     { icon: Home, label: 'Trang chủ', path: '/app/dashboard' },
-    { icon: Layout, label: 'Khóa học', path: '/app/courses' },
+    { icon: Route, label: 'Lộ trình', path: '/app/roadmap' },
     { icon: RotateCcw, label: 'Ôn tập', path: '/app/review', badge: dueCount },
     { icon: GraduationCap, label: 'Luyện thi', path: '/app/exams' },
     { icon: Bookmark, label: 'Từ của tôi', path: '/app/grammar' },
