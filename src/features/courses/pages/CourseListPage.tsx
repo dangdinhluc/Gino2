@@ -48,7 +48,7 @@ export default function CourseList() {
 
   return (
     <div className="space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-16">
-      <section className="flex items-baseline justify-between gap-4 px-1 pt-1 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-6">
+      <section className="course-page-heading flex items-baseline justify-between gap-4 px-1 pt-1 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-6">
         <h2 className="font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">Khóa học</h2>
         <p className="shrink-0 text-sm text-[#5f6b7c]">
           {courses.length} khóa học
@@ -57,7 +57,7 @@ export default function CourseList() {
       </section>
       <CourseListErrorNotice result={courseList} />
 
-      <section className="space-y-4 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-5">
+      <section className="course-search-dock sticky top-14 z-20 -mx-3 space-y-4 px-3 py-2 md:static md:mx-0 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-5">
         <div className="flex items-center gap-3">
           <div className="group relative flex-1">
             {isSearching ? (

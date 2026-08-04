@@ -1376,4 +1376,17 @@
 
 @media (max-width: 767px) {
   .tokutei-app-main .app-route-shell { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+
+  /* Courses: page background is the surface for heading/search; only course cards are white. */
+  .tokutei-app-main .app-route-shell .course-page-heading,
+  .tokutei-app-main .app-route-shell .course-search-dock {
+    background: rgba(248, 238, 232, 0.95) !important;
+    box-shadow: none;
+    backdrop-filter: blur(10px);
+  }
+
+  .tokutei-app-main .app-route-shell .course-search-dock [class*="bg-[#fffdf8]"] {
+    background: rgba(248, 238, 232, 0.82) !important;
+    box-shadow: none;
+  }
 }
