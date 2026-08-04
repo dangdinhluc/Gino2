@@ -1182,13 +1182,14 @@
   .dashboard-brand strong { font-size: 0.82rem; }
   .dashboard-brand small { font-size: 0.48rem; }
   .dashboard-counter { font-size: 0.72rem; }
-  .dashboard-hero { display: block; min-height: 31rem; padding: 3.6rem 1rem 0; }
+  /* Mobile: mascot + system note are a separate flow block, never allowed to cover hero copy. */
+  .dashboard-hero { display: block; min-height: 0; padding: 3.6rem 1rem 0; }
   .dashboard-hero h1 { font-size: clamp(2.35rem, 13vw, 3.35rem); }
   .dashboard-hero p { font-size: 0.8rem; }
-  .dashboard-mascot-wrap { position: absolute; right: 0; bottom: 0; left: 0; width: 100%; min-height: 15rem; }
+  .dashboard-mascot-wrap { position: relative; right: auto; bottom: auto; left: auto; width: 100%; min-height: 15rem; margin-top: 0.9rem; }
   .dashboard-mascot { right: 50%; bottom: -1.2rem; width: 14.5rem; height: 14.5rem; transform: translateX(50%); }
-  .dashboard-system-note { top: 3rem; left: 0.6rem; max-width: 11.5rem; font-size: 0.48rem; }
-  .dashboard-zzz { top: 1.9rem; right: 0.8rem; font-size: 1.25rem; }
+  .dashboard-system-note { top: 1rem; left: 0.6rem; max-width: 11.5rem; font-size: 0.48rem; }
+  .dashboard-zzz { top: 0.5rem; right: 0.8rem; font-size: 1.25rem; }
   .dashboard-level-card { display: block; width: calc(100% - 2rem); margin-top: -1rem; padding: 0.9rem; }
   .dashboard-level-progress { margin-top: 1rem; }
   .dashboard-stats, .dashboard-section { width: calc(100% - 2rem); }
