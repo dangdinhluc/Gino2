@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import {
   ArrowRight,
   BookOpen,
-  Flame,
   Headphones,
   Layers,
   Library,
@@ -11,208 +9,169 @@ import {
   PenLine,
   Sparkles,
   Target,
-  Zap,
 } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
 
-const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
+const assetPath = (name: string) => `${import.meta.env.BASE_URL}${name}`;
 
 const heroStats = [
-  { label: '1000+ TỪ VỰNG' },
-  { label: 'N5–N1 JLPT' },
-  { label: 'SM-2 SRS' },
+  { value: '1000+', label: 'TỪ VỰNG' },
+  { value: 'N5–N1', label: 'LỘ TRÌNH' },
+  { value: 'JFT', label: 'BASIC' },
 ];
 
-const methods: { icon: typeof Layers; title: string; desc: string }[] = [
-  { icon: Target, title: 'Tương tác', desc: 'Trắc nghiệm, điền từ theo từng cấp độ.' },
-  { icon: Layers, title: 'Flashcards', desc: 'Thuật toán SM-2 giúp nhớ lâu.' },
-  { icon: Headphones, title: 'Nghe', desc: 'Hội thoại công việc với phụ đề song ngữ.' },
-  { icon: Mic, title: 'Nói', desc: 'Nhập vai và so sánh với bản ngữ.' },
-  { icon: PenLine, title: 'Viết', desc: 'Nhật ký học tập luyện phản xạ.' },
-  { icon: Library, title: 'Tài liệu', desc: 'Kho đọc mở theo chủ đề ngành nghề.' },
+const methods = [
+  { icon: Target, title: 'Tiếng Nhật nền', desc: 'Kana, kanji và mẫu câu từ N5 đến N4.' },
+  { icon: Layers, title: 'Từ vựng công việc', desc: 'Nhà hàng, xây dựng, điều dưỡng và nhiều chủ đề Tokutei.' },
+  { icon: Headphones, title: 'Luyện JFT-Basic', desc: 'Nghe, đọc và phản xạ theo dạng bài thực tế.' },
+  { icon: Mic, title: 'Giao tiếp hiện trường', desc: 'Hourensou, anzen và cách nói lịch sự nơi làm việc.' },
+  { icon: PenLine, title: 'Phỏng vấn Tokutei', desc: 'Tập trả lời ngắn, đúng ý, có romaji và dịch Việt.' },
+  { icon: Library, title: 'Mock test', desc: 'Theo dõi điểm, lỗi sai và nhịp ôn mỗi ngày.' },
 ];
+
+const sakuraPetals = [
+  ['4%', 14, '-2s', '16s'],
+  ['11%', 10, '-8s', '19s'],
+  ['18%', 16, '-5s', '14s'],
+  ['26%', 12, '-11s', '18s'],
+  ['34%', 9, '-4s', '15s'],
+  ['43%', 15, '-14s', '21s'],
+  ['51%', 11, '-7s', '17s'],
+  ['59%', 17, '-1s', '20s'],
+  ['67%', 10, '-10s', '14s'],
+  ['75%', 14, '-6s', '18s'],
+  ['83%', 9, '-13s', '16s'],
+  ['92%', 15, '-3s', '22s'],
+] as const;
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#fffaf3] text-[#172033]">
-      <header className="sticky top-0 z-40 border-b border-[#e8dccb] bg-[#fffaf3]/90 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
-          <Link to="/" className={cn('flex items-center gap-2', focusRing)}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-lg shadow-sm">
-              🐯
-            </span>
-            <span className="font-[var(--font-heading)] text-base font-black uppercase italic tracking-tighter">
-              TOKUTEI
-              <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent"> GINO</span>
+    <div className="landing-page">
+      <a className="landing-skip" href="#landing-main">
+        Bỏ qua điều hướng
+      </a>
+
+      <section className="landing-hero" aria-labelledby="landing-title">
+        <div
+          className="landing-hero-background"
+          style={{ backgroundImage: `url("${assetPath('english-hero-bg.jpg')}")` }}
+          aria-hidden="true"
+        />
+        <div className="landing-hero-overlay" aria-hidden="true" />
+        <div className="landing-sakura-layer" aria-hidden="true">
+          {sakuraPetals.map(([left, size, delay, duration], index) => (
+            <span
+              className="landing-sakura-petal"
+              key={`${left}-${index}`}
+              style={{ left, width: size, height: size, animationDelay: delay, animationDuration: duration }}
+            />
+          ))}
+        </div>
+
+        <header className="landing-header">
+          <Link className="landing-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
+            <img src={assetPath('meow-mascot.png')} alt="Meow" />
+            <span>
+              <strong>TOKUTEI GINO</strong>
+              <small>TIẾNG NHẬT ĐI LÀM</small>
             </span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className={cn(
-                'rounded-xl px-3.5 py-2 text-sm font-bold text-[#5f6b7c] transition-colors hover:text-[#172033]',
-                focusRing
-              )}
-            >
-              Đăng nhập
+
+          <nav className="landing-nav" aria-label="Điều hướng chính">
+            <Link to="/onboarding">Test đầu vào</Link>
+            <Link to="/login">Đăng nhập</Link>
+            <Link className="landing-nav-cta" to="/login">
+              Bắt đầu miễn phí
             </Link>
-            <Link
-              to="/app/dashboard"
-              className={cn(
-                'rounded-xl bg-orange-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange-800',
-                focusRing
-              )}
-            >
-              Vào học
+          </nav>
+        </header>
+
+        <div className="landing-hero-content">
+          <h1 id="landing-title">
+            Học tiếng Nhật
+            <br />
+            vững bước <span>Tokutei</span>
+          </h1>
+
+          <div className="landing-actions">
+            <Link className="landing-primary-button" to="/app/courses">
+              Bắt đầu lộ trình
+            </Link>
+            <Link className="landing-secondary-button" to="/onboarding">
+              Làm test đầu vào
             </Link>
           </div>
-        </div>
-      </header>
 
-      <main>
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,#ffe3c2_0%,transparent_55%),radial-gradient(circle_at_85%_10%,#ffd9e2_0%,transparent_45%)]" />
-          <div className="relative mx-auto grid w-full max-w-5xl gap-10 px-4 py-14 md:grid-cols-[1.15fr_0.85fr] md:items-center md:py-20">
-            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#95a0af]">Chào mừng đến với</p>
-              <p className="mt-1 font-[var(--font-heading)] text-lg font-bold tracking-[-0.02em] text-orange-700">
-                Tokutei Gino
-              </p>
-              <h1 className="mt-3 font-[var(--font-heading)] text-4xl font-black leading-[1.1] tracking-[-0.03em] md:text-5xl">
-                Chinh phục tiếng Nhật
-                <br />
-                cho kỹ năng đặc định
-              </h1>
-              <p className="mt-4 max-w-md text-base leading-relaxed text-[#5f6b7c]">
-                Từ bảng chữ cái đến phỏng vấn tuyển dụng — một lộ trình duy nhất, gọn gàng và dễ theo.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link
-                  to="/app/courses"
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-2xl bg-orange-700 px-5 py-3.5 text-sm font-bold text-white transition-colors hover:bg-orange-800',
-                    focusRing
-                  )}
-                >
-                  Bắt đầu học ngay <ArrowRight size={16} aria-hidden="true" focusable="false" />
-                </Link>
-                <Link
-                  to="/app/roadmap"
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-2xl border border-[#e8dccb] bg-[#fffdf8] px-5 py-3.5 text-sm font-bold text-[#5f6b7c] transition-colors hover:text-[#172033]',
-                    focusRing
-                  )}
-                >
-                  Xem lộ trình
-                </Link>
-              </div>
-              <div className="mt-7 flex flex-wrap gap-2">
-                {heroStats.map((stat) => (
-                  <span
-                    key={stat.label}
-                    className="rounded-full border border-[#e8dccb] bg-[#fffdf8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#7b8796]"
-                  >
-                    {stat.label}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="relative mx-auto w-full max-w-xs"
-            >
-              <div className="rounded-3xl border border-[#e8dccb] bg-[#fffdf8] p-6 shadow-[0_30px_60px_-40px_rgba(148,163,184,0.5)]">
-                <div className="flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 text-7xl">
-                  🗻
-                </div>
-                <p className="mt-4 text-sm font-bold">Hành trình N5 → N1</p>
-                <p className="mt-1 text-xs text-[#7b8796]">6 chặng, mỗi chặng một cột mốc.</p>
-              </div>
-              <div className="absolute -left-3 top-6 flex items-center gap-2 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] px-3 py-2 shadow-md">
-                <Flame size={16} className="text-orange-600" aria-hidden="true" focusable="false" />
-                <span className="text-xs font-bold">Streak 12 ngày</span>
-              </div>
-              <div className="absolute -right-3 bottom-8 flex items-center gap-2 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] px-3 py-2 shadow-md">
-                <Zap size={16} className="text-amber-600" aria-hidden="true" focusable="false" />
-                <span className="text-xs font-bold">+320 XP</span>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        <section className="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#95a0af]">Phương pháp</p>
-          <h2 className="mt-2 font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] md:text-3xl">
-            Đa dạng phương pháp học
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#5f6b7c]">
-            Từ flashcard thông minh đến luyện nói thực hành — tất cả hội tụ trong một không gian tối giản.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {methods.map((method, index) => (
-              <motion.div
-                key={method.title}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="rounded-2xl border border-[#e8dccb] bg-[#fffdf8] p-5 transition-colors hover:border-orange-300"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
-                  <method.icon size={20} aria-hidden="true" focusable="false" />
-                </span>
-                <h3 className="mt-3.5 text-base font-bold">{method.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-[#5f6b7c]">{method.desc}</p>
-              </motion.div>
+          <div className="landing-stats" aria-label="Thông tin nền tảng">
+            {heroStats.map((stat) => (
+              <span key={stat.label}>
+                <strong>{stat.value}</strong> {stat.label}
+              </span>
             ))}
           </div>
+
+          <img
+            className="landing-mascot"
+            src={assetPath('meow-mascot.png')}
+            alt="Mascot Gino đang học tiếng Nhật"
+          />
+          <div className="landing-floating-badge landing-streak-badge">
+            <small>STREAK</small>
+            <strong>🔥 12 ngày</strong>
+          </div>
+          <div className="landing-floating-badge landing-xp-badge">
+            <small>XP</small>
+            <strong>✨ +320</strong>
+          </div>
+        </div>
+      </section>
+
+      <main id="landing-main">
+        <section className="landing-methods" aria-labelledby="methods-title">
+          <div className="landing-section-inner">
+            <p className="landing-section-kicker">Lộ trình Tokutei</p>
+            <h2 id="methods-title">Học đúng thứ cần cho Tokutei</h2>
+            <p className="landing-section-intro">
+              Từ nền tiếng Nhật đến JFT-Basic, giao tiếp hiện trường và phỏng vấn — mọi thứ đi theo một lộ trình rõ ràng.
+            </p>
+
+            <div className="landing-method-grid">
+              {methods.map(({ icon: Icon, title, desc }, index) => (
+                <article className="landing-method" key={title}>
+                  <div className="landing-method-topline">
+                    <span className="landing-method-icon">
+                      <Icon size={19} aria-hidden="true" focusable="false" />
+                    </span>
+                    <span className="landing-method-index">0{index + 1}</span>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{desc}</p>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <section className="mx-auto w-full max-w-5xl px-4 pb-16 md:pb-24">
-          <div className="overflow-hidden rounded-3xl border border-[#e8dccb] bg-[linear-gradient(135deg,#fff3e2_0%,#fffaf3_55%,#ffe9d3_100%)] px-6 py-12 text-center md:px-10 md:py-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700">
-              <Sparkles size={14} aria-hidden="true" focusable="false" /> Miễn phí
-            </span>
-            <h2 className="mt-4 font-[var(--font-heading)] text-2xl font-bold tracking-[-0.02em] md:text-3xl">
-              Bắt đầu hành trình
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#5f6b7c]">
-              Khám phá kho từ vựng, ngữ pháp và đề thi thử ngay hôm nay.
-            </p>
-            <Link
-              to="/login"
-              className={cn(
-                'mt-7 inline-flex items-center gap-2 rounded-2xl bg-orange-700 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-orange-800',
-                focusRing
-              )}
-            >
-              Tạo tài khoản <ArrowRight size={16} aria-hidden="true" focusable="false" />
+        <section className="landing-cta" aria-labelledby="cta-title">
+          <div className="landing-section-inner">
+            <Sparkles size={18} aria-hidden="true" focusable="false" />
+            <h2 id="cta-title">Bắt đầu lộ trình Tokutei</h2>
+            <p>Ôn tiếng Nhật, luyện JFT và chuẩn bị phỏng vấn trong một chỗ.</p>
+            <Link className="landing-primary-button" to="/login">
+              Bắt đầu học <ArrowRight size={16} aria-hidden="true" focusable="false" />
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-[#e8dccb] bg-[#fffdf8]">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-[#7b8796] md:flex-row md:items-center md:justify-between">
-          <span className="flex items-center gap-2 font-bold text-[#5f6b7c]">
-            <BookOpen size={16} aria-hidden="true" focusable="false" /> Tokutei Gino
-          </span>
-          <div className="flex flex-wrap gap-4">
-            <Link to="/terms" className={cn('transition-colors hover:text-[#172033]', focusRing)}>
-              Điều khoản
-            </Link>
-            <Link to="/privacy" className={cn('transition-colors hover:text-[#172033]', focusRing)}>
-              Bảo mật
-            </Link>
-            <Link to="/login" className={cn('transition-colors hover:text-[#172033]', focusRing)}>
-              Đăng nhập
-            </Link>
-          </div>
-        </div>
+      <footer className="landing-footer">
+        <span>
+          <BookOpen size={15} aria-hidden="true" focusable="false" /> TOKUTEI GINO © 2026
+        </span>
+        <nav aria-label="Liên kết cuối trang">
+          <Link to="/terms">Điều khoản</Link>
+          <Link to="/privacy">Bảo mật</Link>
+          <Link to="/login">Đăng nhập</Link>
+        </nav>
       </footer>
     </div>
   );
