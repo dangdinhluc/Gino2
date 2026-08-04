@@ -13,7 +13,7 @@ import { cn } from '@/src/lib/utils';
 
 export type ReviewMode = 'vocabulary' | 'questions';
 
-// Hai chế độ ôn, học viên chọn trước rồi mới vào phiên làm bài.
+// Hai chế độ ôn: học viên chọn trước rồi mới vào phiên làm bài.
 const modeCards = [
   {
     id: 'vocabulary' as ReviewMode,
@@ -47,6 +47,7 @@ interface CourseReviewPanelProps {
   onAnswer: (answer: string) => void;
   onExitSession: () => void;
   onFinishSession: () => void;
+  onNext: () => void;
   onRestartSession: () => void;
   onSelectMode: (mode: ReviewMode) => void;
 }
@@ -64,6 +65,7 @@ export function CourseReviewPanel({
   onAnswer,
   onExitSession,
   onFinishSession,
+  onNext,
   onRestartSession,
   onSelectMode,
 }: CourseReviewPanelProps) {
@@ -237,12 +239,10 @@ export function CourseReviewPanel({
             {isCorrect ? 'Chính xác' : `Đáp án đúng: ${activeQuestion.answer}`}
           </p>
           <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{activeQuestion.explanation}</p>
-          <button type="button" onClick={onFinishSession === undefined ? undefined : onRestartSession} className="sr-only" aria-hidden="true" tabIndex={-1} />
+          <button type="button" onClick={onNext} autoFocus className={cn(primaryButtonClass, 'mt-4 w-full', focusRing)}>
+            Tiếp tục
+          </button>
         </motion.div>
-      )}
-
-      {isAnswered && (
-        <button type="button" onClick={onAnswer === undefined ? undefined : undefined} className="hidden" aria-hidden="true" tabIndex={-1} />
       )}
 
       <button
