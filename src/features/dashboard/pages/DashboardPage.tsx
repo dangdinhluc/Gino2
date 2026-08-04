@@ -51,7 +51,12 @@ const levelBadgeClass: Record<string, string> = {
   B1: 'bg-[#efe8f7] text-[#6F4AA8]',
 };
 
-// "189" -> "3g 9p"
+const FACEBOOK_SHARE_BASE = 'https://www.facebook.com/sharer/sharer.php?u=';
+const ZALO_SHARE_BASE = 'https://zalo.me/share?u=';
+const X_SHARE_BASE = 'https://x.com/intent/tweet?text=';
+const FALLBACK_PAGE_URL = 'https://dangdinhluc.github.io/Gino2/';
+
+// 189 -> "3g 9p"
 function formatMinutes(total: number) {
   const hours = Math.floor(total / 60);
   const minutes = total % 60;
@@ -119,7 +124,7 @@ export default function Dashboard() {
   const restOfLeaderboard = leaderboard.slice(3, 10);
   const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
 
-  const pageUrl = typeof window !== 'undefined' ? window.location.href : 'https://dangdinhluc.github.io/Gino2/';
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : FALLBACK_PAGE_URL;
   const shareText = 'Mình đang học tiếng Nhật Tokutei Gino mỗi ngày!';
 
   const handleCopyLink = async () => {
@@ -133,9 +138,9 @@ export default function Dashboard() {
   };
 
   const shareLinks = [
-    { id: 'fb', label: 'f', title: 'Chia sẻ Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}` },
-    { id: 'zalo', label: 'Z', title: 'Chia sẻ Zalo', href: `https://zalo.me/share?u=${encodeURIComponent(pageUrl)}` },
-    { id: 'x', label: 'X', title: 'Chia sẻ X', href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}` },
+    { id: 'fb', label: 'f', title: 'Chia sẻ Facebook', href: FACEBOOK_SHARE_BASE + encodeURIComponent(pageUrl) },
+    { id: 'zalo', label: 'Z', title: 'Chia sẻ Zalo', href: ZALO_SHARE_BASE + encodeURIComponent(pageUrl) },
+    { id: 'x', label: 'X', title: 'Chia sẻ X', href: X_SHARE_BASE + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(pageUrl) },
   ];
 
   return (
