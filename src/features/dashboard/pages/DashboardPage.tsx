@@ -5,15 +5,19 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Copy,
   Crown,
   Download,
   Flame,
   Headphones,
   Medal,
   MessageSquareText,
+  PenLine,
   Search,
+  Share2,
   Sparkles,
   Target,
+  Timer,
   Trophy,
   Users,
   X,
@@ -22,10 +26,12 @@ import {
 import { dashboardTools, PRIMARY_TOOL_COUNT } from '@/src/data/dashboardMock';
 import { buildDailySession } from '@/src/features/dashboard/lib/dailySession';
 import {
+  DAILY_GOAL_MINUTES,
   DAILY_GOAL_XP,
   XP_PER_LEVEL,
   leaderboardPeers,
   learningTracks,
+  spellingDrills,
 } from '@/src/features/dashboard/mock/gamifiedDashboardMock';
 import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
 import { useReviewStore } from '@/src/features/review/store/reviewStore';
@@ -45,9 +51,31 @@ const levelBadgeClass: Record<string, string> = {
   B1: 'bg-[#efe8f7] text-[#6F4AA8]',
 };
 
+const FACEBOOK_SHARE_BASE = 'https://www.facebook.com/sharer/sharer.php?u=';
+const ZALO_SHARE_BASE = 'https://zalo.me/share?u=';
+const X_SHARE_BASE = 'https://x.com/intent/tweet?text=';
+const FALLBACK_PAGE_URL = 'https://dangdinhluc.github.io/Gino2/';
+
+// 189 -> "3g 9p"
+function formatMinutes(total: number) {
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return hours > 0 ? `${hours}g ${minutes}p` : `${minutes}p`;
+}
+
+// "Phạm Nguyên Thảo" -> "PT"
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function Dashboard() {
   const [isInstallPromptVisible, setIsInstallPromptVisible] = useState(true);
+  const [isSyncBannerVisible, setIsSyncBannerVisible] = useState(true);
   const [areAllToolsVisible, setAreAllToolsVisible] = useState(false);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
   const reviewStates = useReviewStore((state) => state.states);
   const reviewLog = useReviewStore((state) => state.log);
   const streak = useProgressStore((state) => state.streak);
@@ -75,25 +103,49 @@ export default function Dashboard() {
   const earnedTodayXp = Math.min(DAILY_GOAL_XP, reviewedToday * 6);
   const goalProgress = Math.round((earnedTodayXp / DAILY_GOAL_XP) * 100);
 
-  // Bảng xếp hạng: chèn người dùng hiện tại rồi sắp theo XP.
+  // Thời gian học ước lượng từ số thẻ đã ôn (store chưa lưu thời gian thực).
+  const minutesToday = Math.round(reviewedToday * 1.5);
+  const minutesProgress = Math.min(100, Math.round((minutesToday / DAILY_GOAL_MINUTES) * 100));
+  const minutesTotal = Math.round(totalXp / 6);
+
+  // Bảng xếp hạng: chèn người dùng hiện tại rồi sắp theo thời gian học.
   const leaderboard = useMemo(() => {
     const merged = [
       ...leaderboardPeers,
-      { id: 'me', name: 'Bạn', xp: totalXp },
+      { id: 'me', name: 'Bạn', xp: totalXp, minutes: minutesTotal },
     ];
     return merged
       .slice()
-      .sort((a, b) => b.xp - a.xp)
+      .sort((a, b) => b.minutes - a.minutes)
       .map((entry, index) => ({ ...entry, rank: index + 1, isCurrentUser: entry.id === 'me' }));
-  }, [totalXp]);
+  }, [totalXp, minutesTotal]);
 
   const podium = leaderboard.slice(0, 3);
-  const restOfLeaderboard = leaderboard.slice(3, 9);
+  const restOfLeaderboard = leaderboard.slice(3, 10);
   const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
+
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : FALLBACK_PAGE_URL;
+  const shareText = 'Mình đang học tiếng Nhật Tokutei Gino mỗi ngày!';
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      setIsLinkCopied(true);
+      window.setTimeout(() => setIsLinkCopied(false), 2000);
+    } catch {
+      setIsLinkCopied(false);
+    }
+  };
+
+  const shareLinks = [
+    { id: 'fb', label: 'f', title: 'Chia sẻ Facebook', href: FACEBOOK_SHARE_BASE + encodeURIComponent(pageUrl) },
+    { id: 'zalo', label: 'Z', title: 'Chia sẻ Zalo', href: ZALO_SHARE_BASE + encodeURIComponent(pageUrl) },
+    { id: 'x', label: 'X', title: 'Chia sẻ X', href: X_SHARE_BASE + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(pageUrl) },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5 pb-4">
-      {/* Hero: chào mừng + cấp độ/XP + streak */}
+      {/* Hero: chào mừng + chia sẻ + cấp độ/XP + streak */}
       <section className={cardClass}>
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0 space-y-2">
@@ -104,7 +156,34 @@ export default function Dashboard() {
               Tiếp tục chuỗi học hôm nay
             </h1>
             <p className="text-sm text-[#4d5a6b]">Chăm chỉ học mỗi ngày để leo hạng và nhận huy hiệu cuối tháng nhé.</p>
+
+            {/* Hàng chia sẻ */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {shareLinks.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={item.title}
+                  aria-label={item.title}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border border-[#e8dccb] bg-[#fffdf8] text-sm font-black text-[#5f6b7c] transition-colors hover:border-orange-300 hover:text-orange-700 ${focusRing}`}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-[#e8dccb] bg-[#fffdf8] px-3 text-xs font-bold text-[#5f6b7c] transition-colors hover:border-orange-300 hover:text-orange-700 ${focusRing}`}
+              >
+                {isLinkCopied ? <CheckCircle2 size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                {isLinkCopied ? 'Đã sao chép' : 'Chia sẻ'}
+              </button>
+              <Share2 size={15} className="text-[#95a0af]" aria-hidden="true" />
+            </div>
           </div>
+
           <div className="flex shrink-0 items-center gap-2.5">
             <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-[linear-gradient(125deg,#fff4e8_0%,#fffaf3_70%)] px-3.5 py-2.5">
               <Flame size={22} className="text-orange-600" />
@@ -135,6 +214,29 @@ export default function Dashboard() {
           <p className="mt-2 text-[11px] text-[#7b8796]">Còn {XP_PER_LEVEL - xpIntoLevel} XP nữa để lên cấp {level + 1}</p>
         </div>
       </section>
+
+      {/* Banner nhắc đăng nhập để đồng bộ */}
+      {isSyncBannerVisible && (
+        <div className="flex items-center gap-3 rounded-2xl border border-orange-200 bg-[linear-gradient(125deg,#fff4e8_0%,#fffaf3_70%)] p-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-700 text-white">
+            <Sparkles size={19} />
+          </span>
+          <p className="min-w-0 flex-1 text-sm text-[#4d5a6b]">
+            Đăng nhập để lưu tiến trình và nhận phần thưởng.
+          </p>
+          <Link to="/login" className={`shrink-0 rounded-xl bg-orange-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange-800 ${focusRing}`}>
+            Đăng nhập
+          </Link>
+          <button
+            type="button"
+            aria-label="Ẩn nhắc đăng nhập"
+            onClick={() => setIsSyncBannerVisible(false)}
+            className="shrink-0 rounded-lg p-1.5 text-[#7b8796] transition-colors hover:text-[#4d5a6b]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
 
       {/* Mục tiêu hôm nay */}
       <section className="grid gap-3 md:grid-cols-2">
@@ -167,6 +269,20 @@ export default function Dashboard() {
                 {earnedTodayXp >= DAILY_GOAL_XP ? 'Hoàn thành mục tiêu!' : 'Học tiếp'} <ChevronRight size={15} />
               </Link>
             </div>
+          </div>
+
+          {/* Thời gian học hôm nay */}
+          <div className="mt-4 border-t border-[#efe5d7] pt-3.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-[#4d5a6b]">
+                <Timer size={15} className="text-orange-700" /> {minutesToday}p hôm nay
+              </span>
+              <span className="text-xs font-bold text-[#7b8796]">{minutesProgress}%</span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#efe5d7]">
+              <div className="h-full rounded-full bg-orange-700 transition-all duration-500" style={{ width: `${minutesProgress}%` }} />
+            </div>
+            <p className="mt-1.5 text-[11px] text-[#95a0af]">Mục tiêu {DAILY_GOAL_MINUTES} phút mỗi ngày · ước tính từ số thẻ đã ôn</p>
           </div>
         </div>
 
@@ -202,8 +318,11 @@ export default function Dashboard() {
             return (
               <div key={entry.id} className="flex flex-col items-center">
                 <span className={`mb-1 ${medalColor}`}>{isFirst ? <Crown size={22} /> : <Medal size={20} />}</span>
+                <span className={`mb-1.5 flex h-11 w-11 items-center justify-center rounded-full text-sm font-black ${entry.isCurrentUser ? 'bg-orange-700 text-white' : 'bg-[#f3e7d6] text-[#8a6d47]'}`}>
+                  {getInitials(entry.name)}
+                </span>
                 <p className={`max-w-full truncate text-center text-xs font-bold ${entry.isCurrentUser ? 'text-orange-800' : 'text-[#172033]'}`}>{entry.name}</p>
-                <p className="text-[11px] text-[#7b8796]">{entry.xp} XP</p>
+                <p className="text-[11px] text-[#7b8796]">{formatMinutes(entry.minutes)}</p>
                 <div className={`mt-1.5 flex w-full items-start justify-center rounded-t-xl border border-b-0 pt-1.5 text-sm font-bold ${podiumHeight} ${entry.isCurrentUser ? 'border-orange-300 bg-orange-100 text-orange-800' : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'}`}>
                   {entry.rank}
                 </div>
@@ -220,10 +339,13 @@ export default function Dashboard() {
               className={`flex items-center gap-3 rounded-lg px-2 py-2.5 ${entry.isCurrentUser ? 'bg-orange-50' : ''}`}
             >
               <span className={`w-6 shrink-0 text-center text-sm font-bold ${entry.isCurrentUser ? 'text-orange-800' : 'text-[#95a0af]'}`}>{entry.rank}</span>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${entry.isCurrentUser ? 'bg-orange-700 text-white' : 'bg-[#f3e7d6] text-[#8a6d47]'}`}>
+                {getInitials(entry.name)}
+              </span>
               <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${entry.isCurrentUser ? 'text-orange-800' : 'text-[#172033]'}`}>
                 {entry.name}{entry.isCurrentUser ? ' · bạn' : ''}
               </span>
-              <span className="shrink-0 text-sm text-[#5f6b7c]">{entry.xp} XP</span>
+              <span className="shrink-0 text-sm text-[#5f6b7c]">{formatMinutes(entry.minutes)}</span>
             </li>
           ))}
         </ul>
@@ -276,6 +398,36 @@ export default function Dashboard() {
             );
           })}
         </ol>
+      </section>
+
+      {/* Chính tả */}
+      <section className={cardClass}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <PenLine size={18} className="text-orange-700" />
+            <h2 className="font-[var(--font-heading)] text-lg font-bold text-[#172033]">Chính tả</h2>
+          </div>
+          <Link to="/app/hub" className="text-sm font-bold text-orange-800 hover:underline">Tất cả →</Link>
+        </div>
+        <p className="mt-1 text-sm text-[#5f6b7c]">Nghe rồi viết lại đúng mặt chữ — luyện nhớ lâu hơn đọc suông.</p>
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+          {spellingDrills.map((drill) => (
+            <Link
+              key={drill.id}
+              to={drill.path}
+              className={`group flex items-center gap-3 rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-3.5 transition-colors hover:border-orange-200 ${focusRing}`}
+            >
+              <span lang="ja" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-sm font-bold text-orange-700">
+                {drill.sample}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-bold text-[#172033]">{drill.title}</span>
+                <span className="mt-0.5 block truncate text-xs text-[#5f6b7c]">{drill.sub}</span>
+              </span>
+              <ChevronRight size={16} className="shrink-0 text-[#95a0af] transition-colors group-hover:text-orange-700" />
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Tiến trình học tập */}
