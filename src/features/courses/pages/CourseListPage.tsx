@@ -47,17 +47,17 @@ export default function CourseList() {
   const isFiltering = hasActiveLevelFilter || searchQuery.trim() !== '';
 
   return (
-    <div className="space-y-5 pb-16">
-      <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6">
+    <div className="space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-16">
+      <section className="flex items-baseline justify-between gap-4 px-1 pt-1 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-6">
         <h2 className="font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">Khóa học</h2>
-        <p className="mt-2 text-sm text-[#5f6b7c]">
+        <p className="shrink-0 text-sm text-[#5f6b7c]">
           {courses.length} khóa học
-          {isFiltering ? ` · đang xem ${filteredCourses.length} kết quả` : ''}
+          {isFiltering ? ` · ${filteredCourses.length} kết quả` : ''}
         </p>
-        <CourseListErrorNotice result={courseList} />
       </section>
+      <CourseListErrorNotice result={courseList} />
 
-      <section className="space-y-4 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
+      <section className="space-y-4 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-5">
         <div className="flex items-center gap-3">
           <div className="group relative flex-1">
             {isSearching ? (
@@ -205,31 +205,31 @@ export default function CourseList() {
                   to={`/app/courses/${course.id}`}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
                 >
-                  <div className="relative h-44 overflow-hidden">
+                  <div className="relative h-32 overflow-hidden sm:h-44">
                     <img
                       src={course.image}
                       alt=""
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <span className="absolute left-4 top-4 rounded-lg border border-[#e8dccb] bg-white/92 px-3 py-1.5 text-xs font-semibold text-orange-700 backdrop-blur-sm">
+                    <span className="absolute bottom-3 left-3 rounded-lg border border-[#e8dccb] bg-white/92 px-2.5 py-1 text-[11px] font-semibold text-orange-700 backdrop-blur-sm sm:left-4 sm:top-4 sm:bottom-auto sm:px-3 sm:py-1.5 sm:text-xs">
                       {course.level}
                     </span>
                   </div>
 
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    <h4 className="font-[var(--font-heading)] text-lg font-bold leading-tight tracking-[-0.02em] text-[#172033] transition-colors group-hover:text-orange-700">
+                  <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5">
+                    <h4 className="font-[var(--font-heading)] text-xl font-bold leading-tight tracking-[-0.02em] text-[#172033] transition-colors group-hover:text-orange-700 sm:text-lg">
                       {course.title}
                     </h4>
-                    <p className="line-clamp-2 text-sm leading-relaxed text-[#5f6b7c]">
+                    <p className="line-clamp-1 text-[13px] leading-relaxed text-[#5f6b7c] sm:line-clamp-2 sm:text-sm">
                       {course.description}
                     </p>
 
-                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#efe5d7] pt-4">
+                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#efe5d7] pt-3 sm:pt-4">
                       <span className="text-xs font-semibold text-[#7b8796]">
                         {course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang đồng bộ'}
                       </span>
-                      <span className="rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
-                        Học ngay
+                      <span className="min-h-10 rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
+                        Học tiếp →
                       </span>
                     </div>
                   </div>
