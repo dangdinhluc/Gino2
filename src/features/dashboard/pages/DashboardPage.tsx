@@ -26,6 +26,17 @@ import { useProgressStore } from '@/src/features/courses/store/progressStore';
 
 const assetPath = (name: string) => `${import.meta.env.BASE_URL}${name}`;
 
+const sakuraPetals = [
+  ['4%', 12, '-2s', '16s'],
+  ['15%', 9, '-9s', '19s'],
+  ['27%', 14, '-5s', '15s'],
+  ['39%', 10, '-12s', '20s'],
+  ['51%', 13, '-3s', '17s'],
+  ['64%', 9, '-11s', '21s'],
+  ['76%', 15, '-6s', '18s'],
+  ['89%', 11, '-14s', '22s'],
+] as const;
+
 const menuItems = [
   { label: 'Trang chủ', hint: 'Tổng quan học tập', path: '/app/dashboard', icon: Home },
   { label: 'Lộ trình Tokutei', hint: 'N5 đến JFT-Basic', path: '/app/roadmap', icon: Route },
@@ -133,6 +144,15 @@ export default function Dashboard() {
           className="dashboard-hero"
           style={{ backgroundImage: `linear-gradient(180deg, rgba(255, 250, 246, .12), rgba(255, 250, 246, .76)), url("${assetPath('english-hero-bg.jpg')}")` }}
         >
+          <div className="dashboard-sakura-layer" aria-hidden="true">
+            {sakuraPetals.map(([left, size, delay, duration], index) => (
+              <span
+                className="dashboard-sakura-petal"
+                key={`${left}-${index}`}
+                style={{ left, width: size, height: size, animationDelay: delay, animationDuration: duration }}
+              />
+            ))}
+          </div>
           <div className="dashboard-hero-copy">
             <span className="dashboard-eyebrow">HỆ THỐNG · NHẬN DẠNG KÍ CHỦ</span>
             <h1>Chào mừng trở lại,<br /><em>anh</em></h1>

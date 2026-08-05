@@ -1251,7 +1251,10 @@
 .dashboard-menu-settings { border-top-color: var(--dashboard-line); color: var(--dashboard-muted); }
 
 .dashboard-hero { background-position: center; background-size: cover; }
-.dashboard-hero::after { background: linear-gradient(transparent, #f8eee8); }
+.dashboard-hero::after { z-index: 0; background: linear-gradient(transparent, #f8eee8); }
+.dashboard-sakura-layer { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+.dashboard-sakura-petal { position: absolute; top: -1.5rem; display: block; border-radius: 70% 30%; background: rgba(255, 190, 201, 0.78); box-shadow: 0 2px 7px rgba(60, 20, 24, 0.22); opacity: 0; transform: rotate(0deg); animation: landing-sakura-fall linear infinite; }
+.dashboard-hero-copy, .dashboard-mascot-wrap { z-index: 2; }
 .dashboard-eyebrow { color: #c63d37; }
 .dashboard-hero h1 { color: #34221f; }
 .dashboard-hero h1 em { color: #d83b2e; }
@@ -1328,7 +1331,7 @@
 .dashboard-zzz { animation: dashboard-zzz-float 2.4s 500ms ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .dashboard-lesson-card, .dashboard-tool-card, .dashboard-menu-button, .dashboard-system-note, .dashboard-system-copy, .dashboard-zzz { transition: none; animation: none; }
+  .dashboard-lesson-card, .dashboard-tool-card, .dashboard-menu-button, .dashboard-system-note, .dashboard-system-copy, .dashboard-zzz, .dashboard-sakura-petal { transition: none; animation: none; }
 }
 
 /* Shared light shell for every item in the dashboard menu. */

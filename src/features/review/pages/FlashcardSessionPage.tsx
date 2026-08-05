@@ -399,89 +399,82 @@ export default function FlashcardSession() {
             </div>
           </div>
 
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => setIsRevealed((current) => !current)}
-            className={`group block w-full rounded-2xl text-left ${focusRing}`}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setIsRevealed((current) => !current);
+              }
+            }}
+            className={`group block w-full cursor-pointer rounded-2xl text-left ${focusRing}`}
             aria-pressed={isRevealed}
             aria-label={isRevealed ? 'Ẩn nghĩa và quay lại mặt trước' : 'Lật thẻ để xem nghĩa'}
           >
-            <motion.div
-              key={`${card.id}-${isRevealed ? 'back' : 'front'}`}
-              initial={{ opacity: 0, rotateY: isRevealed ? -10 : 10, y: 10 }}
-              animate={{ opacity: 1, rotateY: 0, y: 0 }}
-              transition={{ duration: 0.18 }}
-              className={cn(
-                'min-h-[24rem] rounded-2xl border p-6 transition-transform group-hover:-translate-y-0.5 md:min-h-[27rem] md:p-8',
-                isRevealed ? 'border-emerald-200 bg-emerald-50/60' : 'border-[#e8dccb] bg-[#fffaf3]',
-              )}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8796]">{card.level}</span>
-                  {topic && (
-                    <span className="hidden truncate rounded-md bg-orange-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700 sm:block">
-                      {topic.label}
-                    </span>
-                  )}
-                </div>
-                <span className={cn('shrink-0 rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em]', isRevealed ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800')}>
-                  {isRevealed ? 'Đáp án' : 'Câu hỏi'}
-                </span>
-              </div>
-
-              {!isRevealed ? (
-                <div className="flex min-h-[17rem] flex-col items-center justify-center text-center md:min-h-[19rem]">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-700">Tự nhớ nghĩa trước</p>
-                  <h2 lang="ja" className="mt-5 max-w-full break-words text-center font-[var(--font-heading)] text-5xl font-bold tracking-[-0.02em] text-[#172033] md:text-7xl">
-                    {card.word}
-                  </h2>
-                  {card.reading !== card.word && (
-                    <p lang="ja" className="mt-3 text-xl font-bold text-[#5f6b7c] md:text-2xl">{card.reading}</p>
-                  )}
-                  <p className="mt-2 text-base font-bold italic text-orange-700/90 md:text-lg">{card.romaji}</p>
-                  <span className="mt-6 inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-white px-4 py-2 text-sm font-bold text-orange-800 shadow-sm">
-                    Xem đáp án <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[11px]">Space</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="flex min-h-[17rem] flex-col justify-center text-center md:min-h-[19rem]">
-                  <div className="flex items-center justify-center gap-3">
-                    <span lang="ja" className="font-[var(--font-heading)] text-2xl font-bold text-[#172033] md:text-3xl">{card.word}</span>
-                    <span className="text-sm font-bold italic text-[#95a0af]">{card.romaji}</span>
-                  </div>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">Nghĩa</p>
-                  <h2 className="mt-2 font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">{card.meaning}</h2>
-                  <div className="mx-auto mt-6 w-full max-w-lg rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4 text-left">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700">Ví dụ</p>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          speakJapanese(card.exampleJp, 0.8);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            event.stopPropagation();
-                            speakJapanese(card.exampleJp, 0.8);
-                          }
-                        }}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e8dccb] bg-orange-50 text-orange-700 transition-colors hover:bg-orange-100"
-                        aria-label="Nghe câu ví dụ"
-                      >
-                        <Volume2 size={15} />
-                      </span>
+            <div style={{ perspective: '1200px' }}>
+              <motion.div
+                animate={{ rotateY: isRevealed ? 180 : 0 }}
+                transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
+                style={{ transformStyle: 'preserve-3d' }}
+                className="relative min-h-[24rem] md:min-h-[27rem]"
+              >
+                <div
+                  aria-hidden={isRevealed}
+                  style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                  className="absolute inset-0 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-6 transition-transform group-hover:-translate-y-0.5 md:p-8"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8796]">{card.level}</span>
+                      {topic && <span className="hidden truncate rounded-md bg-orange-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700 sm:block">{topic.label}</span>}
                     </div>
-                    <p lang="ja" className="mt-2 text-base font-bold leading-relaxed text-[#172033] md:text-lg">{card.exampleJp}</p>
-                    <p className="mt-1 text-xs font-medium italic text-[#95a0af]">{card.exampleRomaji}</p>
-                    <p className="mt-2 text-sm font-medium leading-relaxed text-[#4d5a6b]">{card.exampleVi}</p>
+                    <span className="shrink-0 rounded-md bg-orange-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-orange-800">Câu hỏi</span>
+                  </div>
+                  <div className="flex min-h-[17rem] flex-col items-center justify-center text-center md:min-h-[19rem]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-700">Tự nhớ nghĩa trước</p>
+                    <h2 lang="ja" className="mt-5 max-w-full break-words text-center font-[var(--font-heading)] text-5xl font-bold tracking-[-0.02em] text-[#172033] md:text-7xl">{card.word}</h2>
+                    {card.reading !== card.word && <p lang="ja" className="mt-3 text-xl font-bold text-[#5f6b7c] md:text-2xl">{card.reading}</p>}
+                    <p className="mt-2 text-base font-bold italic text-orange-700/90 md:text-lg">{card.romaji}</p>
+                    <span className="mt-6 inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-white px-4 py-2 text-sm font-bold text-orange-800 shadow-sm">
+                      Lật thẻ <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[11px]">Space</span>
+                    </span>
                   </div>
                 </div>
-              )}
-            </motion.div>
-          </button>
+
+                <div
+                  aria-hidden={!isRevealed}
+                  style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                  className="absolute inset-0 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 md:p-8"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8796]">{card.level}</span>
+                    <span className="shrink-0 rounded-md bg-emerald-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-800">Đáp án</span>
+                  </div>
+                  <div className="flex min-h-[17rem] flex-col justify-center text-center md:min-h-[19rem]">
+                    <div className="flex items-center justify-center gap-3">
+                      <span lang="ja" className="font-[var(--font-heading)] text-2xl font-bold text-[#172033] md:text-3xl">{card.word}</span>
+                      <span className="text-sm font-bold italic text-[#95a0af]">{card.romaji}</span>
+                    </div>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">Nghĩa</p>
+                    <h2 className="mt-2 font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">{card.meaning}</h2>
+                    <div className="mx-auto mt-6 w-full max-w-lg rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4 text-left">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700">Ví dụ</p>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e8dccb] bg-orange-50 text-orange-700" aria-hidden="true">
+                          <Volume2 size={15} />
+                        </span>
+                      </div>
+                      <p lang="ja" className="mt-2 text-base font-bold leading-relaxed text-[#172033] md:text-lg">{card.exampleJp}</p>
+                      <p className="mt-1 text-xs font-medium italic text-[#95a0af]">{card.exampleRomaji}</p>
+                      <p className="mt-2 text-sm font-medium leading-relaxed text-[#4d5a6b]">{card.exampleVi}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
 
           <AnimatePresence>
             {isRevealed && (

@@ -355,27 +355,29 @@ function VocabularyFlashcards({ items, showFurigana, showRomaji, heardVocabulary
         onKeyDown={handleCardKeyDown}
         className={cn('flex min-h-[17rem] w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-[#e8dccb] bg-[#fffdf8] p-6 text-center', focusRing)}
       >
-        <AnimatePresence mode="wait">
-          {isFlipped ? (
-            <motion.div key="back" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="w-full">
+        <div className="w-full" style={{ perspective: '1000px' }}>
+          <motion.div
+            animate={{ rotateY: isFlipped ? 180 : 0 }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformStyle: 'preserve-3d' }}
+            className="relative min-h-[13rem] w-full"
+          >
+            <div aria-hidden={isFlipped} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} className="absolute inset-0 flex w-full flex-col items-center justify-center">
+              <VocabularyHeadword item={card} showFurigana={showFurigana} className="text-4xl font-bold text-[#172033]" rtClassName="text-[0.38em]" />
+              {showRomaji && <p className="mt-3 text-sm text-orange-700">/{card.pronunciation}/</p>}
+              <p className="mt-6 text-xs text-[#95a0af]">Chạm để lật thẻ</p>
+            </div>
+            <div aria-hidden={!isFlipped} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 flex w-full flex-col items-center justify-center">
               <VocabularyHeadword item={card} showFurigana={showFurigana} className="text-lg font-semibold text-[#7b8796]" rtClassName="text-[0.5em]" />
               <p className="mt-2 text-2xl font-bold text-[#172033]">{card.meaning}</p>
               <div className="mx-auto mt-4 max-w-sm rounded-xl border border-[#e8dccb] bg-[#fffaf3] p-3 text-left">
                 <p lang="ja" className="text-sm font-semibold leading-relaxed text-[#172033]">{card.example.jp}</p>
                 <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{card.example.vi}</p>
               </div>
-              {card.mnemonic && (
-                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[#4d5a6b]">💡 {card.mnemonic}</p>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div key="front" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="w-full">
-              <VocabularyHeadword item={card} showFurigana={showFurigana} className="text-4xl font-bold text-[#172033]" rtClassName="text-[0.38em]" />
-              {showRomaji && <p className="mt-3 text-sm text-orange-700">/{card.pronunciation}/</p>}
-              <p className="mt-6 text-xs text-[#95a0af]">Chạm để xem nghĩa</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {card.mnemonic && <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[#4d5a6b]">💡 {card.mnemonic}</p>}
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3">
