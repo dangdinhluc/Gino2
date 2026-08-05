@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, Check, ChevronDown, ChevronLeft, Clock3, ListChecks, RotateCcw, Send, Sparkles, Trophy, X, XCircle } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ChevronLeft, Clock3, RotateCcw, Send, Sparkles, Trophy, X, XCircle } from 'lucide-react';
 import type { CourseExamItem } from '@/src/features/courses/mock/courseLearningMock';
 import { focusRing, primaryButtonClass } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { cn } from '@/src/lib/utils';
@@ -42,7 +42,6 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
   const total = questions.length;
   const activeQuestion = questions[activeIndex] ?? questions[0];
   const answeredCount = Object.keys(answers).length;
-  const progress = total > 0 ? Math.round((answeredCount / total) * 100) : 0;
 
   const correctCount = useMemo(
     () => questions.reduce((count, question) => count + (answers[question.id] === question.answer ? 1 : 0), 0),
@@ -107,53 +106,95 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
       aria-modal="true"
       aria-label={`Thi thử: ${exam.title}`}
     >
-      <div className="mx-auto w-full max-w-[820px] px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3">
-        <header className="sticky top-0 z-10 -mx-4 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onExit}
-              className={cn('-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:text-[#172033]', focusRing)}
-              aria-label="Đóng bài thi và quay lại khóa học"
-            >
-              <X size={20} aria-hidden="true" focusable="false" />
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Thi thử trong khóa</p>
-              <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{exam.title}</h1>
+      <div className="mx-auto flex min-h-full w-full max-w-[820px] flex-col">
+        {phase === 'doing' && (
+          <header className="sticky top-0 z-20 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-2.5 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onExit}
+                className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:bg-[#fffaf3] hover:text-[#172033]', focusRing)}
+                aria-label="Đóng bài thi và quay lại khóa học"
+              >
+                <X size={20} aria-hidden="true" focusable="false" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsQuestionListOpen((open) => !open)}
+                aria-expanded={isQuestionListOpen}
+                aria-controls="course-exam-question-list"
+                className={cn('flex h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-2 text-sm font-bold text-[#172033] transition-colors hover:bg-[#fffaf3]', focusRing)}
+              >
+                Câu {activeIndex + 1}/{total}
+                <ChevronDown className={cn('transition-transform', isQuestionListOpen && 'rotate-180')} size={16} aria-hidden="true" focusable="false" />
+              </button>
+              <span
+                className={cn(
+                  'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-sm font-bold tabular-nums',
+                  timeLeft <= 5 * 60 ? 'bg-red-50 text-red-700' : 'bg-[#fffaf3] text-[#5f6b7c]'
+                )}
+                aria-label={`Còn ${formatCountdown(timeLeft)}`}
+              >
+                <Clock3 size={15} aria-hidden="true" focusable="false" />
+                {formatCountdown(timeLeft)}
+              </span>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className={cn('flex h-10 shrink-0 items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800 transition-colors hover:border-orange-700 hover:bg-orange-700 hover:text-white', focusRing)}
+              >
+                Nộp <Send size={14} aria-hidden="true" focusable="false" />
+              </button>
             </div>
-            <span
-              className={cn(
-                'inline-flex shrink-0 items-center gap-1.5 rounded-lg border bg-[#fffdf8] px-3 py-1.5 text-xs font-bold tabular-nums',
-                timeLeft <= 5 * 60 ? 'border-red-200 text-red-700' : 'border-[#e8dccb] text-[#5f6b7c]'
+
+            <AnimatePresence initial={false}>
+              {isQuestionListOpen && (
+                <motion.div
+                  id="course-exam-question-list"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.16 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-2 grid grid-cols-5 gap-2 border-t border-[#e8dccb] pt-3 sm:grid-cols-8">
+                    {questions.map((question, index) => {
+                      const isActive = index === activeIndex;
+                      const isAnswered = Boolean(answers[question.id]);
+                      return (
+                        <button
+                          key={question.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveIndex(index);
+                            setIsQuestionListOpen(false);
+                          }}
+                          aria-label={`Câu ${index + 1}${isAnswered ? ' (đã làm)' : ''}`}
+                          className={cn(
+                            'flex h-11 items-center justify-center rounded-xl border text-sm font-bold transition-colors',
+                            isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300',
+                            focusRing
+                          )}
+                        >
+                          {isAnswered && !isActive ? <Check size={15} aria-hidden="true" focusable="false" /> : index + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
               )}
-              aria-label={`Còn ${formatCountdown(timeLeft)}`}
-            >
-              <Clock3 size={14} aria-hidden="true" focusable="false" />
-              {formatCountdown(timeLeft)}
-            </span>
-          </div>
-          {phase === 'doing' && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e8dccb]">
-                <div className="h-full rounded-full bg-orange-700 transition-all duration-300" style={{ width: `${progress}%` }} />
-              </div>
-              <span className="shrink-0 text-xs text-[#5f6b7c]">{answeredCount}/{total}</span>
-            </div>
-          )}
-        </header>
+            </AnimatePresence>
+          </header>
+        )}
 
         <AnimatePresence mode="wait">
           {phase === 'doing' ? (
-            <motion.div key="doing" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="mt-4 space-y-4">
-              <div className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-md bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">{activeQuestion.skill}</span>
-                  <span className="text-xs font-semibold text-[#95a0af]">Câu {activeIndex + 1}/{total}</span>
-                </div>
-                <h2 className="mt-3 font-[var(--font-heading)] text-xl font-bold leading-snug tracking-[-0.02em] text-[#172033]">{activeQuestion.prompt}</h2>
+            <motion.div key="doing" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="flex flex-1 flex-col px-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-7 sm:px-7">
+              <main className="mx-auto w-full max-w-[680px]">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-700">{activeQuestion.skill}</p>
+                <h1 className="mt-3 font-[var(--font-heading)] text-[clamp(1.5rem,5vw,2rem)] font-bold leading-[1.25] tracking-[-0.03em] text-[#172033]">{activeQuestion.prompt}</h1>
 
-                <div className="mt-4 grid gap-2">
+                <div className="mt-8 grid gap-3">
                   {activeQuestion.options.map((option, index) => {
                     const isSelected = answers[activeQuestion.id] === option;
                     return (
@@ -163,109 +204,46 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
                         onClick={() => handleSelect(option)}
                         aria-pressed={isSelected}
                         className={cn(
-                          'flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
-                          isSelected ? 'border-orange-700 bg-orange-50 text-orange-800' : 'border-[#e8dccb] bg-white text-[#172033] hover:border-orange-300',
+                          'flex min-h-15 items-center gap-4 rounded-2xl border bg-white px-4 py-3.5 text-left transition-colors',
+                          isSelected ? 'border-orange-700 bg-orange-50 text-orange-800 shadow-[0_0_0_1px_#c2410c]' : 'border-[#e8dccb] text-[#172033] hover:border-orange-300 hover:bg-[#fffaf3]',
                           focusRing
                         )}
                       >
-                        <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-sm font-bold', isSelected ? 'border-orange-700 bg-white text-orange-700' : 'border-[#e8dccb] bg-white text-[#95a0af]')}>
+                        <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-bold', isSelected ? 'border-orange-700 bg-orange-700 text-white' : 'border-[#e8dccb] bg-[#fffaf3] text-[#5f6b7c]')}>
                           {String.fromCharCode(65 + index)}
                         </span>
-                        <span className="text-sm font-semibold md:text-base">{option}</span>
+                        <span className="text-base font-semibold">{option}</span>
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </main>
 
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setIsQuestionListOpen((open) => !open)}
-                  aria-expanded={isQuestionListOpen}
-                  aria-controls="course-exam-question-list"
-                  className={cn('flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-[#e8dccb] bg-[#fffaf3] px-4 text-left transition-colors hover:border-orange-300', focusRing)}
-                >
-                  <span className="flex items-center gap-2 text-sm font-bold text-[#172033]">
-                    <ListChecks size={17} className="text-orange-700" aria-hidden="true" focusable="false" />
-                    Danh sách câu
-                  </span>
-                  <span className="flex items-center gap-2 text-xs font-semibold text-[#5f6b7c]">
-                    {answeredCount}/{total} đã làm
-                    <ChevronDown className={cn('transition-transform', isQuestionListOpen && 'rotate-180')} size={16} aria-hidden="true" focusable="false" />
-                  </span>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {isQuestionListOpen && (
-                    <motion.div
-                      id="course-exam-question-list"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.16 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="mt-2 grid grid-cols-5 gap-2 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 sm:grid-cols-8">
-                        {questions.map((question, index) => {
-                          const isActive = index === activeIndex;
-                          const isAnswered = Boolean(answers[question.id]);
-                          return (
-                            <button
-                              key={question.id}
-                              type="button"
-                              onClick={() => {
-                                setActiveIndex(index);
-                                setIsQuestionListOpen(false);
-                              }}
-                              aria-label={`Câu ${index + 1}${isAnswered ? ' (đã làm)' : ''}`}
-                              className={cn(
-                                'flex h-11 items-center justify-center rounded-lg border text-xs font-bold transition-colors',
-                                isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300',
-                                focusRing
-                              )}
-                            >
-                              {isAnswered && !isActive ? <Check size={15} aria-hidden="true" focusable="false" /> : index + 1}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveIndex((current) => Math.max(0, current - 1))}
-                  disabled={activeIndex === 0}
-                  className={cn('flex h-11 items-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 text-sm font-semibold text-[#5f6b7c] transition-colors hover:text-[#172033] disabled:opacity-45', focusRing)}
-                >
-                  <ChevronLeft size={16} aria-hidden="true" focusable="false" /> Trước
-                </button>
-                {activeIndex === total - 1 ? (
-                  <button type="button" onClick={handleSubmit} className={cn(primaryButtonClass, focusRing)}>
-                    Nộp bài <Send size={15} aria-hidden="true" focusable="false" />
-                  </button>
-                ) : (
+              <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md">
+                <div className="mx-auto flex w-full max-w-[680px] items-center justify-between gap-3">
                   <button
                     type="button"
-                    onClick={() => setActiveIndex((current) => Math.min(total - 1, current + 1))}
-                    className={cn(primaryButtonClass, focusRing)}
+                    onClick={() => setActiveIndex((current) => Math.max(0, current - 1))}
+                    disabled={activeIndex === 0}
+                    className={cn('flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 text-sm font-semibold text-[#5f6b7c] transition-colors hover:text-[#172033] disabled:opacity-45', focusRing)}
                   >
-                    Câu sau <ArrowRight size={15} aria-hidden="true" focusable="false" />
+                    <ChevronLeft size={17} aria-hidden="true" focusable="false" /> Câu trước
                   </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className={cn('mx-auto block rounded-lg px-3 py-2 text-sm text-[#7b8796] underline-offset-4 hover:text-[#172033] hover:underline', focusRing)}
-              >
-                Nộp bài sớm ({answeredCount}/{total})
-              </button>
+                  {activeIndex === total - 1 ? (
+                    <button type="button" onClick={handleSubmit} className={cn('flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800', focusRing)}>
+                      Xem lại & nộp bài <Send size={16} aria-hidden="true" focusable="false" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setActiveIndex((current) => Math.min(total - 1, current + 1))}
+                      className={cn('flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800', focusRing)}
+                    >
+                      Câu tiếp <ArrowRight size={17} aria-hidden="true" focusable="false" />
+                    </button>
+                  )}
+                </div>
+              </footer>
             </motion.div>
           ) : (
             <motion.div key="result" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="mt-4 space-y-4">
