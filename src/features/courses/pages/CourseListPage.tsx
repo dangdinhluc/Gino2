@@ -74,7 +74,7 @@ export default function CourseList() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Tìm khóa học..."
-              className="w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3.5 pl-12 pr-4 text-sm text-[#172033] outline-none transition-colors placeholder:text-[#95a0af] focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]"
+              className="w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3.5 pl-12 pr-4 text-base text-[#172033] outline-none transition-colors placeholder:text-[#95a0af] focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8] md:text-sm"
             />
           </div>
 
