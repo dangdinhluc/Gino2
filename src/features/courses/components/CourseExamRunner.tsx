@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, Check, ChevronLeft, RotateCcw, Send, Sparkles, Trophy, X, XCircle } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ChevronLeft, Clock3, ListChecks, RotateCcw, Send, Sparkles, Trophy, X, XCircle } from 'lucide-react';
 import type { CourseExamItem } from '@/src/features/courses/mock/courseLearningMock';
 import { focusRing, primaryButtonClass } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { cn } from '@/src/lib/utils';
@@ -22,10 +22,22 @@ interface CourseExamRunnerProps {
   onCompleted: (scorePercent: number) => void;
 }
 
+export function durationToSeconds(duration: string) {
+  const minutes = Number.parseInt(duration, 10);
+  return Number.isFinite(minutes) && minutes > 0 ? minutes * 60 : 25 * 60;
+}
+
+export function formatCountdown(seconds: number) {
+  const safeSeconds = Math.max(0, seconds);
+  return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+}
+
 export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onCompleted }: CourseExamRunnerProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [activeIndex, setActiveIndex] = useState(0);
   const [phase, setPhase] = useState<'doing' | 'result'>('doing');
+  const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(() => durationToSeconds(exam.duration));
 
   const total = questions.length;
   const activeQuestion = questions[activeIndex] ?? questions[0];
@@ -54,18 +66,34 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
     [answers, questions]
   );
 
-  const handleSelect = (option: string) => {
-    setAnswers((prev) => ({ ...prev, [activeQuestion.id]: option }));
-  };
-
   const handleSubmit = () => {
     onCompleted(scorePercent);
     setPhase('result');
   };
 
+  useEffect(() => {
+    if (phase !== 'doing') return;
+
+    const interval = window.setInterval(() => {
+      setTimeLeft((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 'doing' && timeLeft === 0) handleSubmit();
+  }, [phase, timeLeft]); // Score is read from the latest render when time expires.
+
+  const handleSelect = (option: string) => {
+    setAnswers((prev) => ({ ...prev, [activeQuestion.id]: option }));
+  };
+
   const handleRetry = () => {
     setAnswers({});
     setActiveIndex(0);
+    setIsQuestionListOpen(false);
+    setTimeLeft(durationToSeconds(exam.duration));
     setPhase('doing');
   };
 
@@ -94,7 +122,16 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Thi thử trong khóa</p>
               <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{exam.title}</h1>
             </div>
-            <span className="shrink-0 rounded-lg border border-[#e8dccb] bg-[#fffdf8] px-3 py-1.5 text-xs font-semibold text-[#5f6b7c]">{exam.duration}</span>
+            <span
+              className={cn(
+                'inline-flex shrink-0 items-center gap-1.5 rounded-lg border bg-[#fffdf8] px-3 py-1.5 text-xs font-bold tabular-nums',
+                timeLeft <= 5 * 60 ? 'border-red-200 text-red-700' : 'border-[#e8dccb] text-[#5f6b7c]'
+              )}
+              aria-label={`Còn ${formatCountdown(timeLeft)}`}
+            >
+              <Clock3 size={14} aria-hidden="true" focusable="false" />
+              {formatCountdown(timeLeft)}
+            </span>
           </div>
           {phase === 'doing' && (
             <div className="mt-3 flex items-center gap-2">
@@ -141,29 +178,61 @@ export function CourseExamRunner({ exam, questions, onExit, onGoToReview, onComp
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4">
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Danh sách câu</p>
-                <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
-                  {questions.map((question, index) => {
-                    const isActive = index === activeIndex;
-                    const isAnswered = Boolean(answers[question.id]);
-                    return (
-                      <button
-                        key={question.id}
-                        type="button"
-                        onClick={() => setActiveIndex(index)}
-                        aria-label={`Câu ${index + 1}${isAnswered ? ' (đã làm)' : ''}`}
-                        className={cn(
-                          'flex h-10 items-center justify-center rounded-lg border text-xs font-bold transition-colors',
-                          isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300',
-                          focusRing
-                        )}
-                      >
-                        {isAnswered && !isActive ? <Check size={15} aria-hidden="true" focusable="false" /> : index + 1}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsQuestionListOpen((open) => !open)}
+                  aria-expanded={isQuestionListOpen}
+                  aria-controls="course-exam-question-list"
+                  className={cn('flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-[#e8dccb] bg-[#fffaf3] px-4 text-left transition-colors hover:border-orange-300', focusRing)}
+                >
+                  <span className="flex items-center gap-2 text-sm font-bold text-[#172033]">
+                    <ListChecks size={17} className="text-orange-700" aria-hidden="true" focusable="false" />
+                    Danh sách câu
+                  </span>
+                  <span className="flex items-center gap-2 text-xs font-semibold text-[#5f6b7c]">
+                    {answeredCount}/{total} đã làm
+                    <ChevronDown className={cn('transition-transform', isQuestionListOpen && 'rotate-180')} size={16} aria-hidden="true" focusable="false" />
+                  </span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isQuestionListOpen && (
+                    <motion.div
+                      id="course-exam-question-list"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.16 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-2 grid grid-cols-5 gap-2 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 sm:grid-cols-8">
+                        {questions.map((question, index) => {
+                          const isActive = index === activeIndex;
+                          const isAnswered = Boolean(answers[question.id]);
+                          return (
+                            <button
+                              key={question.id}
+                              type="button"
+                              onClick={() => {
+                                setActiveIndex(index);
+                                setIsQuestionListOpen(false);
+                              }}
+                              aria-label={`Câu ${index + 1}${isAnswered ? ' (đã làm)' : ''}`}
+                              className={cn(
+                                'flex h-11 items-center justify-center rounded-lg border text-xs font-bold transition-colors',
+                                isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300',
+                                focusRing
+                              )}
+                            >
+                              {isAnswered && !isActive ? <Check size={15} aria-hidden="true" focusable="false" /> : index + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex items-center justify-between gap-3">
