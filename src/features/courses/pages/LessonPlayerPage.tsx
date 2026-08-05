@@ -87,10 +87,10 @@ export default function LessonPlayer() {
               Ôn lại bài này
             </button>
             <Link
-              to={`/app/courses/${id ?? '1'}`}
+              to={`/app/courses/${id ?? '1'}/learn`}
               className="rounded-xl bg-orange-700 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-800"
             >
-              Về khóa học
+              Về khu học tập
             </Link>
           </div>
         </motion.section>

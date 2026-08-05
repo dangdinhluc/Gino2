@@ -6,7 +6,6 @@ import SearchPage from '@/src/features/dashboard/pages/SearchPage';
 import StatsAchievementsPage from '@/src/features/dashboard/pages/StatsAchievementsPage';
 import RoadmapPage from '@/src/features/roadmap/pages/RoadmapPage';
 import CourseListPage from '@/src/features/courses/pages/CourseListPage';
-import CourseDetailPage from '@/src/features/courses/pages/CourseDetailPage';
 import CourseLearningPage from '@/src/features/courses/pages/CourseLearningPage';
 import LessonPlayerPage from '@/src/features/courses/pages/LessonPlayerPage';
 import ExamCenterPage from '@/src/features/exams/pages/ExamCenterPage';
@@ -43,7 +42,7 @@ export function AppRoutes() {
       <Route path="dashboard" element={<DashboardPage />} />
       <Route path="roadmap" element={<RoadmapPage />} />
       <Route path="courses" element={<CourseListPage />} />
-      <Route path="courses/:id" element={<CourseDetailPage />} />
+      <Route path="courses/:id" element={<Navigate to="learn" replace />} />
       <Route path="courses/:id/learn" element={<CourseLearningPage />} />
       <Route path="courses/:id/lessons/:lessonId" element={<LessonPlayerPage />} />
       <Route path="exams" element={<ExamCenterPage />} />

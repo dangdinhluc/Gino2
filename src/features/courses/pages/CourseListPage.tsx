@@ -202,7 +202,7 @@ export default function CourseList() {
                 exit={{ opacity: 0, scale: 0.96 }}
               >
                 <Link
-                  to={`/app/courses/${course.id}`}
+                  to={`/app/courses/${course.id}/learn`}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
                 >
                   <div className="relative h-32 overflow-hidden sm:h-44">

@@ -200,7 +200,7 @@ export default function SearchPage() {
           </div>
           <div className="grid gap-2 md:grid-cols-2">
             {courseResults.map((course) => (
-              <Link key={course.id} to={`/app/courses/${course.id}`} className={cn(resultCardClass, 'items-start')}>
+              <Link key={course.id} to={`/app/courses/${course.id}/learn`} className={cn(resultCardClass, 'items-start')}>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate font-bold text-[#172033]">{course.title}</span>
