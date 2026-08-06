@@ -27,79 +27,35 @@ const defaultResult: RecentPracticeResultData = {
   durationMinutes: 8,
 };
 
-export function RecentPracticeResults({
-  result = defaultResult,
-  onReplay,
-  onViewAll,
-}: RecentPracticeResultsProps) {
+export function RecentPracticeResults({ result = defaultResult, onReplay, onViewAll }: RecentPracticeResultsProps) {
   return (
     <section className="space-y-2.5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
-            <img
-              src="/assets/game-icons/icon_trophy.png"
-              alt="Trophy"
-              className="h-4 w-4 object-contain"
-            />
-          </div>
-          <h2 className="font-[var(--font-heading)] text-xs font-extrabold tracking-wider text-[#172033] uppercase">
-            KẾT QUẢ GẦN ĐÂY
-          </h2>
+          <img src="/assets/practice-icons/achievement.webp" alt="" className="h-7 w-7 object-contain" />
+          <h2 className="font-[var(--font-heading)] text-xs font-extrabold uppercase tracking-[0.1em] text-[#172033]">Kết quả gần đây</h2>
         </div>
-
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="flex items-center gap-0.5 text-xs font-semibold text-orange-600 transition-colors hover:text-orange-700"
-        >
-          <span>Xem tất cả</span>
-          <ChevronRight size={14} />
+        <button type="button" onClick={onViewAll} className="inline-flex min-h-8 items-center gap-0.5 text-xs font-bold text-[#c64a16] hover:text-[#a83b0d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+          Xem tất cả <ChevronRight size={14} aria-hidden="true" />
         </button>
       </div>
 
-      {/* Card */}
-      <div className="flex items-center justify-between gap-3.5 rounded-[22px] border border-[#efe5d7] bg-white p-3.5 shadow-2xs">
-        {/* Thumbnail */}
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 p-2 border border-emerald-100">
-          <img
-            src="/assets/game-icons/icon_chart.png"
-            alt="Chart"
-            className="h-9 w-9 object-contain"
-          />
+      <article className="flex items-center gap-3 rounded-[22px] border border-[#dbead0] bg-[#fbfff8] p-3.5 shadow-[0_3px_12px_rgba(51,104,41,0.04)]">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[#d6e9c9] bg-[#eff9e7] p-1.5">
+          <img src="/assets/practice-icons/progress.webp" alt="" className="h-full w-full object-contain" />
         </div>
-
-        {/* Info */}
-        <div className="min-w-0 flex-1 space-y-0.5">
-          <h3 className="font-[var(--font-heading)] text-base font-extrabold text-[#172033] line-clamp-1">
-            {result.title}
-          </h3>
-          <p className="text-xs text-[#8c97a8]">{result.timeAgo}</p>
-          <p className="text-xs font-semibold text-[#5f6b7c]">
-            {result.correctAnswers}/{result.totalQuestions} câu đúng · {result.durationMinutes} phút
-          </p>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-[var(--font-heading)] text-[15px] font-extrabold text-[#172033] line-clamp-1">{result.title}</h3>
+          <p className="mt-0.5 text-xs text-[#8490a0]">{result.timeAgo}</p>
+          <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">{result.correctAnswers}/{result.totalQuestions} câu đúng · {result.durationMinutes} phút</p>
         </div>
-
-        {/* Score */}
-        <div className="text-right">
-          <div className="font-[var(--font-heading)] text-xl font-extrabold text-emerald-600 sm:text-2xl">
-            {result.scorePercent}%
-          </div>
-        </div>
-
-        {/* Replay Button */}
-        <div className="shrink-0 pl-1">
-          <button
-            type="button"
-            onClick={() => onReplay?.(result.id)}
-            className="flex items-center justify-center gap-1.5 rounded-full border border-orange-200 bg-white px-3.5 py-2 text-xs font-bold text-orange-600 shadow-2xs transition-all hover:bg-orange-50 active:scale-95"
-          >
-            <RotateCcw size={13} />
-            <span>Làm lại</span>
+        <div className="shrink-0 text-right">
+          <div className="font-[var(--font-heading)] text-xl font-extrabold text-emerald-600">{result.scorePercent}%</div>
+          <button type="button" onClick={() => onReplay?.(result.id)} className="mt-1 inline-flex min-h-8 items-center gap-1 rounded-lg border border-[#bfe0aa] bg-white px-2 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+            <RotateCcw size={12} aria-hidden="true" /> Làm lại
           </button>
         </div>
-      </div>
+      </article>
     </section>
   );
 }

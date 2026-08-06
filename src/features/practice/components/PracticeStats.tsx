@@ -16,59 +16,26 @@ const defaultStats: PracticeStatsData = {
   streakDays: 5,
 };
 
+const statVisuals = [
+  { key: 'completedCount' as const, label: 'bài đã luyện', icon: '/assets/practice-icons/completed.webp', tone: 'bg-[#eff9e7] border-[#d8ecc8]' },
+  { key: 'accuracyPercent' as const, label: 'độ chính xác', icon: '/assets/practice-icons/progress.webp', tone: 'bg-[#eef5ff] border-[#d4e3f8]', suffix: '%' },
+  { key: 'streakDays' as const, label: 'ngày liên tiếp', icon: '/assets/practice-icons/streak.webp', tone: 'bg-[#fff2e5] border-[#f5d6b3]' },
+];
+
 export function PracticeStats({ stats = defaultStats }: PracticeStatsProps) {
   return (
-    <section className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
-      {/* Card 1: Completed count */}
-      <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-100/70 p-2">
-          <img
-            src="/assets/game-icons/icon_checklist.png"
-            alt="Checklist"
-            className="h-6 w-6 object-contain"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold leading-none text-[#172033] sm:text-lg">
-            {stats.completedCount}
+    <section className="grid grid-cols-3 gap-2.5 sm:gap-3.5" aria-label="Tiến độ luyện tập">
+      {statVisuals.map((stat) => (
+        <div key={stat.key} className="min-w-0 rounded-[20px] border border-[#f1e4d5] bg-white p-2.5 shadow-[0_3px_12px_rgba(64,44,21,0.04)] sm:p-3">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-xl border p-1 ${stat.tone}`}>
+            <img src={stat.icon} alt="" className="h-full w-full object-contain" />
           </div>
-          <div className="mt-0.5 text-[10px] text-[#717d8f] truncate">bài đã luyện</div>
-        </div>
-      </div>
-
-      {/* Card 2: Accuracy */}
-      <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100/70 p-2">
-          <img
-            src="/assets/game-icons/icon_chart.png"
-            alt="Chart"
-            className="h-6 w-6 object-contain"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold leading-none text-[#172033] sm:text-lg">
-            {stats.accuracyPercent}%
+          <div className="mt-2 font-[var(--font-heading)] text-lg font-extrabold leading-none text-[#172033] sm:text-xl">
+            {stats[stat.key]}{stat.suffix}
           </div>
-          <div className="mt-0.5 text-[10px] text-[#717d8f] truncate">độ chính xác</div>
+          <div className="mt-1 truncate text-[10px] font-medium text-[#718096] sm:text-[11px]">{stat.label}</div>
         </div>
-      </div>
-
-      {/* Card 3: Streak */}
-      <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100/70 p-2">
-          <img
-            src="/assets/game-icons/icon_fire.png"
-            alt="Fire"
-            className="h-6 w-6 object-contain"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold leading-none text-[#172033] sm:text-lg">
-            {stats.streakDays}
-          </div>
-          <div className="mt-0.5 text-[10px] text-[#717d8f] truncate">ngày liên tiếp</div>
-        </div>
-      </div>
+      ))}
     </section>
   );
 }

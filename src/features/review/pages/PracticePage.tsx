@@ -102,7 +102,7 @@ export default function PracticePage({ embedded = false }: PracticePageProps) {
   return (
     <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32">
       {/* 1. Hero Banner */}
-      <PracticeHero />
+      <PracticeHero onStart={() => handleAction(mockPracticeItems[0])} />
 
       {/* 2. Card "TIẾP TỤC LUYỆN TẬP" */}
       <ContinuePracticeCard onContinue={handleContinueCurrent} />
