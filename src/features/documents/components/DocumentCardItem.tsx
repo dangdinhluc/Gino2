@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bookmark, ChevronRight, Download, MoreVertical } from 'lucide-react';
 import type { CourseDocumentItem } from '@/src/features/courses/mock/courseLearningMock';
+import { assetPath } from '@/src/shared/lib/assets';
 
 interface DocumentCardItemProps {
   key?: React.Key;
@@ -19,7 +20,7 @@ export function DocumentCardItem({
   onMenu,
 }: DocumentCardItemProps) {
   const isPdf = document.kind === 'PDF';
-  const iconSrc = isPdf ? '/assets/icon_pdf.png' : '/assets/icon_doc.png';
+  const iconSrc = assetPath(`assets/${isPdf ? 'icon_pdf.png' : 'icon_doc.png'}`);
 
   return (
     <article

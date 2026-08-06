@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Flame } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 interface PracticeHeroProps {
   onStart?: () => void;
@@ -34,7 +35,7 @@ export function PracticeHero({ onStart }: PracticeHeroProps) {
         </div>
 
         <img
-          src="/assets/practice-icons/hero-workbook.webp"
+          src={assetPath('assets/practice-icons/hero-workbook.webp')}
           alt="Sách bài tập, mục tiêu và bút chì"
           className="w-[42%] max-w-[270px] shrink-0 object-contain sm:w-[38%]"
         />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface DocumentStatsData {
   totalDocs: number;
@@ -23,7 +24,7 @@ export function DocumentStats({ stats = defaultStats }: DocumentStatsProps) {
       <div className="flex items-center gap-2.5 px-1 sm:px-2">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-100/80 p-2 text-[#d83a00]">
           <img
-            src="/assets/game-icons/icon_doc_orange.png"
+            src={assetPath('assets/game-icons/icon_doc_orange.png')}
             alt="Doc icon"
             className="h-6 w-6 object-contain"
           />
@@ -40,7 +41,7 @@ export function DocumentStats({ stats = defaultStats }: DocumentStatsProps) {
       <div className="flex items-center gap-2.5 border-l border-[#f3e8da] px-2.5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100/80 p-2 text-amber-700">
           <img
-            src="/assets/game-icons/icon_time_clock.png"
+            src={assetPath('assets/game-icons/icon_time_clock.png')}
             alt="Time icon"
             className="h-6 w-6 object-contain"
           />
@@ -57,7 +58,7 @@ export function DocumentStats({ stats = defaultStats }: DocumentStatsProps) {
       <div className="flex items-center gap-2.5 border-l border-[#f3e8da] px-2.5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100/80 p-2 text-emerald-700">
           <img
-            src="/assets/game-icons/icon_completed_success.png"
+            src={assetPath('assets/game-icons/icon_completed_success.png')}
             alt="Success icon"
             className="h-6 w-6 object-contain"
           />

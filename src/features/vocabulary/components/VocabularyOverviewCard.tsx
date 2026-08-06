@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen, Folder, Sparkles } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface VocabularyOverviewStats {
   learnedCount: number;
@@ -52,7 +53,7 @@ export function VocabularyOverviewCard({ stats = defaultStats }: VocabularyOverv
         {/* Right Illustration */}
         <div className="relative shrink-0">
           <img
-            src="/assets/fuji_torii.png"
+            src={assetPath('assets/fuji_torii.png')}
             alt="Japanese Torii & Fuji illustration"
             className="h-16 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-20"
           />

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, Play, RotateCcw } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export type PracticeType = 'vocab' | 'grammar' | 'listening' | 'situation';
 export type PracticeDifficulty = 'Dễ' | 'Trung bình' | 'Khó';
@@ -28,22 +29,22 @@ interface PracticeListItemRowProps {
 
 const practiceVisualMap: Record<PracticeType, { icon: string; iconClassName: string; tagClassName: string }> = {
   vocab: {
-    icon: '/assets/practice-icons/vocabulary-book.webp',
+    icon: assetPath('assets/practice-icons/vocabulary-book.webp'),
     iconClassName: 'bg-[#fff1df] border-[#f7d2a4]',
     tagClassName: 'bg-orange-50 text-[#c64a16] border-orange-200',
   },
   grammar: {
-    icon: '/assets/practice-icons/worksheet-quiz.webp',
+    icon: assetPath('assets/practice-icons/worksheet-quiz.webp'),
     iconClassName: 'bg-[#fff4e9] border-[#f2d5b4]',
     tagClassName: 'bg-amber-50 text-amber-700 border-amber-200',
   },
   listening: {
-    icon: '/assets/practice-icons/listening.webp',
+    icon: assetPath('assets/practice-icons/listening.webp'),
     iconClassName: 'bg-[#edf4ff] border-[#ccdcf7]',
     tagClassName: 'bg-sky-50 text-sky-700 border-sky-200',
   },
   situation: {
-    icon: '/assets/practice-icons/goal.webp',
+    icon: assetPath('assets/practice-icons/goal.webp'),
     iconClassName: 'bg-[#fff1e8] border-[#f6d0b6]',
     tagClassName: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   },

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 interface DocumentHeroProps {
   totalCount: number;
@@ -34,7 +35,7 @@ export function DocumentHero({ totalCount }: DocumentHeroProps) {
         {/* Right Illustration */}
         <div className="relative shrink-0">
           <img
-            src="/assets/game-icons/icon_books.png"
+            src={assetPath('assets/game-icons/icon_books.png')}
             alt="Document Books Illustration"
             className="h-20 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-24"
           />

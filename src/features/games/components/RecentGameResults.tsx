@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, RotateCcw } from 'lucide-react';
 import type { CourseGameType } from '@/src/features/games/types';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface RecentResultItem {
   gameType: CourseGameType;
@@ -23,7 +24,7 @@ const defaultResult: RecentResultItem = {
   badge: 'Tốc độ',
   timeAgo: 'Hôm nay · 10:23',
   scorePercent: 92,
-  thumbnail: '/assets/thumb_sprint.png',
+  thumbnail: assetPath('assets/thumb_sprint.png'),
 };
 
 export function RecentGameResults({
@@ -38,7 +39,7 @@ export function RecentGameResults({
         <div className="flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
             <img
-              src="/assets/game-icons/icon_trophy.png"
+              src={assetPath('assets/game-icons/icon_trophy.png')}
               alt="Trophy"
               className="h-4 w-4 object-contain"
             />

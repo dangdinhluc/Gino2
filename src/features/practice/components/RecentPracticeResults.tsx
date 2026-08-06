@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight, RotateCcw } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface RecentPracticeResultData {
   id: string;
@@ -32,7 +33,7 @@ export function RecentPracticeResults({ result = defaultResult, onReplay, onView
     <section className="space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/assets/practice-icons/achievement.webp" alt="" className="h-7 w-7 object-contain" />
+          <img src={assetPath('assets/practice-icons/achievement.webp')} alt="" className="h-7 w-7 object-contain" />
           <h2 className="font-[var(--font-heading)] text-xs font-extrabold uppercase tracking-[0.1em] text-[#172033]">Kết quả gần đây</h2>
         </div>
         <button type="button" onClick={onViewAll} className="inline-flex min-h-8 items-center gap-0.5 text-xs font-bold text-[#c64a16] hover:text-[#a83b0d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
@@ -42,7 +43,7 @@ export function RecentPracticeResults({ result = defaultResult, onReplay, onView
 
       <article className="flex items-center gap-3 rounded-[22px] border border-[#dbead0] bg-[#fbfff8] p-3.5 shadow-[0_3px_12px_rgba(51,104,41,0.04)]">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[#d6e9c9] bg-[#eff9e7] p-1.5">
-          <img src="/assets/practice-icons/progress.webp" alt="" className="h-full w-full object-contain" />
+          <img src={assetPath('assets/practice-icons/progress.webp')} alt="" className="h-full w-full object-contain" />
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-[var(--font-heading)] text-[15px] font-extrabold text-[#172033] line-clamp-1">{result.title}</h3>

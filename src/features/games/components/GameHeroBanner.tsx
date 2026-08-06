@@ -1,5 +1,6 @@
 import React from 'react';
 import { Gamepad2 } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export function GameHeroBanner() {
   return (
@@ -46,7 +47,7 @@ export function GameHeroBanner() {
         <div className="relative shrink-0">
           <div className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-orange-200/40 blur-xl" />
           <img
-            src="/assets/mascot_tanuki.png"
+            src={assetPath('assets/mascot_tanuki.png')}
             alt="Mascot Tanuki"
             className="h-24 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-28"
           />

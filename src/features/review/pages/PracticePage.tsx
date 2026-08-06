@@ -3,6 +3,7 @@ import { ArrowRight, Check, ChevronRight, Clock3, FileQuestion, Shuffle, Target 
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { FloatingAudioButton } from '@/src/features/games/components/FloatingAudioButton';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface PracticeSection {
   id: string;
@@ -33,12 +34,12 @@ type PracticeCardData = {
 };
 
 const practiceCards: PracticeCardData[] = [
-  { id: 'workplace-vocab', kind: 'vocabulary', title: 'Từ vựng Workplace cơ bản', difficulty: 'Dễ', questionCount: 20, minutes: 8, state: 'not_started', icon: '/assets/practice-icons/vocabulary-book.webp', iconTone: 'bg-[#eaf8e8]', path: '/app/review/flashcards?mode=cram&section=vocab-workplace' },
-  { id: 'communication-vocab', kind: 'vocabulary', title: 'Từ vựng Giao tiếp cơ bản', difficulty: 'Trung bình', questionCount: 25, minutes: 10, state: 'in_progress', progress: 60, icon: '/assets/practice-icons/flashcards.webp', iconTone: 'bg-[#fff4d7]', path: '/app/review/flashcards?mode=cram&section=communication' },
-  { id: 'advanced-vocab', kind: 'vocabulary', title: 'Từ vựng Nâng cao', difficulty: 'Khó', questionCount: 30, minutes: 12, state: 'completed', progress: 88, icon: '/assets/practice-icons/vocabulary-book.webp', iconTone: 'bg-[#e8f1ff]', path: '/app/review/flashcards?mode=cram&section=advanced-vocab' },
-  { id: 'grammar-basic', kind: 'question', title: 'Ngữ pháp cơ bản', difficulty: 'Dễ', questionCount: 20, minutes: 8, state: 'not_started', icon: '/assets/practice-icons/worksheet-quiz.webp', iconTone: 'bg-[#f3edff]', path: '/app/review/flashcards?mode=cram&section=grammar-basic' },
-  { id: 'reading', kind: 'question', title: 'Đọc hiểu văn bản', difficulty: 'Trung bình', questionCount: 15, minutes: 7, state: 'in_progress', progress: 40, icon: '/assets/practice-icons/guided-practice.webp', iconTone: 'bg-[#fff0e6]', path: '/app/exams' },
-  { id: 'listening-dialogue', kind: 'question', title: 'Nghe hiểu hội thoại', difficulty: 'Khó', questionCount: 20, minutes: 10, state: 'completed', progress: 90, icon: '/assets/practice-icons/listening.webp', iconTone: 'bg-[#eaf3ff]', path: '/app/exams' },
+  { id: 'workplace-vocab', kind: 'vocabulary', title: 'Từ vựng Workplace cơ bản', difficulty: 'Dễ', questionCount: 20, minutes: 8, state: 'not_started', icon: assetPath('assets/practice-icons/vocabulary-book.webp'), iconTone: 'bg-[#eaf8e8]', path: '/app/review/flashcards?mode=cram&section=vocab-workplace' },
+  { id: 'communication-vocab', kind: 'vocabulary', title: 'Từ vựng Giao tiếp cơ bản', difficulty: 'Trung bình', questionCount: 25, minutes: 10, state: 'in_progress', progress: 60, icon: assetPath('assets/practice-icons/flashcards.webp'), iconTone: 'bg-[#fff4d7]', path: '/app/review/flashcards?mode=cram&section=communication' },
+  { id: 'advanced-vocab', kind: 'vocabulary', title: 'Từ vựng Nâng cao', difficulty: 'Khó', questionCount: 30, minutes: 12, state: 'completed', progress: 88, icon: assetPath('assets/practice-icons/vocabulary-book.webp'), iconTone: 'bg-[#e8f1ff]', path: '/app/review/flashcards?mode=cram&section=advanced-vocab' },
+  { id: 'grammar-basic', kind: 'question', title: 'Ngữ pháp cơ bản', difficulty: 'Dễ', questionCount: 20, minutes: 8, state: 'not_started', icon: assetPath('assets/practice-icons/worksheet-quiz.webp'), iconTone: 'bg-[#f3edff]', path: '/app/review/flashcards?mode=cram&section=grammar-basic' },
+  { id: 'reading', kind: 'question', title: 'Đọc hiểu văn bản', difficulty: 'Trung bình', questionCount: 15, minutes: 7, state: 'in_progress', progress: 40, icon: assetPath('assets/practice-icons/guided-practice.webp'), iconTone: 'bg-[#fff0e6]', path: '/app/exams' },
+  { id: 'listening-dialogue', kind: 'question', title: 'Nghe hiểu hội thoại', difficulty: 'Khó', questionCount: 20, minutes: 10, state: 'completed', progress: 90, icon: assetPath('assets/practice-icons/listening.webp'), iconTone: 'bg-[#eaf3ff]', path: '/app/exams' },
 ];
 
 const difficultyClass = {
@@ -111,13 +112,13 @@ export default function PracticePage({ embedded = false }: PracticePageProps) {
             <h1 className="font-[var(--font-heading)] text-2xl font-extrabold tracking-[-0.035em] text-[#172033] sm:text-3xl">Luyện tập</h1>
             <p className="mt-2 text-xs font-medium leading-relaxed text-[#5f6b7c] sm:text-sm">Ôn tập từ vựng và làm câu hỏi<br className="hidden sm:block" /> để củng cố kiến thức mỗi ngày.</p>
           </div>
-          <img src="/assets/practice-icons/hero-workbook.webp" alt="Sách bài tập, mục tiêu và bút chì" className="absolute -bottom-2 -right-2 w-[53%] max-w-[330px] object-contain sm:right-4 sm:w-[40%]" />
+          <img src={assetPath('assets/practice-icons/hero-workbook.webp')} alt="Sách bài tập, mục tiêu và bút chì" className="absolute -bottom-2 -right-2 w-[53%] max-w-[330px] object-contain sm:right-4 sm:w-[40%]" />
         </div>
       </section>
 
       <section className="rounded-[22px] border border-[#eee3d5] bg-white p-4 shadow-[0_4px_16px_rgba(63,45,24,0.04)] sm:p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fff0df] p-1.5"><img src="/assets/practice-icons/flashcards.webp" alt="" className="h-full w-full object-contain" /></div>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fff0df] p-1.5"><img src={assetPath('assets/practice-icons/flashcards.webp')} alt="" className="h-full w-full object-contain" /></div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#d24a17]">Tiếp tục luyện tập</p>
             <h2 className="mt-1 font-[var(--font-heading)] text-sm font-extrabold text-[#172033] sm:text-base">Ôn từ vựng tại nơi làm việc</h2>
@@ -130,9 +131,9 @@ export default function PracticePage({ embedded = false }: PracticePageProps) {
 
       <section className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {[
-          { value: '12', label: 'bài đã luyện', note: '↑ 2 so với hôm qua', icon: '/assets/practice-icons/completed.webp', tone: 'bg-[#fff0e6]', noteTone: 'text-emerald-600' },
-          { value: '86%', label: 'độ chính xác', note: '↑ 6% so với hôm qua', icon: '/assets/practice-icons/goal.webp', tone: 'bg-[#eff9e8]', noteTone: 'text-emerald-600' },
-          { value: String(streak || 5), label: 'ngày liên tiếp', note: 'Giữ vững phong độ!', icon: '/assets/practice-icons/streak.webp', tone: 'bg-[#fff3e7]', noteTone: 'text-[#dd621e]' },
+          { value: '12', label: 'bài đã luyện', note: '↑ 2 so với hôm qua', icon: assetPath('assets/practice-icons/completed.webp'), tone: 'bg-[#fff0e6]', noteTone: 'text-emerald-600' },
+          { value: '86%', label: 'độ chính xác', note: '↑ 6% so với hôm qua', icon: assetPath('assets/practice-icons/goal.webp'), tone: 'bg-[#eff9e8]', noteTone: 'text-emerald-600' },
+          { value: String(streak || 5), label: 'ngày liên tiếp', note: 'Giữ vững phong độ!', icon: assetPath('assets/practice-icons/streak.webp'), tone: 'bg-[#fff3e7]', noteTone: 'text-[#dd621e]' },
         ].map((stat) => (
           <article key={stat.label} className="min-w-0 rounded-[18px] border border-[#eee5da] bg-white p-3 shadow-[0_3px_12px_rgba(63,45,24,0.03)] sm:p-3.5">
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl p-1 ${stat.tone}`}><img src={stat.icon} alt="" className="h-full w-full object-contain" /></div>
@@ -175,8 +176,8 @@ export default function PracticePage({ embedded = false }: PracticePageProps) {
         <SectionHeading onViewAll={() => navigate('/app/exams')}>Kết quả gần đây</SectionHeading>
         <div className="mt-3 overflow-hidden rounded-[22px] border border-[#ebe4da] bg-white shadow-[0_3px_12px_rgba(63,45,24,0.04)]">
           {[
-            { title: 'Phản xạ phỏng vấn Tokutei', time: 'Hôm nay · 10:23', score: 88, detail: '13/15 câu đúng', minutes: '8 phút', icon: '/assets/practice-icons/goal.webp', tone: 'bg-[#edf9e9]', scoreTone: 'text-emerald-600' },
-            { title: 'Nghe hiểu an toàn đầu ca', time: 'Hôm qua · 15:40', score: 76, detail: '19/25 câu đúng', minutes: '11 phút', icon: '/assets/practice-icons/listening.webp', tone: 'bg-[#f0edff]', scoreTone: 'text-amber-600' },
+            { title: 'Phản xạ phỏng vấn Tokutei', time: 'Hôm nay · 10:23', score: 88, detail: '13/15 câu đúng', minutes: '8 phút', icon: assetPath('assets/practice-icons/goal.webp'), tone: 'bg-[#edf9e9]', scoreTone: 'text-emerald-600' },
+            { title: 'Nghe hiểu an toàn đầu ca', time: 'Hôm qua · 15:40', score: 76, detail: '19/25 câu đúng', minutes: '11 phút', icon: assetPath('assets/practice-icons/listening.webp'), tone: 'bg-[#f0edff]', scoreTone: 'text-amber-600' },
           ].map((result, index) => (
             <div key={result.title} className={`flex items-center gap-3 p-3.5 sm:p-4 ${index ? 'border-t border-[#f0e9df]' : ''}`}>
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-1.5 ${result.tone}`}><img src={result.icon} alt="" className="h-full w-full object-contain" /></div>

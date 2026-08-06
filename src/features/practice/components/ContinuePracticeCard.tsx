@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface ContinuePracticeData {
   id: string;
@@ -32,7 +33,7 @@ export function ContinuePracticeCard({ practice = defaultPractice, onContinue }:
       <div className="pointer-events-none absolute -right-4 -top-8 h-24 w-24 rounded-full bg-[#ffe6c8]" aria-hidden="true" />
       <div className="relative flex items-center gap-3">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[#f4cea2] bg-[#fff0df] p-1.5">
-          <img src="/assets/practice-icons/flashcards.webp" alt="" className="h-full w-full object-contain" />
+          <img src={assetPath('assets/practice-icons/flashcards.webp')} alt="" className="h-full w-full object-contain" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetPath } from '@/src/shared/lib/assets';
 
 export interface PracticeStatsData {
   completedCount: number;
@@ -17,9 +18,9 @@ const defaultStats: PracticeStatsData = {
 };
 
 const statVisuals = [
-  { key: 'completedCount' as const, label: 'bài đã luyện', icon: '/assets/practice-icons/completed.webp', tone: 'bg-[#eff9e7] border-[#d8ecc8]' },
-  { key: 'accuracyPercent' as const, label: 'độ chính xác', icon: '/assets/practice-icons/progress.webp', tone: 'bg-[#eef5ff] border-[#d4e3f8]', suffix: '%' },
-  { key: 'streakDays' as const, label: 'ngày liên tiếp', icon: '/assets/practice-icons/streak.webp', tone: 'bg-[#fff2e5] border-[#f5d6b3]' },
+  { key: 'completedCount' as const, label: 'bài đã luyện', icon: assetPath('assets/practice-icons/completed.webp'), tone: 'bg-[#eff9e7] border-[#d8ecc8]' },
+  { key: 'accuracyPercent' as const, label: 'độ chính xác', icon: assetPath('assets/practice-icons/progress.webp'), tone: 'bg-[#eef5ff] border-[#ccdcf7]', suffix: '%' },
+  { key: 'streakDays' as const, label: 'ngày liên tiếp', icon: assetPath('assets/practice-icons/streak.webp'), tone: 'bg-[#fff2e5] border-[#f2d5b4]' },
 ];
 
 export function PracticeStats({ stats = defaultStats }: PracticeStatsProps) {
