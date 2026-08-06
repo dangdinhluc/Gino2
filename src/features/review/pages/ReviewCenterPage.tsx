@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
@@ -7,7 +7,6 @@ import {
   Brain,
   CalendarDays,
   ChevronRight,
-  Clock3,
   FileText,
   Flame,
   Layers,
@@ -15,17 +14,13 @@ import {
   Minus,
   Plus,
   RotateCcw,
-  Search,
   Sparkles,
   Target,
   Volume2,
-  X,
   Zap,
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import type { TokuteiTopicId } from '@/src/data/tokutei/vocabDeck';
 import { TOKUTEI_TOPICS, TOKUTEI_VOCAB } from '@/src/data/tokutei/vocabDeck';
-import { cardStrength } from '@/src/features/review/lib/srs';
 import {
   computeDeckCounts,
   computeRetention,
@@ -40,31 +35,6 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8]';
 const sectionTitleClass = 'font-[var(--font-heading)] text-lg font-bold tracking-[-0.02em] text-[#172033]';
 
-const phaseLabel: Record<string, { label: string; className: string }> = {
-  new: { label: 'Mới', className: 'bg-[#f0f2f5] text-[#5f6b7c]' },
-  learning: { label: 'Đang học', className: 'bg-orange-50 text-orange-700' },
-  relearning: { label: 'Học lại', className: 'bg-red-50 text-red-600' },
-  review: { label: 'Ôn định kỳ', className: 'bg-emerald-50 text-emerald-700' },
-};
-
-function strengthColor(strength: number): string {
-  if (strength >= 70) return 'bg-orange-700';
-  if (strength >= 35) return 'bg-orange-400';
-  return 'bg-[#d8ccbb]';
-}
-
-function dueLabel(due: number, phase: string, now: number): string {
-  if (phase === 'new') return 'Chưa học';
-  if (phase === 'learning' || phase === 'relearning') {
-    return due <= now ? 'Tới hạn' : 'Trong phiên';
-  }
-  const diffDays = Math.ceil((due - now) / 86_400_000);
-  if (diffDays <= 0) return 'Hôm nay';
-  if (diffDays === 1) return 'Ngày mai';
-  const date = new Date(due);
-  return `${date.getDate()}/${date.getMonth() + 1}`;
-}
-
 export default function ReviewCenter() {
   const states = useReviewStore((state) => state.states);
   const log = useReviewStore((state) => state.log);
@@ -74,9 +44,6 @@ export default function ReviewCenter() {
   const totalReviewXp = useReviewStore((state) => state.totalReviewXp);
   const setNewPerDay = useReviewStore((state) => state.setNewPerDay);
   const streak = useProgressStore((state) => state.streak);
-
-  const [query, setQuery] = useState('');
-  const [topicFilter, setTopicFilter] = useState<TokuteiTopicId | 'all'>('all');
 
   const now = Date.now();
   const counts = useMemo(
@@ -91,16 +58,6 @@ export default function ReviewCenter() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const activity = useMemo(() => todayActivity(log, now), [log]);
   const maxForecast = Math.max(1, ...forecast.map((day) => day.count));
-
-  const filteredCards = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    return TOKUTEI_VOCAB.filter((card) => {
-      if (topicFilter !== 'all' && card.topicId !== topicFilter) return false;
-      if (!normalized) return true;
-      return [card.word, card.reading, card.romaji, card.meaning]
-        .some((field) => field.toLowerCase().includes(normalized));
-    });
-  }, [query, topicFilter]);
 
   const topicProgress = useMemo(
     () =>
@@ -334,103 +291,6 @@ export default function ReviewCenter() {
               </Link>
             );
           })}
-        </div>
-      </section>
-
-      {/* Duyet toan bo the */}
-      <section className={panelClass}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className={sectionTitleClass}>Duyệt bộ thẻ</h2>
-            <p className="text-xs text-[#7b8796]">Xem trạng thái từng từ · bấm vào từ để mở trang chi tiết</p>
-          </div>
-          <div className="relative w-full md:w-80">
-            <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#95a0af]" strokeWidth={1.8} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm kanji, romaji hoặc nghĩa..."
-              className="w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3 pl-11 pr-10 text-sm font-medium text-[#172033] outline-none transition-shadow placeholder:text-[#95a0af] focus:ring-2 focus:ring-orange-500"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-lg text-[#95a0af] transition-colors hover:text-[#5f6b7c]"
-                aria-label="Xóa tìm kiếm"
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setTopicFilter('all')}
-            className={cn(
-              'rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors',
-              topicFilter === 'all' ? 'border-orange-700 bg-orange-700 text-white' : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-orange-700',
-            )}
-          >
-            Tất cả ({TOKUTEI_VOCAB.length})
-          </button>
-          {TOKUTEI_TOPICS.map((topic) => (
-            <button
-              key={topic.id}
-              type="button"
-              onClick={() => setTopicFilter(topic.id)}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors',
-                topicFilter === topic.id ? 'border-orange-700 bg-orange-700 text-white' : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-orange-700',
-              )}
-            >
-              {topic.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4 overflow-hidden rounded-xl border border-[#e8dccb] bg-[#fffdf8]">
-          {filteredCards.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm font-bold text-[#95a0af]">Không tìm thấy thẻ nào khớp "{query}"</div>
-          )}
-          <ul className="divide-y divide-[#efe5d7]">
-            {filteredCards.map((card) => {
-              const state = states[card.id];
-              const phase = state?.phase ?? 'new';
-              const strength = cardStrength(state);
-              const info = phaseLabel[phase];
-              return (
-                <li key={card.id}>
-                  <Link
-                    to={`/app/vocabulary/${card.id}`}
-                    className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#fffaf3] md:gap-4"
-                  >
-                    <div className="w-24 shrink-0 md:w-32">
-                      <div lang="ja" className="truncate font-bold text-[#172033]">{card.word}</div>
-                      <div className="truncate text-[11px] italic text-[#95a0af]">{card.romaji}</div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm text-[#5f6b7c]">{card.meaning}</div>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-[#efe5d7] md:w-36">
-                          <div className={cn('h-full rounded-full', strengthColor(strength))} style={{ width: `${strength}%` }} />
-                        </div>
-                        <span className="hidden text-[10px] font-bold text-[#95a0af] md:block">{strength}%</span>
-                      </div>
-                    </div>
-                    <div className="hidden shrink-0 items-center gap-1.5 text-[11px] font-bold text-[#95a0af] sm:flex">
-                      <Clock3 size={12} />
-                      {state ? dueLabel(state.due, phase, now) : 'Chưa học'}
-                    </div>
-                    <span className={cn('shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-bold', info.className)}>{info.label}</span>
-                    <ChevronRight size={16} className="shrink-0 text-[#95a0af] transition-colors group-hover:text-orange-700" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
         </div>
       </section>
 

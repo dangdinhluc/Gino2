@@ -12,17 +12,19 @@ import {
   Route,
   Settings,
   X,
+  Target,
   Zap,
 } from 'lucide-react';
 import { focusRing } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { cn } from '@/src/lib/utils';
 
-export type CourseMenuSection = 'vocabulary' | 'documents' | 'review' | 'games' | 'exams';
+export type CourseMenuSection = 'vocabulary' | 'documents' | 'practice' | 'review' | 'games' | 'exams';
 
 // Các khu vực bên trong khóa học đang mở.
 const sectionItems = [
   { id: 'vocabulary', label: 'Từ vựng', hint: 'Danh sách và flashcard', icon: Layers },
   { id: 'documents', label: 'Tài liệu', hint: 'Bài đọc, hội thoại', icon: FileText },
+  { id: 'practice', label: 'Luyện tập', hint: 'Luyện theo cấp độ và kỹ năng', icon: Target },
   { id: 'review', label: 'Ôn tập', hint: 'Chọn chế độ ôn', icon: Zap },
   { id: 'games', label: 'Game', hint: 'Học qua chơi', icon: Gamepad2 },
   { id: 'exams', label: 'Thi thử', hint: 'Đề mô phỏng', icon: GraduationCap },

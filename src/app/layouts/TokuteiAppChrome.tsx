@@ -60,13 +60,13 @@ export function TokuteiAppChrome() {
         <nav className="dashboard-desktop-nav" aria-label="Điều hướng chính">
           {bottomItems.map((item) => {
             const Icon = item.icon;
-            return <NavLink key={item.path} to={item.path}>{({ isActive }) => <><Icon size={15} /><span>{item.label}</span></>}</NavLink>;
+            return <NavLink key={item.path} to={item.path}>{() => <><Icon size={17} /><span>{item.label}</span></>}</NavLink>;
           })}
         </nav>
 
         <div className="dashboard-top-actions">
-          <span className="dashboard-counter"><Flame size={16} /> {streak}</span>
-          <span className="dashboard-counter"><Sparkles size={16} /> {weeklyXp}</span>
+          <span className="dashboard-counter"><Flame size={17} /><strong>{streak}</strong><small>ngày</small></span>
+          <span className="dashboard-counter"><Sparkles size={17} /><strong>{weeklyXp}</strong><small>XP</small></span>
           <button
             type="button"
             className={`dashboard-menu-button ${isMenuOpen ? 'is-open' : ''}`}

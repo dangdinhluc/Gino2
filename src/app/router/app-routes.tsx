@@ -15,6 +15,7 @@ import GrammarLibraryPage from '@/src/features/grammar/pages/GrammarLibraryPage'
 import GrammarTopicDetailPage from '@/src/features/grammar/pages/GrammarTopicDetailPage';
 import VocabularyDetailPage from '@/src/features/grammar/pages/VocabularyDetailPage';
 import ReviewCenterPage from '@/src/features/review/pages/ReviewCenterPage';
+import PracticePage from '@/src/features/review/pages/PracticePage';
 import FlashcardSessionPage from '@/src/features/review/pages/FlashcardSessionPage';
 import AIWritingLabPage from '@/src/features/ai/pages/AIWritingLabPage';
 import WritingHistoryPage from '@/src/features/ai/pages/WritingHistoryPage';
@@ -63,6 +64,7 @@ export function AppRoutes() {
       <Route path="settings" element={<SettingsPage />} />
       <Route path="review" element={<ReviewCenterPage />} />
       <Route path="review/flashcards" element={<FlashcardSessionPage />} />
+      <Route path="practice" element={<PracticePage />} />
       <Route path="hub" element={<LearningHubPage />} />
       <Route path="stats" element={<StatsAchievementsPage />} />
       <Route path="profile" element={<ProfilePage />} />

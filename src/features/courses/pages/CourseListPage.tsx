@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, BookOpen, Loader2, SlidersHorizontal, X, AlertTriangle } from 'lucide-react';
+import { Search, BookOpen, BriefcaseBusiness, GraduationCap, Loader2, SlidersHorizontal, Sparkles, X, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
@@ -200,23 +200,27 @@ export default function CourseList() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.22 }}
               >
                 <Link
                   to={`/app/courses/${course.id}/learn`}
-                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
+                  className="course-card-link group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
                 >
-                  <div className="relative h-32 overflow-hidden sm:h-44">
+                  <div className="course-card-media relative h-32 overflow-hidden sm:h-44">
                     <img
                       src={course.image}
                       alt=""
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="course-card-image h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <span className="absolute bottom-3 left-3 rounded-lg border border-[#e8dccb] bg-white/92 px-2.5 py-1 text-[11px] font-semibold text-orange-700 backdrop-blur-sm sm:left-4 sm:top-4 sm:bottom-auto sm:px-3 sm:py-1.5 sm:text-xs">
+                    <span className="course-card-spark" aria-hidden="true"><Sparkles size={17} /></span>
+                    <span className="course-card-level-badge absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg border border-[#e8dccb] bg-white/92 px-2.5 py-1 text-[11px] font-semibold text-orange-700 backdrop-blur-sm sm:left-4 sm:top-4 sm:bottom-auto sm:px-3 sm:py-1.5 sm:text-xs">
+                      {course.level.includes('Workplace') ? <BriefcaseBusiness size={13} /> : <GraduationCap size={13} />}
                       {course.level}
                     </span>
                   </div>
 
-                  <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5">
+                  <div className="course-card-content flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5">
                     <h4 className="font-[var(--font-heading)] text-xl font-bold leading-tight tracking-[-0.02em] text-[#172033] transition-colors group-hover:text-orange-700 sm:text-lg">
                       {course.title}
                     </h4>
@@ -228,8 +232,8 @@ export default function CourseList() {
                       <span className="text-xs font-semibold text-[#7b8796]">
                         {course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang đồng bộ'}
                       </span>
-                      <span className="min-h-10 rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
-                        Học tiếp →
+                      <span className="course-card-action inline-flex min-h-10 items-center gap-1 rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
+                        Học tiếp <span aria-hidden="true">→</span>
                       </span>
                     </div>
                   </div>

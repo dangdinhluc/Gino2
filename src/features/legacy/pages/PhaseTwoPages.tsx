@@ -39,6 +39,7 @@ import {
   writingHistory,
 } from '@/src/data/phaseTwoMock';
 import type { LegalSection, PhaseMetric, PracticeHistoryItem } from '@/src/data/phaseTwoMock';
+import { APP_BACKGROUNDS, useAppTheme } from '@/src/app/theme/AppThemeProvider';
 
 type Tone = PhaseMetric['tone'];
 
@@ -407,10 +408,36 @@ export function SettingsShell() {
   const [enabledItems, setEnabledItems] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(settingsSections.flatMap((section) => section.items.map((item) => [item.key, item.enabled])))
   );
+  const { background, setBackground } = useAppTheme();
 
   return (
     <div className="space-y-6 pb-16">
       <PageHero eyebrow="Settings" title="Cài đặt app" sub="Shell cài đặt để gom mục tiêu học, thông báo, AI và pháp lý trước khi có backend thật." icon={Settings} actions={<div className="flex flex-wrap gap-2"><Link to="/terms" className="rounded-2xl border border-[#e6ddd1] bg-white px-4 py-3 text-xs font-black text-gray-600">Điều khoản</Link><Link to="/privacy" className="rounded-2xl border border-[#e6ddd1] bg-white px-4 py-3 text-xs font-black text-gray-600">Bảo mật</Link></div>} />
+      <section className="rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-6 shadow-[0_28px_60px_-42px_rgba(148,163,184,0.2)] md:p-7">
+        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between md:gap-4">
+          <div>
+            <h3 className="text-xl font-black text-gray-900">Nền ứng dụng</h3>
+            <p className="mt-1 text-sm text-gray-500">Chọn không khí học tập anh muốn dùng cho toàn bộ app.</p>
+          </div>
+          <span className="text-xs font-bold text-orange-600">Tự lưu trên thiết bị</span>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3" role="radiogroup" aria-label="Chọn nền ứng dụng">
+          {APP_BACKGROUNDS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={background === option.id}
+              onClick={() => setBackground(option.id)}
+              className={cn('overflow-hidden rounded-[1.35rem] border p-2 text-left transition-all', background === option.id ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-100' : 'border-[#e6ddd1] bg-white/70 hover:border-orange-200')}
+            >
+              <span className="block h-20 rounded-[1rem] border border-white/50" style={{ background: option.preview }} aria-hidden="true" />
+              <span className="mt-3 block px-1 text-sm font-black text-gray-900">{option.label}</span>
+              <span className="mt-1 block px-1 text-xs font-medium text-gray-500">{option.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
       <section className="grid gap-5 lg:grid-cols-2">
         {settingsSections.map((section) => (
           <article key={section.title} className="rounded-[2.5rem] border border-[#e6ddd1] bg-[#fffaf3] p-6 shadow-[0_28px_60px_-42px_rgba(148,163,184,0.2)]">

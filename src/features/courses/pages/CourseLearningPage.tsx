@@ -13,7 +13,7 @@ import {
   TabButton,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { Bird, FileText, Flame, Gamepad2, GraduationCap, Layers, Menu, Zap } from 'lucide-react';
+import { Bird, ChevronRight, FileText, Flame, Gamepad2, GraduationCap, Layers, Menu, Target, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -26,13 +26,15 @@ import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
 import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
+import PracticePage from '@/src/features/review/pages/PracticePage';
 
-type WorkspaceTab = 'vocabulary' | 'documents' | 'review' | 'games' | 'exams';
+type WorkspaceTab = 'vocabulary' | 'documents' | 'practice' | 'review' | 'games' | 'exams';
 
 // Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> ôn -> chơi -> thi.
 const workspaceTabs = [
   { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
   { id: 'documents', label: 'Tài liệu', icon: FileText },
+  { id: 'practice', label: 'Luyện tập', icon: Target },
   { id: 'review', label: 'Ôn tập', icon: Zap },
   { id: 'games', label: 'Game', icon: Gamepad2 },
   { id: 'exams', label: 'Thi thử', icon: GraduationCap },
@@ -78,8 +80,10 @@ export default function CourseLearningWorkspace() {
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuGuideVisible, setIsMenuGuideVisible] = useState(false);
   const [activeExam, setActiveExam] = useState<CourseExamItem | null>(null);
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
+  const [vocabularyCategory, setVocabularyCategory] = useState('all');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
   const [showFurigana, setShowFurigana] = useState(true);
   const [showRomaji, setShowRomaji] = useState(true);
@@ -98,14 +102,32 @@ export default function CourseLearningWorkspace() {
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
   const vocabularyAudioTimerRef = useRef<number | null>(null);
 
+  const vocabularyCategories = useMemo(() => {
+    const categoryCounts = new Map<string, number>();
+
+    vocabulary.forEach((item) => {
+      categoryCounts.set(item.module, (categoryCounts.get(item.module) ?? 0) + 1);
+    });
+
+    return [
+      { id: 'all', label: 'Tất cả', count: vocabulary.length },
+      ...Array.from(categoryCounts, ([label, count]) => ({ id: label, label, count })),
+    ];
+  }, [vocabulary]);
+
+  const categoryVocabulary = useMemo(() => {
+    if (vocabularyCategory === 'all') return vocabulary;
+    return vocabulary.filter((item) => item.module === vocabularyCategory);
+  }, [vocabulary, vocabularyCategory]);
+
   const filteredVocabulary = useMemo(() => {
     const normalizedQuery = vocabularySearchQuery.trim().toLowerCase();
 
     if (!normalizedQuery) {
-      return vocabulary;
+      return categoryVocabulary;
     }
 
-    return vocabulary.filter((item) => {
+    return categoryVocabulary.filter((item) => {
       const haystack = [
         item.word,
         item.article,
@@ -121,7 +143,7 @@ export default function CourseLearningWorkspace() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [vocabulary, vocabularySearchQuery]);
+  }, [categoryVocabulary, vocabularySearchQuery]);
 
   const vocabularyQuizQuestions = useMemo(() => {
     const meaningPool = vocabulary.map((item) => item.meaning);
@@ -171,10 +193,20 @@ export default function CourseLearningWorkspace() {
   const reviewQuestionsCount = reviewMode === 'questions' ? reviewQuestions.length : vocabularyQuizQuestions.length;
 
   useEffect(() => {
+    const storageKey = `gino-course-menu-guide:${course.id}`;
+    try {
+      setIsMenuGuideVisible(window.localStorage.getItem(storageKey) !== 'seen');
+    } catch {
+      setIsMenuGuideVisible(true);
+    }
+  }, [course.id]);
+
+  useEffect(() => {
     setActiveTab('vocabulary');
     setIsMenuOpen(false);
     setActiveExam(null);
     setVocabularySearchQuery('');
+    setVocabularyCategory('all');
     setExpandedVocabularyId(null);
     setReviewMode(null);
     setQuestionIndex(0);
@@ -304,6 +336,20 @@ export default function CourseLearningWorkspace() {
     setActiveTab(tab);
   };
 
+  const dismissMenuGuide = () => {
+    setIsMenuGuideVisible(false);
+    try {
+      window.localStorage.setItem(`gino-course-menu-guide:${course.id}`, 'seen');
+    } catch {
+      // localStorage có thể bị chặn trong chế độ riêng tư; tooltip vẫn đóng trong phiên hiện tại.
+    }
+  };
+
+  const handleOpenCourseMenu = () => {
+    dismissMenuGuide();
+    setIsMenuOpen(true);
+  };
+
   const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: WorkspaceTab) => {
     const currentIndex = workspaceTabs.findIndex((tab) => tab.id === currentTab);
     let nextIndex = currentIndex;
@@ -353,21 +399,61 @@ export default function CourseLearningWorkspace() {
     >
       <header className="sticky top-0 z-40 -mx-3 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-[980px] items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={isMenuOpen}
-            className={cn('group -ml-1 flex shrink-0 items-center rounded-2xl p-1 transition-colors hover:bg-orange-50', focusRing)}
-            aria-label="Mở menu khóa học"
-          >
-            <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#fb923c_0%,#c2410c_100%)] text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
-              <Bird size={22} strokeWidth={2.2} aria-hidden="true" focusable="false" />
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#fbf6ef] bg-white text-orange-700">
-                <Menu size={9} strokeWidth={3} aria-hidden="true" focusable="false" />
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={handleOpenCourseMenu}
+              aria-haspopup="dialog"
+              aria-expanded={isMenuOpen}
+              className={cn('group -ml-1 flex items-center rounded-2xl p-1 transition-colors hover:bg-orange-50', focusRing)}
+              aria-label="Mở menu khóa học"
+            >
+              <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#fb923c_0%,#c2410c_100%)] text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
+                <Bird size={22} strokeWidth={2.2} aria-hidden="true" focusable="false" />
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#fbf6ef] bg-white text-orange-700">
+                  <Menu size={9} strokeWidth={3} aria-hidden="true" focusable="false" />
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
+
+            <AnimatePresence>
+              {isMenuGuideVisible && !isMenuOpen && (
+                <motion.div
+                  role="status"
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  className="absolute left-0 top-full z-[70] mt-3 w-[18rem] rounded-2xl border border-orange-200 bg-[#fffaf3] p-4 text-left shadow-[0_18px_40px_-18px_rgba(111,54,33,0.48)]"
+                >
+                  <span className="absolute -top-2 left-5 h-4 w-4 rotate-45 border-l border-t border-orange-200 bg-[#fffaf3]" aria-hidden="true" />
+                  <div className="relative">
+                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-700 text-[10px] text-white">1</span>
+                      Meow hướng dẫn
+                    </div>
+                    <p className="mt-2 text-sm font-bold leading-snug text-[#172033]">Bấm vào đây để chọn chế độ học</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#5f6b7c]">Mở menu để chuyển phần học, xem cài đặt hoặc trở về trang chủ.</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleOpenCourseMenu}
+                        className={cn('inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-orange-700 px-3 text-xs font-bold text-white hover:bg-orange-800', focusRing)}
+                      >
+                        Mở menu <ChevronRight size={14} aria-hidden="true" focusable="false" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={dismissMenuGuide}
+                        className={cn('min-h-9 rounded-xl px-3 text-xs font-semibold text-[#5f6b7c] hover:bg-orange-50 hover:text-[#172033]', focusRing)}
+                      >
+                        Đã hiểu
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{course.title}</h1>
             <div className="mt-1.5 flex items-center gap-2">
@@ -397,7 +483,7 @@ export default function CourseLearningWorkspace() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[980px]">
+      <main className={cn('mx-auto w-full', activeTab === 'practice' || activeTab === 'exams' ? 'max-w-none' : 'max-w-[980px]')}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -413,19 +499,26 @@ export default function CourseLearningWorkspace() {
               <VocabularyPanel
                 expandedVocabularyId={expandedVocabularyId}
                 filteredVocabulary={filteredVocabulary}
+                categoryOptions={vocabularyCategories}
+                selectedCategory={vocabularyCategory}
                 heardVocabularyId={heardVocabularyId}
                 searchQuery={vocabularySearchQuery}
                 showFurigana={showFurigana}
                 showRomaji={showRomaji}
-                totalCount={vocabulary.length}
                 onAudio={handleVocabularyAudio}
                 onSearchChange={setVocabularySearchQuery}
+                onCategoryChange={(categoryId) => {
+                  setVocabularyCategory(categoryId);
+                  setVocabularySearchQuery('');
+                  setExpandedVocabularyId(null);
+                }}
                 onToggleFurigana={() => setShowFurigana((value) => !value)}
                 onToggleRomaji={() => setShowRomaji((value) => !value)}
                 onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
               />
             )}
             {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
+            {activeTab === 'practice' && <PracticePage embedded courseSections={vocabularyCategories} />}
             {activeTab === 'review' && (
               <CourseReviewPanel
                 activeQuestion={reviewQuestion}
@@ -462,7 +555,7 @@ export default function CourseLearningWorkspace() {
 
       {!isReviewSessionActive && (
         <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
-          <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-6 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
             {workspaceTabs.map((tab) => (
               <div key={tab.id} className="min-w-0" role="presentation">
                 <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />

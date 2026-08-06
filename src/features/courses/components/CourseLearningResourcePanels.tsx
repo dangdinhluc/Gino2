@@ -1,6 +1,6 @@
-import { type KeyboardEvent, useMemo, useState } from 'react';
+import { type CSSProperties, type KeyboardEvent, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bird, BookOpen, BrainCircuit, FileText, MessageSquareText, Play, Search, Sparkles, type LucideIcon } from 'lucide-react';
+import { Award, BarChart3, Bird, BookOpen, BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, FileText, Headphones, MessageSquareText, Play, Search, Sparkles, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -11,6 +11,12 @@ import {
 import { useCourseGameStore } from '@/src/features/games/courseGameStore';
 import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
+import { GameHeroBanner } from '@/src/features/games/components/GameHeroBanner';
+import { DailyChallengeCard } from '@/src/features/games/components/DailyChallengeCard';
+import { GameStatsGrid } from '@/src/features/games/components/GameStatsGrid';
+import { GameListSection } from '@/src/features/games/components/GameListSection';
+import { RecentGameResults } from '@/src/features/games/components/RecentGameResults';
+import { FloatingAudioButton } from '@/src/features/games/components/FloatingAudioButton';
 
 /*
  * Hệ thống style dùng chung cho toàn khu học tập.
@@ -75,6 +81,13 @@ function getDocumentIcon(document: CourseDocumentItem) {
   return document.kind === 'PDF' ? FileText : BookOpen;
 }
 
+import { DocumentHero } from '@/src/features/documents/components/DocumentHero';
+import { DocumentStats } from '@/src/features/documents/components/DocumentStats';
+import { DocumentSearchAndFilter } from '@/src/features/documents/components/DocumentSearchAndFilter';
+import { DocumentCategoryBar } from '@/src/features/documents/components/DocumentCategoryBar';
+import { DocumentCardItem } from '@/src/features/documents/components/DocumentCardItem';
+import { DocumentEmptyState } from '@/src/features/documents/components/DocumentEmptyState';
+
 interface DocumentsPanelProps {
   documents: CourseDocumentItem[];
   selectedDocument: CourseDocumentItem;
@@ -83,15 +96,32 @@ interface DocumentsPanelProps {
 
 export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }: DocumentsPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const categories = useMemo(() => {
+    const pdfCount = documents.filter((d) => d.kind === 'PDF').length;
+    const docCount = documents.filter((d) => d.kind === 'DOC').length;
+    const profileCount = documents.filter((d) => d.module.includes('Hồ sơ')).length;
+
+    return [
+      { id: 'all', label: 'Tất cả', count: documents.length },
+      { id: 'pdf', label: 'PDF', count: pdfCount },
+      { id: 'doc', label: 'Bài đọc', count: docCount },
+      { id: 'profile', label: 'Hồ sơ', count: profileCount },
+    ];
+  }, [documents]);
 
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    if (!normalizedQuery) {
-      return documents;
-    }
-
     return documents.filter((document) => {
+      // Filter by category
+      if (selectedCategory === 'pdf' && document.kind !== 'PDF') return false;
+      if (selectedCategory === 'doc' && document.kind !== 'DOC') return false;
+      if (selectedCategory === 'profile' && !document.module.includes('Hồ sơ')) return false;
+
+      // Filter by query
+      if (!normalizedQuery) return true;
       const haystack = [
         document.title,
         document.kind,
@@ -104,69 +134,66 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
 
       return haystack.includes(normalizedQuery);
     });
-  }, [documents, searchQuery]);
+  }, [documents, searchQuery, selectedCategory]);
 
-  const isSearching = searchQuery.trim().length > 0;
+  const stats = useMemo(() => {
+    const totalDocs = documents.length;
+    const totalMinutes = documents.reduce((acc, doc) => {
+      const match = doc.readTime.match(/\d+/);
+      return acc + (match ? parseInt(match[0], 10) : 5);
+    }, 0);
+
+    return {
+      totalDocs,
+      totalMinutes,
+      viewedPercent: 100,
+    };
+  }, [documents]);
 
   return (
-    <section className={panelClass}>
-      <h2 className={panelTitleClass}>Tài liệu</h2>
-      <p className={cn('mt-1', panelSubtitleClass)}>
-        {documents.length} tài liệu
-        {isSearching ? ` · đang xem ${filteredDocuments.length}` : ''}
-      </p>
+    <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32">
+      {/* 1. Hero Section */}
+      <DocumentHero totalCount={documents.length} />
 
-      <label className={cn(searchFieldClass, 'mt-4')}>
-        <Search size={18} className="shrink-0 text-[#95a0af]" aria-hidden="true" focusable="false" />
-        <span className="sr-only">Tìm tài liệu</span>
-        <input
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Tìm tài liệu..."
-          className={searchInputClass}
-        />
-      </label>
+      {/* 2. Card Thống kê tài liệu */}
+      <DocumentStats stats={stats} />
 
-      {filteredDocuments.length > 0 ? (
-        <ul className={cn('mt-2', dividerListClass)}>
-          {filteredDocuments.map((document) => {
-            const Icon = getDocumentIcon(document);
-            const isSelected = selectedDocument.id === document.id;
+      {/* 3. Thanh tìm kiếm và nút bộ lọc */}
+      <DocumentSearchAndFilter query={searchQuery} onQueryChange={setSearchQuery} />
 
-            return (
-              <li key={document.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelectDocument(document.id)}
-                  aria-expanded={isSelected}
-                  className={cn('flex w-full items-start gap-3 rounded-xl py-3.5 text-left', focusRing)}
-                >
-                  <Icon size={18} className="mt-0.5 shrink-0 text-orange-700" aria-hidden="true" focusable="false" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold leading-snug text-[#172033]">{document.title}</span>
-                    <span className="mt-1 block text-xs text-[#95a0af]">
-                      {document.kind === 'PDF' ? 'PDF' : 'Bài đọc'} · {document.module} · {document.readTime}
-                    </span>
-                  </span>
-                </button>
+      {/* 4. Category chips */}
+      <DocumentCategoryBar
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
 
-                {isSelected && (
-                  <div className="pb-4 pl-[1.875rem] text-sm leading-relaxed text-[#5f6b7c]">
-                    <p>{document.summary}</p>
-                    <p className="mt-2">{document.preview}</p>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className={cn(emptyStateClass, 'mt-4')}>
-          <p className="text-sm font-semibold text-[#172033]">Không tìm thấy tài liệu</p>
-          <p className="mt-1 text-xs text-[#95a0af]">Thử nhập từ khóa ngắn hơn.</p>
-        </div>
-      )}
-    </section>
+      {/* 5. Danh sách tài liệu */}
+      <div className="space-y-3">
+        {filteredDocuments.length > 0 ? (
+          filteredDocuments.map((doc) => (
+            <DocumentCardItem
+              key={doc.id}
+              document={doc}
+              isSelected={selectedDocument.id === doc.id}
+              onSelect={onSelectDocument}
+              onDownload={(id) => alert(`Tải xuống tài liệu ${id}`)}
+              onMenu={(id) => console.log('Menu options for doc:', id)}
+            />
+          ))
+        ) : (
+          <DocumentEmptyState
+            onClearSearch={() => {
+              setSearchQuery('');
+              setSelectedCategory('all');
+            }}
+          />
+        )}
+      </div>
+
+      {/* 6. Floating audio/support button */}
+      <FloatingAudioButton />
+    </div>
   );
 }
 
@@ -229,68 +256,53 @@ interface GamesPanelProps {
 export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, reviewQuestions, onSelectGame }: GamesPanelProps) {
   const navigate = useNavigate();
   const setCourseGameContext = useCourseGameStore((state) => state.setCourseGameContext);
-  const availableGames = useMemo(() => getAvailableCourseGames(vocabulary, reviewQuestions), [reviewQuestions, vocabulary]);
-  const activeGame = availableGames.find((game) => game.type === activeGameType) ?? availableGames[0];
-  const lockedMessage = vocabulary.length < 4 ? `Cần ít nhất 4 từ trong khóa để mở game từ vựng. Hiện có ${vocabulary.length} từ.` : null;
 
-  const handlePlay = (game: CourseGameCard) => {
-    onSelectGame(game.type);
+  const handlePlayGameType = (gameType: CourseGameType) => {
+    onSelectGame(gameType);
     setCourseGameContext({
       courseId,
       courseTitle,
       vocabulary,
       reviewQuestions,
       returnPath: `/app/courses/${courseId}/learn`,
-      selectedGameType: game.type,
+      selectedGameType: gameType,
     });
-    navigate(`/app/game/${game.type}?courseId=${encodeURIComponent(courseId)}`);
+    navigate(`/app/game/${gameType}?courseId=${encodeURIComponent(courseId)}`);
   };
 
-  if (!activeGame) {
-    return (
-      <section className={cn(panelClass, 'text-center')}>
-        <Sparkles size={22} className="mx-auto text-orange-700" aria-hidden="true" focusable="false" />
-        <h2 className={cn('mt-3', panelTitleClass)}>Chưa mở được game</h2>
-        <p className={cn('mx-auto mt-2 max-w-md leading-relaxed', panelSubtitleClass)}>
-          {lockedMessage ?? 'Khóa này chưa có đủ từ vựng hoặc câu hỏi ôn tập để tạo vòng chơi.'}
-        </p>
-      </section>
-    );
-  }
+  const dailyChallenge = {
+    title: 'Chơi 1 game bất kỳ',
+    rewardXp: 20,
+    progress: 70,
+    target: 1,
+  };
+
+  const stats = {
+    gamesCount: 3,
+    totalPlays: 12,
+    bestScorePercent: 92,
+  };
 
   return (
-    <section className={panelClass}>
-      <h2 className={panelTitleClass}>Game luyện nhanh</h2>
-      <p className={cn('mt-1', panelSubtitleClass)}>Dùng đúng từ vựng và câu hỏi của khóa này.</p>
+    <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32">
+      {/* 1. Hero Banner */}
+      <GameHeroBanner />
 
-      <ul className={cn('mt-2', dividerListClass)}>
-        {availableGames.map((game) => {
-          const Icon = game.icon;
+      {/* 2. Card thử thách hôm nay */}
+      <DailyChallengeCard challenge={dailyChallenge} />
 
-          return (
-            <li key={game.type} className="flex items-center gap-3 py-4">
-              <Icon size={18} className="shrink-0 text-orange-700" aria-hidden="true" focusable="false" />
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold leading-snug text-[#172033]">{game.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{game.description}</p>
-                <p className="mt-1 text-xs text-[#95a0af]">{game.rounds} vòng · {game.duration}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handlePlay(game)}
-                className={cn(primaryButtonClass, 'shrink-0', focusRing)}
-                aria-label={`Chơi game ${game.title}`}
-              >
-                <Play size={15} aria-hidden="true" focusable="false" />
-                Chơi
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      {/* 3. Ba ô thống kê */}
+      <GameStatsGrid stats={stats} />
 
-      {lockedMessage && <p className="mt-3 text-sm text-[#95a0af]">{lockedMessage}</p>}
-    </section>
+      {/* 4. Danh sách game */}
+      <GameListSection onPlayGame={handlePlayGameType} />
+
+      {/* 5. Kết quả gần đây */}
+      <RecentGameResults onReplay={handlePlayGameType} />
+
+      {/* 6. Floating audio/support button */}
+      <FloatingAudioButton />
+    </div>
   );
 }
 
@@ -305,33 +317,102 @@ export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
     in_progress: 'Đang làm dở',
     completed: 'Đã hoàn thành',
   } satisfies Record<CourseExamItem['status'], string>;
+  const completedExams = exams.filter((exam) => exam.status === 'completed');
+  const inProgressExam = exams.find((exam) => exam.status === 'in_progress');
+  const recentExam = completedExams[completedExams.length - 1];
 
   return (
-    <section className={panelClass}>
-      <h2 className={panelTitleClass}>Thi thử</h2>
-      <p className={cn('mt-1', panelSubtitleClass)}>{exams.length} đề trong khóa · làm ngay tại đây</p>
+    <div className="course-exam-dashboard review-practice-page is-embedded course-exam-practice-page">
+      <div className="review-practice-glow review-practice-glow-one" />
+      <div className="review-practice-glow review-practice-glow-two" />
 
-      <ul className={cn('mt-2', dividerListClass)}>
-        {exams.map((exam) => (
-          <li key={exam.id} className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <p className="text-base font-semibold leading-snug text-[#172033]">{exam.title}</p>
-              <p className="mt-1 text-xs text-[#95a0af]">
-                {exam.duration} · {statusLabels[exam.status]} · {exam.skills.join(' · ')}
-                {exam.latestScore !== undefined ? ` · Gần nhất ${exam.latestScore}%` : ''}
-              </p>
+      <header className="course-exam-hero">
+        <div className="course-exam-hero-icon"><ClipboardCheck size={30} aria-hidden="true" focusable="false" /></div>
+        <div>
+          <p className="course-exam-hero-eyebrow">Tokutei Foundation Sprint</p>
+          <h1>THI THỬ TOKUTEI</h1>
+          <p>Luyện đề – Làm quen áp lực – Tăng tự tin</p>
+        </div>
+        <div className="course-exam-hero-sakura" aria-hidden="true">✦</div>
+      </header>
+
+      {inProgressExam && (
+        <section className="course-exam-continue" aria-label="Tiếp tục bài đang làm">
+          <div className="course-exam-section-kicker"><Headphones size={16} aria-hidden="true" focusable="false" /> Tiếp tục bài đang làm <span>✦</span></div>
+          <div className="course-exam-continue-body">
+            <div className="course-exam-continue-icon"><Headphones size={26} aria-hidden="true" focusable="false" /></div>
+            <div className="course-exam-continue-copy">
+              <h2>{inProgressExam.title}</h2>
+              <div className="course-exam-continue-meta">
+                <span><Clock3 size={16} aria-hidden="true" focusable="false" /> {inProgressExam.duration}</span>
+                {inProgressExam.latestScore !== undefined && <span><BarChart3 size={16} aria-hidden="true" focusable="false" /> Tiến độ <strong>{inProgressExam.latestScore}%</strong></span>}
+              </div>
+              {inProgressExam.latestScore !== undefined && (
+                <div className="course-exam-progress" aria-label={`Tiến độ ${inProgressExam.latestScore}%`}>
+                  <span style={{ width: `${inProgressExam.latestScore}%` }} />
+                </div>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={() => onStartExam(exam.id)}
-              className={cn(primaryButtonClass, 'shrink-0', focusRing)}
-              aria-label={exam.status === 'completed' ? `Làm lại đề ${exam.title}` : `Làm đề ${exam.title}`}
-            >
-              {exam.status === 'completed' ? 'Làm lại' : 'Làm đề'}
+            <button type="button" onClick={() => onStartExam(inProgressExam.id)} className={cn('course-exam-continue-button', focusRing)}>
+              Tiếp tục <ChevronRight size={20} aria-hidden="true" focusable="false" />
             </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+          </div>
+        </section>
+      )}
+
+      <section className="course-exam-list-section" aria-label="Danh sách đề thi trong khóa học">
+        <div className="course-exam-list-heading">
+          <h2><ClipboardCheck size={22} aria-hidden="true" focusable="false" /> Danh sách đề thi</h2>
+          <span>{exams.length} đề</span>
+        </div>
+
+        <div className="course-exam-card-grid">
+          {exams.map((exam, index) => (
+            <article key={exam.id} className={cn('course-exam-card', `is-${exam.status}`)}>
+              <div className="course-exam-card-heading">
+                <span className="course-exam-card-number">{String(index + 1).padStart(2, '0')}</span>
+                <span className="course-exam-card-status-icon">
+                  {exam.status === 'completed' ? <CheckCircle2 size={21} aria-hidden="true" focusable="false" /> : exam.status === 'in_progress' ? <Headphones size={21} aria-hidden="true" focusable="false" /> : <ClipboardCheck size={21} aria-hidden="true" focusable="false" />}
+                </span>
+              </div>
+              <div className="course-exam-card-content">
+                <h2>{exam.title}</h2>
+                <div className="course-exam-card-meta">
+                  <span><Clock3 size={14} /> {exam.duration}</span>
+                  {exam.status === 'in_progress' && exam.latestScore !== undefined && <span>Tiến độ <strong>{exam.latestScore}%</strong></span>}
+                  {exam.status === 'completed' && exam.latestScore !== undefined && <span>Điểm cao nhất <strong>{exam.latestScore}%</strong></span>}
+                </div>
+                <span className="course-exam-status">{statusLabels[exam.status]}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onStartExam(exam.id)}
+                className={cn('course-exam-start', focusRing)}
+                aria-label={exam.status === 'completed' ? `Làm lại đề ${exam.title}` : exam.status === 'in_progress' ? `Tiếp tục đề ${exam.title}` : `Làm đề ${exam.title}`}
+              >
+                <span>{exam.status === 'completed' ? 'Làm lại' : exam.status === 'in_progress' ? 'Tiếp tục' : 'Làm đề ngay'}</span>
+                <Play size={15} fill="currentColor" aria-hidden="true" focusable="false" />
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <div className="course-exam-stats" aria-label="Tổng quan đề thi">
+        <div><span className="review-summary-icon review-summary-icon-red"><ClipboardCheck size={15} /></span><strong>{exams.length}</strong><small>đề trong khóa</small></div>
+        <div><span className="review-summary-icon review-summary-icon-blue"><Clock3 size={15} /></span><strong>{exams[0]?.duration ?? '—'}</strong><small>đề khởi động</small></div>
+        <div><span className="review-summary-icon review-summary-icon-gold"><Award size={15} /></span><strong>{completedExams.length}</strong><small>đã hoàn thành</small></div>
+      </div>
+
+      {recentExam?.latestScore !== undefined && (
+        <section className="course-exam-recent" aria-label="Kết quả gần đây">
+          <div className="course-exam-recent-heading"><h2><BarChart3 size={20} aria-hidden="true" focusable="false" /> Kết quả gần đây</h2><span>Hoàn thành</span></div>
+          <div className="course-exam-recent-body">
+            <div className="course-exam-score-ring" style={{ '--score': `${recentExam.latestScore}%` } as CSSProperties}><strong>{recentExam.latestScore}%</strong><small>Điểm cao nhất</small></div>
+            <div className="course-exam-recent-copy"><h3>{recentExam.title}</h3><p><Clock3 size={15} aria-hidden="true" focusable="false" /> {recentExam.duration}</p><span><CheckCircle2 size={15} aria-hidden="true" focusable="false" /> Hoàn thành</span></div>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

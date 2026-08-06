@@ -1,5 +1,5 @@
 export type VocabularyStatus = 'new' | 'learning' | 'due' | 'remembered';
-export type CourseDocumentKind = 'PDF' | 'Post';
+export type CourseDocumentKind = 'PDF' | 'DOC' | 'Post';
 export type CourseExamStatus = 'ready' | 'in_progress' | 'completed';
 export type NonEmptyArray<T> = [T, ...T[]];
 

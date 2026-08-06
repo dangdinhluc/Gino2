@@ -5,6 +5,8 @@ import {
   ArrowLeft,
   BookOpen,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Flame,
   RotateCcw,
   Sparkles,
@@ -75,7 +77,7 @@ const emptyCounts: RatingCounts = { again: 0, hard: 0, good: 0, easy: 0 };
 export default function FlashcardSession() {
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
-  const isFocusMode = searchParams.get('focus') === '1';
+  const isFocusMode = true;
 
   const rate = useReviewStore((state) => state.rate);
   const restoreCardState = useReviewStore((state) => state.restoreCardState);
@@ -114,7 +116,7 @@ export default function FlashcardSession() {
     resetSession(mode);
   }, [mode, resetSession]);
 
-  const remaining = queue.length - index;
+  const remaining = queue.length;
   const isComplete = initialised && remaining <= 0 && removedCount > 0;
   const isEmpty = initialised && remaining <= 0 && removedCount === 0;
 
@@ -164,6 +166,7 @@ export default function FlashcardSession() {
       stopSpeaking();
       setUndoSnapshot(snapshot);
       setQueue(nextQueue);
+      setIndex((current) => Math.min(current, Math.max(0, nextQueue.length - 1)));
       setCounts((current) => ({ ...current, [rating]: current[rating] + 1 }));
       setSessionXp((current) => current + xpForRating(rating));
       if (removed) setRemovedCount((current) => current + 1);
@@ -171,6 +174,14 @@ export default function FlashcardSession() {
     },
     [counts, currentCardId, index, isRevealed, queue, rate, removedCount, sessionXp],
   );
+
+  const moveToCard = useCallback((direction: -1 | 1) => {
+    const next = Math.min(Math.max(index + direction, 0), queue.length - 1);
+    if (next === index) return;
+    stopSpeaking();
+    setIndex(next);
+    setIsRevealed(false);
+  }, [index, queue.length]);
 
   const handleUndo = useCallback(() => {
     if (!undoSnapshot) return;
@@ -333,7 +344,7 @@ export default function FlashcardSession() {
   if (!card) return null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-24">
+    <div className={`flashcard-session-content mx-auto max-w-5xl space-y-4 ${isRevealed ? 'is-rating-open' : ''}`}>
       <section className={cn(
         'z-40 border-[#e8dccb] bg-[#f7f1e8]/92 px-4 py-3 backdrop-blur-md',
         isFocusMode ? 'sticky top-0 -mx-4 border-b md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4' : 'sticky top-0 -mx-4 border-b md:static md:mx-0 md:rounded-2xl md:border md:bg-[#fffaf3] md:p-4',
@@ -365,7 +376,21 @@ export default function FlashcardSession() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-2xl">
+      <AnimatePresence initial={false}>
+        {isRevealed && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            className="flashcard-rating-prompt"
+          >
+            <img src={`${import.meta.env.BASE_URL}mascot.png`} alt="Meow hỏi đáp" />
+            <span><strong>Meow hỏi</strong><small>Anh nhớ từ này ở mức nào?</small></span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <section className="flashcard-session-card-stage mx-auto max-w-2xl">
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 px-1">
             <button
@@ -418,7 +443,7 @@ export default function FlashcardSession() {
                 animate={{ rotateY: isRevealed ? 180 : 0 }}
                 transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
                 style={{ transformStyle: 'preserve-3d' }}
-                className="relative min-h-[24rem] md:min-h-[27rem]"
+                className="relative min-h-[18rem] md:min-h-[22rem]"
               >
                 <div
                   aria-hidden={isRevealed}
@@ -432,7 +457,7 @@ export default function FlashcardSession() {
                     </div>
                     <span className="shrink-0 rounded-md bg-orange-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-orange-800">Câu hỏi</span>
                   </div>
-                  <div className="flex min-h-[17rem] flex-col items-center justify-center text-center md:min-h-[19rem]">
+                  <div className="flex min-h-[12rem] flex-col items-center justify-center text-center md:min-h-[16rem]">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-700">Tự nhớ nghĩa trước</p>
                     <h2 lang="ja" className="mt-5 max-w-full break-words text-center font-[var(--font-heading)] text-5xl font-bold tracking-[-0.02em] text-[#172033] md:text-7xl">{card.word}</h2>
                     {card.reading !== card.word && <p lang="ja" className="mt-3 text-xl font-bold text-[#5f6b7c] md:text-2xl">{card.reading}</p>}
@@ -452,7 +477,7 @@ export default function FlashcardSession() {
                     <span className="truncate rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8796]">{card.level}</span>
                     <span className="shrink-0 rounded-md bg-emerald-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-800">Đáp án</span>
                   </div>
-                  <div className="flex min-h-[17rem] flex-col justify-center text-center md:min-h-[19rem]">
+                  <div className="flex min-h-[12rem] flex-col justify-center text-center md:min-h-[16rem]">
                     <div className="flex items-center justify-center gap-3">
                       <span lang="ja" className="font-[var(--font-heading)] text-2xl font-bold text-[#172033] md:text-3xl">{card.word}</span>
                       <span className="text-sm font-bold italic text-[#95a0af]">{card.romaji}</span>
@@ -476,30 +501,53 @@ export default function FlashcardSession() {
             </div>
           </div>
 
-          <AnimatePresence>
-            {isRevealed && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-3"
-              >
-                <p className="px-1 pb-3 text-center text-xs font-bold text-[#5f6b7c]">Anh nhớ từ này ở mức nào?</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {ratingOptions.map((option) => (
-                    <button
-                      key={option.rating}
-                      onClick={() => handleRate(option.rating)}
-                      className={cn('min-h-14 rounded-xl border px-3 py-2 text-sm font-bold transition-transform hover:scale-[1.02]', option.className)}
-                    >
-                      <span className="block">{option.label}</span>
-                      <span className="mt-0.5 block text-[10px] font-bold opacity-70">{intervals[option.rating]}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="flashcard-session-navigation">
+            <div className="flashcard-session-navigation-inner">
+              <AnimatePresence initial={false}>
+                {isRevealed && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="flashcard-rating-dock"
+                  >
+                    <div className="flashcard-rating-options">
+                      {ratingOptions.map((option) => (
+                        <button
+                          key={option.rating}
+                          onClick={() => handleRate(option.rating)}
+                          className={cn('rounded-xl border px-2 py-2 text-xs font-bold transition-transform hover:scale-[1.02]', option.className)}
+                        >
+                          <span className="block">{option.label}</span>
+                          <span className="mt-0.5 block text-[10px] font-bold opacity-70">{intervals[option.rating]}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flashcard-card-navigation">
+                <button
+                  type="button"
+                  onClick={() => moveToCard(-1)}
+                  disabled={index === 0}
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-3.5 text-xs font-bold text-[#5f6b7c] transition-colors hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-35 ${focusRing}`}
+                >
+                  <ChevronLeft size={16} /> Thẻ trước
+                </button>
+                <span className="text-[11px] font-bold text-[#95a0af]">{index + 1} / {queue.length}</span>
+                <button
+                  type="button"
+                  onClick={() => moveToCard(1)}
+                  disabled={index >= queue.length - 1}
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-orange-700 px-3.5 text-xs font-bold text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-35 ${focusRing}`}
+                >
+                  Thẻ tiếp <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
