@@ -14,7 +14,7 @@ export function MainLayout() {
   const isFocusRoute = isCourseLearningRoute || isFlashcardFocusRoute || isExamRunnerRoute;
   const isAiTutorRoute = location.pathname === '/app/ai-chat';
   const isDashboardRoute = location.pathname === '/app/dashboard';
-  const isTokuteiMenuRoute = /^\/app\/(courses|review|exams|profile|settings)(?:\/|$)/.test(location.pathname);
+  const isTokuteiMenuRoute = /^\/app\/(courses|practice|review|exams|profile|settings)(?:\/|$)/.test(location.pathname);
   const useTokuteiChrome = !isFocusRoute && (isDashboardRoute || isTokuteiMenuRoute);
 
   useEffect(() => {
@@ -33,9 +33,9 @@ export function MainLayout() {
           <Outlet />
         </div>
       </main>
-      {!isFocusRoute && !useTokuteiChrome && <BottomNav />}
+      {!isFocusRoute && <BottomNav />}
 
-      {!isFocusRoute && !isAiTutorRoute && (!useTokuteiChrome || isDashboardRoute) && <MobileAITutorPopover />}
+      {!isFlashcardFocusRoute && !isExamRunnerRoute && !isAiTutorRoute && <MobileAITutorPopover />}
     </div>
   );
 }

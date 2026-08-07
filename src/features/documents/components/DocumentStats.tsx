@@ -1,5 +1,5 @@
 import React from 'react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { BookOpen, Clock3, CheckCircle2 } from 'lucide-react';
 
 export interface DocumentStatsData {
   totalDocs: number;
@@ -19,55 +19,37 @@ const defaultStats: DocumentStatsData = {
 
 export function DocumentStats({ stats = defaultStats }: DocumentStatsProps) {
   return (
-    <section className="grid grid-cols-3 gap-2.5 rounded-[22px] border border-[#f3e8da] bg-[#fffdfa] p-3.5 shadow-2xs">
+    <section className="grid grid-cols-3 gap-1 rounded-[24px] border border-[#f5ece1] bg-white p-3.5 sm:p-4 shadow-[0_6px_20px_rgba(217,74,19,0.05)] divide-x divide-[#f5ece1]">
       {/* Col 1: Total Docs */}
-      <div className="flex items-center gap-2.5 px-1 sm:px-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-100/80 p-2 text-[#d83a00]">
-          <img
-            src={assetPath('assets/game-icons/icon_doc_orange.png')}
-            alt="Doc icon"
-            className="h-6 w-6 object-contain"
-          />
+      <div className="flex flex-col items-center justify-center text-center px-2 space-y-0.5">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#717d8f]">
+          <BookOpen size={13} className="text-[#d83a00]" />
+          <span>Tài liệu</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold text-[#172033] sm:text-lg">
-            {stats.totalDocs}
-          </div>
-          <div className="text-[11px] text-[#717d8f] truncate">Tài liệu</div>
+        <div className="font-[var(--font-heading)] text-lg font-black text-[#0f172a] sm:text-xl">
+          {stats.totalDocs}
         </div>
       </div>
 
       {/* Col 2: Total Time */}
-      <div className="flex items-center gap-2.5 border-l border-[#f3e8da] px-2.5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100/80 p-2 text-amber-700">
-          <img
-            src={assetPath('assets/game-icons/icon_time_clock.png')}
-            alt="Time icon"
-            className="h-6 w-6 object-contain"
-          />
+      <div className="flex flex-col items-center justify-center text-center px-2 space-y-0.5">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#717d8f]">
+          <Clock3 size={13} className="text-[#d83a00]" />
+          <span>Thời lượng</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold text-[#172033] sm:text-lg">
-            ~{stats.totalMinutes} phút
-          </div>
-          <div className="text-[11px] text-[#717d8f] truncate">Tổng thời gian</div>
+        <div className="font-[var(--font-heading)] text-lg font-black text-[#0f172a] sm:text-xl">
+          ~{stats.totalMinutes} phút
         </div>
       </div>
 
       {/* Col 3: Viewed Percent */}
-      <div className="flex items-center gap-2.5 border-l border-[#f3e8da] px-2.5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100/80 p-2 text-emerald-700">
-          <img
-            src={assetPath('assets/game-icons/icon_completed_success.png')}
-            alt="Success icon"
-            className="h-6 w-6 object-contain"
-          />
+      <div className="flex flex-col items-center justify-center text-center px-2 space-y-0.5">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#717d8f]">
+          <CheckCircle2 size={13} className="text-[#059669]" />
+          <span>Đã xem</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-[var(--font-heading)] text-base font-extrabold text-[#172033] sm:text-lg">
-            {stats.viewedPercent}%
-          </div>
-          <div className="text-[11px] text-[#717d8f] truncate">Đã xem</div>
+        <div className="font-[var(--font-heading)] text-lg font-black text-[#059669] sm:text-xl">
+          {stats.viewedPercent}%
         </div>
       </div>
     </section>

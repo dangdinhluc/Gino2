@@ -60,9 +60,9 @@ export function RecentGameResults({
       </div>
 
       {/* Result Card */}
-      <div className="flex items-center justify-between gap-3.5 rounded-[22px] border border-[#efe5d7] bg-white p-3.5 shadow-2xs">
+      <div className="flex items-center justify-between gap-3 rounded-[24px] border border-[#f5ece1] bg-white p-3 sm:p-4 shadow-[0_6px_20px_rgba(217,74,19,0.05)]">
         {/* Thumbnail */}
-        <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-[#fff9f3]">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[#fff9f3] border border-orange-200/40 sm:h-18 sm:w-20">
           <img
             src={result.thumbnail}
             alt={result.title}
@@ -71,35 +71,34 @@ export function RecentGameResults({
         </div>
 
         {/* Details */}
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-[var(--font-heading)] text-base font-extrabold text-[#172033]">
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <h3 className="font-[var(--font-heading)] text-sm font-black text-[#0f172a] sm:text-base truncate">
               {result.title}
             </h3>
-            <span className="inline-block rounded-full bg-orange-100/90 px-2 py-0.5 text-[10px] font-bold text-orange-700 border border-orange-200">
+            <span className="inline-block rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-extrabold text-[#c2410c] border border-orange-200/60">
               {result.badge}
             </span>
           </div>
 
-          <p className="text-xs text-[#8c97a8]">{result.timeAgo}</p>
+          <p className="text-[11px] font-semibold text-[#717d8f]">{result.timeAgo}</p>
         </div>
 
-        {/* Score */}
-        <div className="text-right">
-          <div className="font-[var(--font-heading)] text-xl font-extrabold text-emerald-600 sm:text-2xl">
-            {result.scorePercent}%
+        {/* Score & Replay Action */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="text-right">
+            <div className="font-[var(--font-heading)] text-lg font-black text-[#059669] sm:text-xl">
+              {result.scorePercent}%
+            </div>
           </div>
-        </div>
 
-        {/* Replay Button */}
-        <div className="shrink-0 pl-1">
           <button
             type="button"
             onClick={() => onReplay?.(result.gameType)}
-            className="flex items-center justify-center gap-1.5 rounded-full border border-orange-200/90 bg-white px-3.5 py-2 text-xs font-bold text-orange-600 shadow-2xs transition-all duration-200 hover:bg-orange-50 hover:border-orange-300 active:scale-95"
+            className="flex h-9 items-center justify-center gap-1 rounded-2xl border border-orange-200/90 bg-orange-50/80 px-3 text-xs font-extrabold text-[#d83a00] shadow-2xs transition-all duration-200 hover:bg-orange-100 hover:border-orange-300 active:scale-95"
           >
             <RotateCcw size={13} />
-            <span>Chơi lại</span>
+            <span className="hidden sm:inline">Chơi lại</span>
           </button>
         </div>
       </div>

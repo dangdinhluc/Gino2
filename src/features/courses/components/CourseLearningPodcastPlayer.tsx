@@ -1,10 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Headphones, Pause, Play, X } from 'lucide-react';
+import { Headphones, Pause, Play, Sparkles, Volume2, X } from 'lucide-react';
 import { type CoursePodcastItem } from '@/src/features/courses/mock/courseLearningMock';
 import { cn } from '@/src/lib/utils';
-
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 interface CourseLearningPodcastPlayerProps {
   activePodcast: CoursePodcastItem;
@@ -12,16 +10,21 @@ interface CourseLearningPodcastPlayerProps {
   isPlaying: boolean;
   podcasts: CoursePodcastItem[];
   onClose: () => void;
-  onOpen: () => void;
+  onOpen?: () => void;
   onSelectPodcast: (podcastId: string) => void;
   onTogglePlay: () => void;
 }
 
-export function CourseLearningPodcastPlayer({ activePodcast, isOpen, isPlaying, podcasts, onClose, onOpen, onSelectPodcast, onTogglePlay }: CourseLearningPodcastPlayerProps) {
-  const triggerRef = useRef<HTMLButtonElement>(null);
+export function CourseLearningPodcastPlayer({
+  activePodcast,
+  isOpen,
+  isPlaying,
+  podcasts,
+  onClose,
+  onSelectPodcast,
+  onTogglePlay,
+}: CourseLearningPodcastPlayerProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -29,80 +32,172 @@ export function CourseLearningPodcastPlayer({ activePodcast, isOpen, isPlaying, 
   }, [onClose]);
 
   useEffect(() => {
-    if (!isOpen) {
-      if (previousFocusRef.current?.isConnected) {
-        previousFocusRef.current.focus();
-      }
-      previousFocusRef.current = null;
-      return;
-    }
+    if (!isOpen) return;
 
-    if (!previousFocusRef.current) {
-      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
-    }
     closeButtonRef.current?.focus();
 
-    const handleDocumentKeyDown = (event: globalThis.KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         onCloseRef.current();
       }
     };
 
-    document.addEventListener('keydown', handleDocumentKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleDocumentKeyDown);
-    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   return (
-    <>
-      <button ref={triggerRef} type="button" onClick={onOpen} title="Mở podcast" className={cn('fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full border border-orange-200 bg-orange-700 p-0 text-white shadow-[0_22px_44px_-24px_rgba(249,115,22,0.7)] transition-transform hover:scale-105 md:bottom-[calc(6.75rem+env(safe-area-inset-bottom))] md:right-8 xl:bottom-[calc(7rem+env(safe-area-inset-bottom))] xl:right-8', focusRing)} aria-label="Mở podcast" aria-haspopup="dialog" aria-expanded={isOpen} aria-controls="course-podcast-popover">
-        <Headphones size={21} aria-hidden="true" focusable="false" />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div ref={dialogRef} id="course-podcast-popover" role="dialog" aria-labelledby="course-podcast-title" tabIndex={-1} initial={{ opacity: 0, y: 16, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }} className="fixed bottom-[calc(12rem+env(safe-area-inset-bottom))] right-4 z-[70] max-h-[calc(100dvh-15rem)] w-[calc(100vw-2rem)] max-w-sm overflow-y-auto rounded-[2rem] border border-[#e6ddd1] bg-[#fffaf3] p-5 shadow-[0_28px_70px_-34px_rgba(17,24,39,0.36)] md:bottom-[calc(10rem+env(safe-area-inset-bottom))] md:right-8 xl:bottom-24 xl:right-7">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-700">Podcast khóa học</p>
-                <h3 id="course-podcast-title" className="mt-1 text-lg font-black text-gray-900">{activePodcast.title}</h3>
-                <p className="text-xs font-semibold text-gray-500">{activePodcast.episode} • {activePodcast.duration}</p>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+          onClick={onClose}
+        >
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="course-podcast-title"
+            initial={{ scale: 0.92, y: 16 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.92, y: 16 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md max-h-[calc(100vh-3rem)] overflow-y-auto rounded-[28px] border border-[#fde6d2] bg-white p-5 sm:p-6 shadow-2xl space-y-4"
+          >
+            {/* Header: Badge & Close Button */}
+            <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3">
+              <div className="space-y-0.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#d83a00]">
+                  <Sparkles size={12} className="text-amber-500 fill-amber-400" /> PODCAST KHÓA HỌC
+                </div>
+                <h3 id="course-podcast-title" className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
+                  Audio Bài học & Phản xạ 🎧
+                </h3>
               </div>
-              <button ref={closeButtonRef} type="button" onClick={onClose} className={cn('flex h-11 w-11 items-center justify-center rounded-full bg-[#f5efe6] text-gray-500 hover:bg-[#eee6dc]', focusRing)} aria-label="Đóng podcast">
-                <X size={18} aria-hidden="true" focusable="false" />
+
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={onClose}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                aria-label="Đóng trình phát âm thanh"
+              >
+                <X size={16} />
               </button>
             </div>
 
-            <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50/70 p-4">
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={onTogglePlay} className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-700 text-white shadow-[0_16px_32px_-22px_rgba(249,115,22,0.65)]', focusRing)} aria-label={isPlaying ? 'Tạm dừng podcast mock' : 'Phát podcast mock'}>
-                  {isPlaying ? <Pause size={22} className="fill-white" aria-hidden="true" focusable="false" /> : <Play size={22} className="translate-x-0.5 fill-white" aria-hidden="true" focusable="false" />}
+            {/* Hero Now Playing Card */}
+            <div className="rounded-[22px] border border-[#fde6d2] bg-gradient-to-br from-[#fff7f0] via-[#ffeedd] to-[#ffe5cf] p-4 shadow-2xs space-y-3">
+              <div className="flex items-center gap-3.5">
+                {/* 3D Play / Pause Button */}
+                <button
+                  type="button"
+                  onClick={onTogglePlay}
+                  className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95"
+                  aria-label={isPlaying ? 'Tạm dừng podcast' : 'Phát podcast'}
+                >
+                  {isPlaying ? (
+                    <Pause size={22} className="fill-white" />
+                  ) : (
+                    <Play size={22} className="translate-x-0.5 fill-white" />
+                  )}
                 </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-gray-900">{activePodcast.summary}</p>
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-label="Tiến độ podcast mock" aria-valuenow={isPlaying ? 67 : 33} aria-valuemin={0} aria-valuemax={100} aria-valuetext={isPlaying ? '67% podcast đã phát' : '33% podcast đã phát'}>
-                    <div className={cn('h-full rounded-full bg-orange-700', isPlaying ? 'w-2/3' : 'w-1/3')} />
+
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#c2410c]">
+                    <span>{activePodcast.episode}</span>
+                    <span>•</span>
+                    <span>{activePodcast.duration}</span>
                   </div>
+                  <h4 className="font-[var(--font-heading)] text-sm font-black text-[#0f172a] truncate">
+                    {activePodcast.title}
+                  </h4>
+                  <p className="text-xs font-semibold text-[#5f6b7c] truncate">
+                    {activePodcast.summary}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress Bar & Status */}
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between text-[10px] font-extrabold text-[#9a3412]">
+                  <span>{isPlaying ? 'Đang phát...' : 'Tạm dừng'}</span>
+                  <span className="flex items-center gap-1">
+                    <Volume2 size={12} /> {isPlaying ? '67%' : '33%'}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-white/80 p-0.5 shadow-2xs">
+                  <div
+                    className={cn(
+                      'h-full rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522] transition-all duration-300',
+                      isPlaying ? 'w-2/3' : 'w-1/3'
+                    )}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
-              {podcasts.map((podcast) => (
-                <button key={podcast.id} type="button" onClick={() => onSelectPodcast(podcast.id)} aria-current={activePodcast.id === podcast.id ? 'true' : undefined} className={cn('flex min-h-11 w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-colors', activePodcast.id === podcast.id ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-[#e6ddd1] bg-white text-gray-600 hover:bg-orange-50/50', focusRing)}>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-black">{podcast.episode}: {podcast.title}</p>
-                    <p className="text-xs font-semibold opacity-70">{podcast.duration}</p>
-                  </div>
-                  {podcast.isNew && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">Mới</span>}
-                </button>
-              ))}
+            {/* Episode List */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-extrabold text-[#717d8f] uppercase tracking-wider">
+                Danh sách tập ({podcasts.length})
+              </span>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {podcasts.map((podcast) => {
+                  const isActive = activePodcast.id === podcast.id;
+                  return (
+                    <button
+                      key={podcast.id}
+                      type="button"
+                      onClick={() => onSelectPodcast(podcast.id)}
+                      className={cn(
+                        'flex items-center justify-between gap-3 w-full rounded-2xl border p-3 text-left transition-all duration-200',
+                        isActive
+                          ? 'border-[#fde6d2] bg-gradient-to-r from-[#fff7f0] to-[#ffeedd] shadow-2xs ring-2 ring-[#d83a00]'
+                          : 'border-[#f5ece1] bg-white hover:border-orange-200 hover:bg-[#fffcf9]'
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={cn(
+                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black',
+                            isActive
+                              ? 'bg-[#d83a00] text-white shadow-2xs'
+                              : 'bg-slate-100 text-[#5f6b7c]'
+                          )}
+                        >
+                          {isActive && isPlaying ? (
+                            <Pause size={14} fill="currentColor" />
+                          ) : (
+                            <Play size={14} fill="currentColor" className="translate-x-0.5" />
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className={cn('text-xs font-black truncate', isActive ? 'text-[#d83a00]' : 'text-[#0f172a]')}>
+                            {podcast.episode}: {podcast.title}
+                          </p>
+                          <p className="text-[11px] font-semibold text-[#717d8f]">{podcast.duration}</p>
+                        </div>
+                      </div>
+
+                      {podcast.isNew && (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-[#059669] border border-emerald-200/60 shrink-0">
+                          Mới
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
 import { CourseExamRunner, type CourseExamQuestion } from '@/src/features/courses/components/CourseExamRunner';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
+import { FloatingAudioButton } from '@/src/features/games/components/FloatingAudioButton';
 import { CourseReviewPanel, type ReviewMode } from '@/src/features/courses/components/CourseReviewPanel';
 import { VocabularyPanel, getVocabularyDisplayName } from '@/src/features/courses/components/CourseVocabularyPanel';
 import {
@@ -13,7 +14,7 @@ import {
   TabButton,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { Bird, ChevronRight, FileText, Flame, Gamepad2, GraduationCap, Layers, Menu, Target, Zap } from 'lucide-react';
+import { Bird, ChevronRight, FileText, Flame, Gamepad2, GraduationCap, Headphones, Home, Layers, Menu, Target, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -28,17 +29,18 @@ import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 import PracticePage from '@/src/features/review/pages/PracticePage';
 
-type WorkspaceTab = 'vocabulary' | 'documents' | 'practice' | 'review' | 'games' | 'exams';
+import { assetPath } from '@/src/shared/lib/assets';
 
-// Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> ôn -> chơi -> thi.
+type WorkspaceTab = 'vocabulary' | 'documents' | 'practice' | 'games' | 'exams';
+
+// Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> luyện tập -> chơi -> thi.
 const workspaceTabs = [
-  { id: 'vocabulary', label: 'Từ vựng', icon: Layers },
-  { id: 'documents', label: 'Tài liệu', icon: FileText },
-  { id: 'practice', label: 'Luyện tập', icon: Target },
-  { id: 'review', label: 'Ôn tập', icon: Zap },
-  { id: 'games', label: 'Game', icon: Gamepad2 },
-  { id: 'exams', label: 'Thi thử', icon: GraduationCap },
-] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers }>;
+  { id: 'vocabulary', label: 'Từ vựng', icon: Layers, imageIcon: assetPath('assets/course-workspace-icons/workspace_vocab.png') },
+  { id: 'documents', label: 'Tài liệu', icon: FileText, imageIcon: assetPath('assets/course-workspace-icons/workspace_documents.png') },
+  { id: 'practice', label: 'Luyện tập', icon: Target, imageIcon: assetPath('assets/course-workspace-icons/workspace_practice.png') },
+  { id: 'games', label: 'Game', icon: Gamepad2, imageIcon: assetPath('assets/course-workspace-icons/workspace_game.png') },
+  { id: 'exams', label: 'Thi thử', icon: GraduationCap, imageIcon: assetPath('assets/course-workspace-icons/workspace_exam.png') },
+] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers; imageIcon: string }>;
 
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
   return documents[0];
@@ -397,23 +399,30 @@ export default function CourseLearningWorkspace() {
         isReviewSessionActive ? 'pb-8' : 'pb-[calc(6.25rem+env(safe-area-inset-bottom))]'
       )}
     >
-      <header className="sticky top-0 z-40 -mx-3 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-[980px] items-center gap-3">
+      {/* Ultra-Modern Floating Workspace Header */}
+      <header className="sticky top-0 z-40 -mx-3 border-b border-[#eedecf]/80 bg-[#fffaf5]/96 px-3.5 py-2 backdrop-blur-xl shadow-[0_2px_12px_rgba(217,74,19,0.04)]">
+        <div className="mx-auto flex w-full max-w-[980px] items-center justify-between gap-3">
+          {/* Left: 3D Mascot Menu Drawer Trigger */}
           <div className="relative shrink-0">
             <button
               type="button"
               onClick={handleOpenCourseMenu}
               aria-haspopup="dialog"
               aria-expanded={isMenuOpen}
-              className={cn('group -ml-1 flex items-center rounded-2xl p-1 transition-colors hover:bg-orange-50', focusRing)}
+              className={cn(
+                'group flex items-center gap-2 rounded-full border border-orange-200/80 bg-white p-1 pr-3 shadow-2xs transition-all duration-200 hover:border-[#d83a00] hover:bg-orange-50/60 active:scale-97',
+                focusRing
+              )}
               aria-label="Mở menu khóa học"
             >
-              <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#fb923c_0%,#c2410c_100%)] text-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
-                <Bird size={22} strokeWidth={2.2} aria-hidden="true" focusable="false" />
-                <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#fbf6ef] bg-white text-orange-700">
-                  <Menu size={9} strokeWidth={3} aria-hidden="true" focusable="false" />
-                </span>
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#d83a00] to-[#f27427] text-white shadow-2xs transition-transform group-hover:scale-105">
+                <Bird size={18} strokeWidth={2.2} />
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-white bg-emerald-500" />
+              </div>
+              <span className="text-xs font-extrabold text-[#172033] group-hover:text-[#d83a00]">
+                Menu
               </span>
+              <ChevronRight size={13} className="text-[#d83a00] opacity-70 transition-transform group-hover:translate-x-0.5" />
             </button>
 
             <AnimatePresence>
@@ -439,7 +448,7 @@ export default function CourseLearningWorkspace() {
                         onClick={handleOpenCourseMenu}
                         className={cn('inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-orange-700 px-3 text-xs font-bold text-white hover:bg-orange-800', focusRing)}
                       >
-                        Mở menu <ChevronRight size={14} aria-hidden="true" focusable="false" />
+                        Mở menu <ChevronRight size={14} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
@@ -454,30 +463,51 @@ export default function CourseLearningWorkspace() {
               )}
             </AnimatePresence>
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate font-[var(--font-heading)] text-sm font-bold tracking-[-0.02em] text-[#172033]">{course.title}</h1>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#e8dccb]">
-                <div className="h-full rounded-full bg-orange-700" style={{ width: `${clampedProgress}%` }} />
+
+          {/* Middle: Integrated 3D Headphones Audio Player Button */}
+          <div className="flex-1 flex justify-center min-w-0 px-1">
+            <button
+              type="button"
+              onClick={() => setIsPodcastOpen(true)}
+              className="flex items-center gap-2 rounded-full border border-orange-200/90 bg-gradient-to-r from-[#fff7f0] via-[#ffeedd] to-[#ffe5cf] px-3 py-1 text-xs font-black text-[#c2410c] shadow-2xs hover:border-[#d83a00] hover:shadow-xs active:scale-95 transition-all max-w-full"
+              title="Mở trình phát âm thanh bài học Tokutei"
+            >
+              <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs">
+                <Headphones size={14} strokeWidth={2.2} />
+                {isPodcastPlaying && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                  </span>
+                )}
               </div>
-              <span className="shrink-0 text-xs text-[#5f6b7c]">{clampedProgress}%</span>
-            </div>
+              
+              <span className="truncate max-w-[110px] sm:max-w-[200px] text-xs font-black text-[#0f172a]">
+                {isPodcastPlaying ? 'Đang phát podcast' : 'Nghe Podcast bài học'}
+              </span>
+
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#d83a00] bg-white/90 px-2 py-0.5 rounded-full border border-orange-200/60">
+                Audio 🎧
+              </span>
+            </button>
           </div>
+
+          {/* Right: Streak & Level Badges (Home Icon Removed) */}
           <div className="flex shrink-0 items-center gap-1.5">
             <span
-              className="flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-700"
+              className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3 py-1 text-xs font-black text-[#c2410c] shadow-2xs"
               title="Chuỗi ngày học liên tiếp"
             >
-              <Flame size={14} aria-hidden="true" focusable="false" />
-              {streak}
-              <span className="sr-only">ngày streak</span>
+              <Flame size={14} className="text-orange-500 fill-orange-400" />
+              <span>{streak}d</span>
             </span>
+
             <span
-              className="flex items-center gap-1 rounded-full border border-[#e8dccb] bg-[#fffdf8] px-2.5 py-1 text-xs font-bold text-[#5f6b7c]"
+              className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-3 py-1 text-xs font-black text-[#b45309] shadow-2xs"
               title="Cấp độ hiện tại"
             >
-              <Zap size={14} className="text-orange-600" aria-hidden="true" focusable="false" />
-              Lv.{learnerLevel}
+              <Zap size={14} className="text-amber-500 fill-amber-400" />
+              <span>Lv.{learnerLevel}</span>
             </span>
           </div>
         </div>
@@ -519,25 +549,6 @@ export default function CourseLearningWorkspace() {
             )}
             {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
             {activeTab === 'practice' && <PracticePage embedded courseSections={vocabularyCategories} />}
-            {activeTab === 'review' && (
-              <CourseReviewPanel
-                activeQuestion={reviewQuestion}
-                isSummaryOpen={isSessionSummaryOpen}
-                questionIndex={reviewQuestionIndex}
-                questionsCount={reviewQuestionsCount}
-                questionsTotal={reviewQuestions.length}
-                reviewMode={reviewMode}
-                selectedAnswer={reviewSelectedAnswer}
-                stats={reviewStats}
-                vocabularyCount={vocabularyQuizQuestions.length}
-                onAnswer={handleAnswerSelect}
-                onExitSession={handleExitReviewSession}
-                onFinishSession={() => setIsSessionSummaryOpen(true)}
-                onNext={handleReviewNext}
-                onRestartSession={handleRestartReviewSession}
-                onSelectMode={handleSelectReviewMode}
-              />
-            )}
             {activeTab === 'games' && (
               <GamesPanel
                 activeGameType={activeGameType}
@@ -555,7 +566,7 @@ export default function CourseLearningWorkspace() {
 
       {!isReviewSessionActive && (
         <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
-          <div className="mx-auto grid w-full max-w-3xl grid-cols-6 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
             {workspaceTabs.map((tab) => (
               <div key={tab.id} className="min-w-0" role="presentation">
                 <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />

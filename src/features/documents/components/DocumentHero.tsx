@@ -32,12 +32,12 @@ export function DocumentHero({ totalCount }: DocumentHeroProps) {
           </p>
         </div>
 
-        {/* Right Illustration */}
-        <div className="relative shrink-0">
+        {/* Right 3D Mascot Illustration */}
+        <div className="relative shrink-0 -my-2 -mr-2">
           <img
-            src={assetPath('assets/game-icons/icon_books.png')}
-            alt="Document Books Illustration"
-            className="h-20 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-24"
+            src={assetPath('assets/tanuki_documents_mascot.png')}
+            alt="Tokutei Documents Tanuki Mascot"
+            className="h-22 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-28 md:h-32 drop-shadow-md"
           />
         </div>
       </div>

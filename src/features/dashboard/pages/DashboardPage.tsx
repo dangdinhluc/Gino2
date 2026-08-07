@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   BarChart3,
   BookOpen,
@@ -10,11 +11,11 @@ import {
   Flame,
   Home,
   LayoutGrid,
-  Menu,
   MessageSquareText,
   Route,
   RotateCcw,
   Settings,
+  Smartphone,
   Sparkles,
   UserRound,
   Users,
@@ -41,16 +42,6 @@ const sakuraPetals = [
   ['89%', 11, '-14s', '22s'],
 ] as const;
 
-const menuItems = [
-  { label: 'Trang chủ', hint: 'Tổng quan học tập', path: '/app/dashboard', icon: Home },
-  { label: 'Lộ trình Tokutei', hint: 'N5 đến JFT-Basic', path: '/app/roadmap', icon: Route },
-  { label: 'Khóa học', hint: 'Các bài đang học', path: '/app/courses', icon: BookOpen },
-  { label: 'Ôn tập', hint: 'Từ vựng đến hạn', path: '/app/review', icon: RotateCcw },
-  { label: 'Luyện thi', hint: 'Mock test & phỏng vấn', path: '/app/exams', icon: ClipboardCheck },
-  { label: 'Coach AI', hint: 'Luyện nói cùng Meow', path: '/app/ai-chat', icon: MessageSquareText },
-  { label: 'Thống kê', hint: 'Tiến độ và thành tích', path: '/app/stats', icon: BarChart3 },
-];
-
 const bottomItems = [
   { label: 'Trang chủ', path: '/app/dashboard', icon: Home },
   { label: 'Khóa học', path: '/app/courses', icon: BookOpen },
@@ -60,7 +51,7 @@ const bottomItems = [
 ];
 
 export default function Dashboard() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const reviewStates = useReviewStore((state) => state.states);
   const reviewLog = useReviewStore((state) => state.log);
   const streak = useProgressStore((state) => state.streak);
@@ -104,41 +95,81 @@ export default function Dashboard() {
         </nav>
 
         <div className="dashboard-top-actions">
-          <span className="dashboard-counter"><Flame size={17} /><strong>{streak}</strong><small>ngày</small></span>
-          <span className="dashboard-counter"><Sparkles size={17} /><strong>{totalXp}</strong><small>XP</small></span>
+          <span className="dashboard-counter"><Flame size={15} /><strong>{streak}</strong><small>d</small></span>
+          <span className="dashboard-counter"><Sparkles size={15} /><strong>{totalXp}</strong><small>XP</small></span>
+          
           <button
             type="button"
-            className={`dashboard-menu-button ${isMenuOpen ? 'is-open' : ''}`}
-            aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((value) => !value)}
+            onClick={() => setShowInstallModal(true)}
+            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522] px-3 py-1.5 text-xs font-black text-white shadow-2xs transition-all duration-200 hover:shadow-md hover:brightness-110 active:scale-95 shrink-0"
+            title="Cài ứng dụng Tokutei Gino về điện thoại"
           >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            <Smartphone size={14} />
+            <span>Cài App</span>
           </button>
         </div>
-
-        {isMenuOpen && (
-          <div className="dashboard-menu-panel">
-            <div className="dashboard-menu-heading">
-              <span>ĐIỀU HƯỚNG</span>
-              <small>Chọn nơi anh muốn tiếp tục</small>
-            </div>
-            <nav aria-label="Menu TOKUTEI GINO">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.path} to={item.path} onClick={() => setIsMenuOpen(false)} className="dashboard-menu-link">
-                    <span className="dashboard-menu-icon"><Icon size={17} /></span>
-                    <span><strong>{item.label}</strong><small>{item.hint}</small></span>
-                    <ChevronRight size={15} />
-                  </Link>
-                );
-              })}
-            </nav>
-            <Link to="/app/settings" onClick={() => setIsMenuOpen(false)} className="dashboard-menu-settings"><Settings size={15} /> Cài đặt</Link>
-          </div>
-        )}
       </header>
+
+      {/* Install App Modal */}
+      <AnimatePresence>
+        {showInstallModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+            onClick={() => setShowInstallModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm rounded-[28px] border border-[#fde6d2] bg-white p-6 shadow-2xl text-center space-y-4"
+            >
+              <button
+                type="button"
+                onClick={() => setShowInstallModal(false)}
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] shadow-md">
+                <img src={assetPath('meow-mascot.png')} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
+              </div>
+
+              <div>
+                <h3 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
+                  Cài đặt Tokutei Gino App 📱
+                </h3>
+                <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">
+                  Trải nghiệm ứng dụng mượt mà, học offline & nhận thông báo ôn từ vựng hàng ngày.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-orange-200/80 bg-orange-50/60 p-3.5 text-left text-xs font-bold text-[#c2410c] space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d83a00] text-[10px] text-white font-extrabold mt-0.5">1</span>
+                  <span><strong>iOS (Safari):</strong> Bấm nút <strong>Chia sẻ (Share)</strong> ➔ chọn <strong>"Thêm vào Màn hình chính"</strong> (Add to Home Screen).</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d83a00] text-[10px] text-white font-extrabold mt-0.5">2</span>
+                  <span><strong>Android (Chrome):</strong> Bấm menu <strong>3 chấm (⋮)</strong> ➔ chọn <strong>"Cài đặt ứng dụng"</strong> (Install App).</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowInstallModal(false)}
+                className="flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-sm font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-98"
+              >
+                Đã hiểu 🚀
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="dashboard-main">
         <section
@@ -154,28 +185,29 @@ export default function Dashboard() {
               />
             ))}
           </div>
-          <div className="dashboard-hero-copy">
-            <h1>Chào mừng<br /><em>trở lại, anh.</em></h1>
-            <p>Nhiệm vụ Tokutei hôm nay đang chờ. Hành trình chinh phục tiếng Nhật vẫn tiếp tục.</p>
-            <div className="dashboard-hero-chips">
-              <span><Flame size={15} /> Chuỗi {streak} ngày</span>
-              <span><Zap size={15} /> {totalXp} điểm XP</span>
+          <div className="dashboard-hero-copy space-y-2.5">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-white/95 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-[#d83a00] shadow-2xs backdrop-blur-xs">
+              <Sparkles size={13} className="text-amber-500 fill-amber-400" /> TOKUTEI GINO • TIẾNG NHẬT ĐI LÀM
+            </div>
+            <h1 className="font-[var(--font-heading)] text-2xl font-black tracking-[-0.03em] text-[#0f172a] sm:text-4xl leading-tight">
+              Chào mừng trở lại, <span className="bg-gradient-to-r from-[#d83a00] to-[#f26522] bg-clip-text text-transparent">anh Lực 🚀</span>
+            </h1>
+            <p className="text-xs font-bold leading-relaxed text-[#5f6b7c] sm:text-sm max-w-md">
+              Nhiệm vụ Tokutei hôm nay đang chờ. Hành trình chinh phục tiếng Nhật vẫn tiếp tục!
+            </p>
+            <div className="dashboard-hero-chips pt-1">
+              <span><Flame size={15} className="text-[#d83a00]" /> Chuỗi {streak} ngày</span>
+              <span><Zap size={15} className="text-amber-500" /> {totalXp} điểm XP</span>
               <span><span className="dashboard-sprout">🌱</span> Cấp {level}</span>
             </div>
           </div>
           <div className="dashboard-mascot-wrap">
             <div className="dashboard-system-note">【 HỆ THỐNG 】<br /><span className="dashboard-system-copy">Kí Chủ, trạng thái học tập đã sẵn sàng. Nhiệm vụ vẫn chờ đây.</span> ⏳</div>
-            <img className="dashboard-mascot" src={assetPath('meow-sleeping.png')} alt="Meow đang nghỉ" />
-            <span className="dashboard-zzz">Zzz</span>
+            <img className="dashboard-mascot drop-shadow-2xl" src={assetPath('sleeping-meow-mascot.png')} alt="Meow đang nghỉ" />
           </div>
         </section>
 
         <section className="dashboard-lower-content">
-          <section className="dashboard-welcome-card">
-            <div className="dashboard-welcome-topline"><span><Sparkles size={14} /> HÔM NAY CÙNG MEOW</span><Link to="/app/profile">Chia sẻ <ChevronRight size={14} /></Link></div>
-            <h2>Chào mừng trở lại, Lực</h2>
-            <p>Chăm chỉ học tập để nhận thêm nhiều phần quà Tokutei nhé.</p>
-          </section>
 
           <section className="dashboard-progress-cards" aria-label="Tiến độ hôm nay">
             <article className="dashboard-progress-card dashboard-streak-card">
@@ -232,10 +264,6 @@ export default function Dashboard() {
           </section>
         </section>
       </main>
-
-      <nav className="dashboard-bottom-nav" aria-label="Điều hướng nhanh">
-        {bottomItems.map((item) => { const Icon = item.icon; return <NavLink key={item.path} to={item.path}>{({ isActive }) => <><Icon size={19} className={isActive ? 'is-active' : ''} /><span>{item.label}</span></>}</NavLink>; })}
-      </nav>
     </div>
   );
 }

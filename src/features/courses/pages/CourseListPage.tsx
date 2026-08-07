@@ -1,9 +1,23 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, BookOpen, BriefcaseBusiness, GraduationCap, Loader2, SlidersHorizontal, Sparkles, X, AlertTriangle } from 'lucide-react';
+import {
+  Search,
+  BookOpen,
+  BriefcaseBusiness,
+  GraduationCap,
+  Loader2,
+  SlidersHorizontal,
+  Sparkles,
+  X,
+  AlertTriangle,
+  PlayCircle,
+  Flame,
+  ArrowRight,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
+import { assetPath } from '@/src/shared/lib/assets';
 
 const ALL_LEVELS = 'Tất cả';
 
@@ -47,80 +61,125 @@ export default function CourseList() {
   const isFiltering = hasActiveLevelFilter || searchQuery.trim() !== '';
 
   return (
-    <div className="space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-16">
-      <section className="course-page-heading flex items-baseline justify-between gap-4 px-1 pt-1 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-6">
-        <h2 className="font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">Khóa học</h2>
-        <p className="shrink-0 text-sm text-[#5f6b7c]">
-          {courses.length} khóa học
-          {isFiltering ? ` · ${filteredCourses.length} kết quả` : ''}
-        </p>
+    <div className="mx-auto max-w-5xl space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
+      {/* 1. Hero Header Banner */}
+      <section className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] px-4 py-4.5 shadow-2xs sm:px-6 sm:py-6">
+        {/* Watermark Kanji */}
+        <div
+          className="pointer-events-none absolute left-4 top-1 select-none text-4xl font-extrabold text-[#f7c297]/15 sm:text-5xl"
+          aria-hidden="true"
+        >
+          学
+        </div>
+
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="min-w-0 max-w-lg">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.1em] text-[#d83a00] shadow-2xs">
+              <Sparkles size={13} className="text-amber-500 fill-amber-400" /> Khóa học Tokutei
+            </div>
+            <h1 className="mt-2 font-[var(--font-heading)] text-2xl font-black tracking-[-0.03em] text-[#0f172a] sm:text-3xl">
+              Chương trình Học tập
+            </h1>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5f6b7c] sm:text-sm">
+              Luyện tiếng Nhật sống còn, phản xạ ca làm & đề thi mô phỏng Tokutei chuẩn hóa.
+            </p>
+          </div>
+
+          {/* Right 3D Illustration */}
+          <div className="relative shrink-0 hidden sm:block">
+            <img
+              src={assetPath('assets/nav-icons/nav_courses.png')}
+              alt="Tokutei Courses"
+              className="h-16 w-auto object-contain drop-shadow-md sm:h-20"
+            />
+          </div>
+        </div>
       </section>
+
       <CourseListErrorNotice result={courseList} />
 
-      <section className="course-search-dock sticky top-14 z-20 -mx-3 space-y-4 px-3 py-2 md:static md:mx-0 md:rounded-2xl md:border md:border-[#e8dccb] md:bg-[#fffaf3] md:p-5">
-        <div className="flex items-center gap-3">
-          <div className="group relative flex-1">
+      {/* 2. Search & Filter Bar */}
+      <section className="sticky top-[68px] z-30 rounded-[22px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">
+        <div className="flex items-center gap-2">
+          {/* Search Input */}
+          <div className="group relative flex-1 min-w-0">
             {isSearching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin text-orange-700" size={20} strokeWidth={1.8} />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#d83a00]" size={18} strokeWidth={2} />
             ) : (
               <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#95a0af] transition-colors group-focus-within:text-orange-700"
-                size={20}
-                strokeWidth={1.8}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#95a0af] transition-colors group-focus-within:text-[#d83a00]"
+                size={18}
+                strokeWidth={2}
               />
             )}
             <input
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm khóa học..."
-              className="w-full rounded-xl border border-[#e8dccb] bg-[#fffdf8] py-3.5 pl-12 pr-4 text-base text-[#172033] outline-none transition-colors placeholder:text-[#95a0af] focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f1e8] md:text-sm"
+              placeholder="Tìm khóa học, bài học hoặc nội dung..."
+              className="w-full rounded-2xl border border-[#eee3d5] bg-[#fffcf9] py-2.5 pl-10 pr-9 text-xs font-bold text-[#0f172a] outline-none transition-all placeholder:text-[#95a0af] focus:border-[#d83a00] focus:bg-white focus:ring-2 focus:ring-[#d83a00]/15 sm:text-sm"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300"
+              >
+                <X size={12} />
+              </button>
+            )}
           </div>
 
+          {/* Filter Button (Mobile Sheet Trigger) */}
           <button
             type="button"
             onClick={() => setIsFilterSheetOpen(true)}
             className={cn(
-              'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-colors md:hidden',
+              'relative flex h-10 px-3 shrink-0 items-center justify-center gap-1.5 rounded-2xl border text-xs font-extrabold transition-all duration-200 shadow-2xs md:hidden active:scale-95',
               hasActiveLevelFilter
-                ? 'border-orange-200 bg-orange-50 text-orange-700'
-                : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
+                ? 'border-[#d83a00] bg-orange-50 text-[#d83a00]'
+                : 'border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:text-[#0f172a]'
             )}
             aria-label="Mở bộ lọc khóa học"
             aria-haspopup="dialog"
             aria-expanded={isFilterSheetOpen}
           >
-            <SlidersHorizontal size={18} strokeWidth={1.8} />
+            <SlidersHorizontal size={15} strokeWidth={2} />
+            <span>Lọc</span>
             {hasActiveLevelFilter && (
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-orange-700 ring-2 ring-[#fffaf3]" />
+              <span className="h-2 w-2 rounded-full bg-[#d83a00] animate-pulse" />
             )}
           </button>
         </div>
 
-        <div className="hidden flex-wrap gap-2 md:flex">
-          {levels.map((level) => (
-            <button
-              key={level}
-              type="button"
-              onClick={() => setActiveLevel(level)}
-              className={cn(
-                'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
-                activeLevel === level
-                  ? 'border-orange-700 bg-orange-700 text-white'
-                  : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:border-orange-300 hover:text-orange-700'
-              )}
-            >
-              {level === ALL_LEVELS ? level : `Cấp độ ${level}`}
-            </button>
-          ))}
+        {/* Level Category Pills (Desktop & Tablet) */}
+        <div className="hidden flex-wrap items-center gap-1.5 pt-1 md:flex">
+          {levels.map((level) => {
+            const isActive = activeLevel === level;
+            return (
+              <button
+                key={level}
+                type="button"
+                onClick={() => setActiveLevel(level)}
+                className={cn(
+                  'rounded-xl px-3.5 py-1.5 text-xs font-extrabold transition-all duration-200 shadow-2xs',
+                  isActive
+                    ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
+                    : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
+                )}
+              >
+                {level === ALL_LEVELS ? level : `Cấp độ: ${level}`}
+              </button>
+            );
+          })}
         </div>
       </section>
 
+      {/* Filter Bottom Sheet (Mobile) */}
       <AnimatePresence>
         {isFilterSheetOpen && (
           <motion.div
-            className="fixed inset-0 z-[90] flex items-end bg-gray-950/28 px-3 pb-[calc(5.8rem+env(safe-area-inset-bottom))] pt-12 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-50 flex items-end bg-black/60 p-3 pb-[calc(5.8rem+env(safe-area-inset-bottom))] backdrop-blur-xs md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -130,111 +189,155 @@ export default function CourseList() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="course-filter-title"
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.97 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
               onClick={(event) => event.stopPropagation()}
-              className="w-full rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5"
+              className="w-full rounded-[28px] border border-[#eee3d5] bg-white p-5 shadow-2xl space-y-4"
             >
-              <div className="flex items-start justify-between gap-3">
-                <h3 id="course-filter-title" className="font-[var(--font-heading)] text-xl font-bold tracking-[-0.02em] text-[#172033]">
-                  Chọn cấp độ
+              <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3">
+                <h3 id="course-filter-title" className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
+                  Chọn cấp độ khóa học
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(false)}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]"
-                  aria-label="Đóng bộ lọc khóa học"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  aria-label="Đóng bộ lọc"
                 >
-                  <X size={18} strokeWidth={1.8} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {levels.map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => {
-                      setActiveLevel(level);
-                      setIsFilterSheetOpen(false);
-                    }}
-                    className={cn(
-                      'rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors',
-                      activeLevel === level
-                        ? 'border-orange-700 bg-orange-700 text-white'
-                        : 'border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
-                    )}
-                  >
-                    {level === ALL_LEVELS ? level : `Cấp độ ${level}`}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {levels.map((level) => {
+                  const isActive = activeLevel === level;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => {
+                        setActiveLevel(level);
+                        setIsFilterSheetOpen(false);
+                      }}
+                      className={cn(
+                        'rounded-xl px-4 py-2 text-xs font-extrabold transition-all duration-200',
+                        isActive
+                          ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
+                          : 'border border-[#eee3d5] bg-slate-50 text-[#5f6b7c]'
+                      )}
+                    >
+                      {level === ALL_LEVELS ? level : `Cấp độ: ${level}`}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* 3. Course Cards Grid */}
       {isSearching || isLoadingFromSupabase ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3].map((index) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2].map((index) => (
             <div
               key={index}
-              className="flex h-80 animate-pulse flex-col space-y-4 rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-6"
+              className="flex h-72 animate-pulse flex-col space-y-3 rounded-[24px] border border-[#eee3d5] bg-white p-5 shadow-2xs"
             >
-              <div className="h-44 w-full rounded-xl bg-[#f1e7d9]" />
-              <div className="h-6 w-2/3 rounded-lg bg-[#f1e7d9]" />
-              <div className="h-4 w-full rounded-lg bg-[#f1e7d9]" />
-              <div className="mt-auto h-10 w-full rounded-xl bg-[#f1e7d9]" />
+              <div className="h-32 w-full rounded-2xl bg-slate-100" />
+              <div className="h-5 w-2/3 rounded-lg bg-slate-100" />
+              <div className="h-4 w-full rounded-lg bg-slate-100" />
+              <div className="mt-auto h-11 w-full rounded-2xl bg-slate-100" />
             </div>
           ))}
         </div>
       ) : filteredCourses.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
-            {filteredCourses.map((course) => (
+            {filteredCourses.map((course, idx) => (
               <motion.div
                 key={course.id}
                 layout
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.22 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
               >
                 <Link
                   to={`/app/courses/${course.id}/learn`}
-                  className="course-card-link group flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8dccb] bg-[#fffaf3] transition-colors hover:border-orange-300"
+                  className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-[#f5ece1] bg-white shadow-[0_6px_20px_rgba(217,74,19,0.05)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)]"
                 >
-                  <div className="course-card-media relative h-32 overflow-hidden sm:h-44">
-                    <img
-                      src={course.image}
-                      alt=""
-                      className="course-card-image h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <span className="course-card-spark" aria-hidden="true"><Sparkles size={17} /></span>
-                    <span className="course-card-level-badge absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg border border-[#e8dccb] bg-white/92 px-2.5 py-1 text-[11px] font-semibold text-orange-700 backdrop-blur-sm sm:left-4 sm:top-4 sm:bottom-auto sm:px-3 sm:py-1.5 sm:text-xs">
-                      {course.level.includes('Workplace') ? <BriefcaseBusiness size={13} /> : <GraduationCap size={13} />}
-                      {course.level}
-                    </span>
+                  {/* Top Stylized Banner with 3D Badge */}
+                  <div className="relative flex h-36 w-full items-center justify-between overflow-hidden bg-gradient-to-br from-[#fff7f0] via-[#ffeedd] to-[#ffe5cf] p-4.5">
+                    {/* Background Pattern */}
+                    <div
+                      className="pointer-events-none absolute -right-4 -top-6 select-none text-7xl font-black text-[#f7c297]/15"
+                      aria-hidden="true"
+                    >
+                      {idx === 0 ? '基' : '職'}
+                    </div>
+
+                    {/* Level Pill */}
+                    <div className="z-10 flex flex-col items-start gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200/80 bg-white/95 px-3 py-1 text-[11px] font-extrabold text-[#c2410c] shadow-2xs backdrop-blur-xs">
+                        {course.level.includes('Workplace') ? <BriefcaseBusiness size={13} /> : <GraduationCap size={13} />}
+                        {course.level}
+                      </span>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9a3412] bg-orange-100/70 px-2 py-0.5 rounded-md">
+                        Tokutei Gino
+                      </span>
+                    </div>
+
+                    {/* 3D Course Icon Illustration */}
+                    <div className="z-10 shrink-0">
+                      <img
+                        src={assetPath(
+                          idx === 0
+                            ? 'assets/course-workspace-icons/workspace_vocab.png'
+                            : 'assets/course-workspace-icons/workspace_practice.png'
+                        )}
+                        alt=""
+                        className="h-20 w-auto object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
                   </div>
 
-                  <div className="course-card-content flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5">
-                    <h4 className="font-[var(--font-heading)] text-xl font-bold leading-tight tracking-[-0.02em] text-[#172033] transition-colors group-hover:text-orange-700 sm:text-lg">
-                      {course.title}
-                    </h4>
-                    <p className="line-clamp-1 text-[13px] leading-relaxed text-[#5f6b7c] sm:line-clamp-2 sm:text-sm">
-                      {course.description}
-                    </p>
+                  {/* Course Info */}
+                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 space-y-3">
+                    <div>
+                      <h4 className="font-[var(--font-heading)] text-lg font-black leading-snug text-[#0f172a] transition-colors group-hover:text-[#d83a00]">
+                        {course.title}
+                      </h4>
+                      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-relaxed text-[#5f6b7c]">
+                        {course.description}
+                      </p>
+                    </div>
 
-                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#efe5d7] pt-3 sm:pt-4">
-                      <span className="text-xs font-semibold text-[#7b8796]">
-                        {course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang đồng bộ'}
-                      </span>
-                      <span className="course-card-action inline-flex min-h-10 items-center gap-1 rounded-lg bg-orange-700 px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-orange-800">
-                        Học tiếp <span aria-hidden="true">→</span>
-                      </span>
+                    <div className="space-y-3 border-t border-[#f5ece1] pt-3">
+                      {/* Lesson Count & Status */}
+                      <div className="flex items-center justify-between text-xs font-bold text-[#717d8f]">
+                        <span className="flex items-center gap-1">
+                          <BookOpen size={14} className="text-[#d83a00]" />
+                          <span>{course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang phát triển'}</span>
+                        </span>
+                        <span className="font-extrabold text-[#d83a00]">46% Hoàn thành</span>
+                      </div>
+
+                      {/* Progress Line */}
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eee5da]">
+                        <div className="h-full bg-gradient-to-r from-[#d83a00] to-[#f27427] w-[46%]" />
+                      </div>
+
+                      {/* Primary CTA Button */}
+                      <button
+                        type="button"
+                        className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-xs font-extrabold text-white shadow-xs transition-all duration-200 group-hover:shadow-md group-hover:from-[#c23400] group-hover:to-[#d84800] active:scale-98"
+                      >
+                        <span>Học tiếp ngay</span>
+                        <ArrowRight size={15} />
+                      </button>
                     </div>
                   </div>
                 </Link>
@@ -243,13 +346,13 @@ export default function CourseList() {
           </AnimatePresence>
         </div>
       ) : (
-        <div className="space-y-4 py-20 text-center">
-          <div className="inline-flex rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-8 text-[#95a0af]">
-            <BookOpen size={48} strokeWidth={1.8} />
+        <div className="rounded-[24px] border border-[#eee3d5] bg-white p-8 text-center space-y-4 shadow-2xs">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-[#d83a00]">
+            <BookOpen size={36} strokeWidth={2} />
           </div>
-          <div className="space-y-1">
-            <p className="font-[var(--font-heading)] text-base font-bold text-[#172033]">Chưa thấy khóa học phù hợp</p>
-            <p className="text-sm text-[#5f6b7c]">Thử từ khóa khác hoặc bỏ bộ lọc để xem toàn bộ danh sách.</p>
+          <div>
+            <p className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">Chưa thấy khóa học phù hợp</p>
+            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">Thử từ khóa khác hoặc xóa lọc cấp độ để xem toàn bộ danh sách.</p>
           </div>
           <button
             type="button"
@@ -257,9 +360,9 @@ export default function CourseList() {
               setSearchQuery('');
               setActiveLevel(ALL_LEVELS);
             }}
-            className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-6 py-3 text-sm font-semibold text-orange-700 transition-colors hover:bg-orange-50"
+            className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
           >
-            Xóa tìm kiếm và bộ lọc
+            Bỏ lọc & Hiển thị tất cả
           </button>
         </div>
       )}
@@ -275,9 +378,9 @@ function CourseListErrorNotice({ result }: CourseListErrorNoticeProps) {
   if (result.status !== 'error') return null;
 
   return (
-    <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-xs font-semibold text-amber-700">
-      <AlertTriangle size={14} strokeWidth={1.8} />
-      Không tải được dữ liệu mới · đang hiển thị danh sách tạm
-    </p>
+    <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800">
+      <AlertTriangle size={15} className="shrink-0 text-amber-600" />
+      <span>Không tải được dữ liệu mới · Đang hiển thị danh sách tạm thời</span>
+    </div>
   );
 }

@@ -39,8 +39,9 @@ export function VocabularyListItemRow({
           <VocabularyHeadword
             item={item}
             showFurigana={showFurigana}
-            className="block text-lg font-extrabold text-[#172033] leading-tight tracking-[-0.01em]"
-            rtClassName="text-[0.6em] font-semibold text-orange-600"
+            align="left"
+            className="text-lg font-extrabold text-[#172033] leading-tight tracking-[-0.01em]"
+            rtClassName="text-[0.62em] font-extrabold text-[#c2410c]"
           />
         </div>
 

@@ -41,7 +41,7 @@ export const primaryButtonClass =
 export const emptyStateClass = 'rounded-xl border border-dashed border-[#e8dccb] px-4 py-8 text-center';
 
 interface TabButtonProps<T extends string> {
-  tab: { id: T; label: string; icon: LucideIcon };
+  tab: { id: T; label: string; icon: LucideIcon; imageIcon?: string };
   activeTab: T;
   compact?: boolean;
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>, tab: T) => void;
@@ -63,15 +63,26 @@ export function TabButton<T extends string>({ tab, activeTab, compact = false, o
       onKeyDown={(event) => onKeyDown(event, tab.id)}
       onClick={() => onSelect(tab.id)}
       className={cn(
-        'flex items-center rounded-xl transition-colors',
+        'flex items-center rounded-2xl transition-all duration-200',
         compact
-          ? 'min-h-[3.25rem] w-full min-w-0 flex-col justify-center gap-1 px-1 py-2 text-[11px] sm:text-xs'
+          ? 'min-h-[3.35rem] w-full min-w-0 flex-col justify-center gap-0.5 px-0.5 py-1 text-[10px] sm:text-xs'
           : 'w-full gap-3 px-4 py-3 text-sm',
-        isActive ? 'font-bold text-orange-700' : 'text-[#7b8796] hover:text-[#172033]',
+        isActive ? 'font-black text-[#d83a00]' : 'text-[#7b8796] hover:text-[#172033]',
         focusRing
       )}
     >
-      <Icon size={20} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
+      {tab.imageIcon ? (
+        <img
+          src={tab.imageIcon}
+          alt=""
+          className={cn(
+            'h-7 w-7 object-contain transition-transform duration-200 drop-shadow-2xs',
+            isActive ? 'scale-110' : 'filter grayscale-[20%] opacity-85'
+          )}
+        />
+      ) : (
+        <Icon size={20} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
+      )}
       <span className="max-w-full truncate">{tab.label}</span>
     </button>
   );
@@ -158,15 +169,15 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
       {/* 2. Card Thống kê tài liệu */}
       <DocumentStats stats={stats} />
 
-      {/* 3. Thanh tìm kiếm và nút bộ lọc */}
-      <DocumentSearchAndFilter query={searchQuery} onQueryChange={setSearchQuery} />
-
-      {/* 4. Category chips */}
-      <DocumentCategoryBar
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
+      {/* 3 & 4. Sticky Search & Filter Bar */}
+      <div className="sticky top-[68px] z-30 space-y-2 rounded-[20px] bg-[#fffaf3]/95 p-2 backdrop-blur-md transition-all border border-[#eedecf]/80 shadow-2xs">
+        <DocumentSearchAndFilter query={searchQuery} onQueryChange={setSearchQuery} />
+        <DocumentCategoryBar
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+      </div>
 
       {/* 5. Danh sách tài liệu */}
       <div className="space-y-3">
@@ -190,9 +201,6 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
           />
         )}
       </div>
-
-      {/* 6. Floating audio/support button */}
-      <FloatingAudioButton />
     </div>
   );
 }
@@ -299,9 +307,6 @@ export function GamesPanel({ activeGameType, courseId, courseTitle, vocabulary, 
 
       {/* 5. Kết quả gần đây */}
       <RecentGameResults onReplay={handlePlayGameType} />
-
-      {/* 6. Floating audio/support button */}
-      <FloatingAudioButton />
     </div>
   );
 }

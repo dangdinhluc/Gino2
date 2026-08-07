@@ -1,6 +1,6 @@
-import { type KeyboardEvent, useState } from 'react';
+import { type KeyboardEvent, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, Lightbulb, Volume2, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Lightbulb, Shuffle, Volume2, X } from 'lucide-react';
 import {
   emptyStateClass,
   focusRing,
@@ -18,31 +18,40 @@ function getVocabularyJapanese(item: CourseVocabularyItem) {
   return item.kanji ?? item.kana ?? getVocabularyDisplayName(item);
 }
 
-// Quan trọng: KHÔNG đặt display:block (class "block") lên chính thẻ <ruby>, vì nó phá
-// display:ruby khiến furigana không nổi lên trên kanji. Block để ở span bọc ngoài.
 export function VocabularyHeadword({
   item,
   showFurigana,
   rtClassName,
   className,
+  align = 'center',
 }: {
   item: CourseVocabularyItem;
   showFurigana: boolean;
   rtClassName?: string;
   className?: string;
+  align?: 'left' | 'center' | 'right';
 }) {
+  const kanjiText = item.kanji;
+  const furiganaText = (item as any).furigana ?? item.kana;
+
+  const alignClass = align === 'left' ? 'items-start text-left' : align === 'right' ? 'items-end text-right' : 'items-center text-center';
+
+  if (showFurigana && kanjiText && furiganaText) {
+    return (
+      <span className={cn('inline-flex flex-col leading-tight', alignClass, className)}>
+        <span className={cn('text-[0.6em] font-extrabold text-[#c2410c] leading-none mb-1 select-none', rtClassName)}>
+          {furiganaText}
+        </span>
+        <span className="font-black text-[#0f172a] leading-none">
+          {kanjiText}
+        </span>
+      </span>
+    );
+  }
+
   return (
-    <span className={className}>
-      {showFurigana && item.kanji && item.kana ? (
-        <ruby lang="ja">
-          {item.kanji}
-          <rp>(</rp>
-          <rt className={cn('font-medium text-[#7b8796]', rtClassName)}>{item.kana}</rt>
-          <rp>)</rp>
-        </ruby>
-      ) : (
-        <span lang="ja">{getVocabularyJapanese(item)}</span>
-      )}
+    <span className={cn('font-black text-[#0f172a]', className)}>
+      {getVocabularyJapanese(item)}
     </span>
   );
 }
@@ -96,55 +105,83 @@ export function VocabularyPanel({
   onToggleVocabulary,
 }: VocabularyPanelProps) {
   const [view, setView] = useState<VocabularyView>('list');
-  const selectedVocabulary = expandedVocabularyId
-    ? filteredVocabulary.find((item) => item.id === expandedVocabularyId) ?? null
-    : null;
+  const [isShuffle, setIsShuffle] = useState(false);
 
-  const currentCategoryObj = categoryOptions.find((c) => c.id === selectedCategory);
-  const categoryCount = currentCategoryObj ? currentCategoryObj.count : filteredVocabulary.length;
+  const selectedVocabulary = useMemo(
+    () => filteredVocabulary.find((item) => item.id === expandedVocabularyId) ?? null,
+    [filteredVocabulary, expandedVocabularyId]
+  );
 
-  const stats = {
-    learnedCount: 8,
-    categoryCount: categoryCount,
-    progressPercent: 46,
-  };
+  const stats = useMemo(() => {
+    const totalCount = filteredVocabulary.length;
+    const heardCount = filteredVocabulary.filter((item) => item.id === heardVocabularyId).length;
+    return {
+      totalCount,
+      learnedCount: totalCount,
+      accuracyPercent: 100,
+      dueCount: heardCount,
+    };
+  }, [filteredVocabulary, heardVocabularyId]);
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32">
-      {/* 1. Vocabulary Overview Card */}
+    <div className="mx-auto w-full max-w-xl space-y-2.5 pb-28 sm:pb-32">
       <VocabularyOverviewCard stats={stats} />
 
-      {/* 2. Segmented Control "Danh sách / Flashcard" */}
-      <VocabularyModeSegment mode={view} onModeChange={setView} />
+      <div className="sticky top-[68px] z-30 rounded-[20px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">
+        <div className="flex items-center gap-2">
+          <VocabularyModeSegment mode={view} onModeChange={setView} compact />
+          {view === 'list' ? (
+            <div className="min-w-0 flex-1">
+              <VocabularySearchBar query={searchQuery} onQueryChange={onSearchChange} compact />
+            </div>
+          ) : (
+            <div className="flex items-center justify-end min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => setIsShuffle((prev) => !prev)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-extrabold transition-all duration-200 shadow-2xs active:scale-95',
+                  isShuffle
+                    ? 'border-[#d83a00] bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
+                    : 'border-orange-200/90 bg-[#fffaf5] text-[#c2410c] hover:bg-orange-100/60'
+                )}
+                title={isShuffle ? 'Đang bật học ngẫu nhiên (Bấm để trở về học tuần tự)' : 'Bấm để bật học ngẫu nhiên'}
+              >
+                <Shuffle size={14} />
+                <span>{isShuffle ? 'Ngẫu nhiên: Bật' : 'Ngẫu nhiên'}</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-      {/* 3. Category Chips with Badge & Scroll Arrow */}
-      <VocabularyCategoryBar
-        categories={categoryOptions}
-        selectedCategory={selectedCategory}
-        onSelectCategory={onCategoryChange}
-      />
+        <div className="flex items-center justify-between gap-2 border-t border-[#f5ece1] pt-2">
+          <div className="min-w-0 flex-1">
+            <VocabularyCategoryBar
+              categories={categoryOptions}
+              selectedCategory={selectedCategory}
+              onSelectCategory={onCategoryChange}
+            />
+          </div>
 
-      {/* 4. Display Options (Furigana & Romaji) */}
-      <VocabularyDisplayToggle
-        showFurigana={showFurigana}
-        showRomaji={showRomaji}
-        onToggleFurigana={onToggleFurigana}
-        onToggleRomaji={onToggleRomaji}
-      />
+          <VocabularyDisplayToggle
+            showFurigana={showFurigana}
+            showRomaji={showRomaji}
+            onToggleFurigana={onToggleFurigana}
+            onToggleRomaji={onToggleRomaji}
+            compact
+          />
+        </div>
+      </div>
 
-      {/* 5. Search Bar */}
-      {view === 'list' && (
-        <VocabularySearchBar query={searchQuery} onQueryChange={onSearchChange} />
-      )}
-
-      {/* 6. List / Flashcard view */}
       {view === 'flashcard' ? (
         <VocabularyFlashcards
           items={filteredVocabulary}
           showFurigana={showFurigana}
           showRomaji={showRomaji}
           heardVocabularyId={heardVocabularyId}
+          isShuffle={isShuffle}
           onAudio={onAudio}
+          onToggleShuffle={setIsShuffle}
         />
       ) : (
         <div className="rounded-[22px] border border-[#efe5d7] bg-white p-2 shadow-2xs">
@@ -168,13 +205,10 @@ export function VocabularyPanel({
         </div>
       )}
 
-      {/* 7. Floating audio button */}
-      <FloatingAudioButton />
-
       <AnimatePresence>
         {selectedVocabulary && (
           <motion.div
-            className="fixed inset-0 z-[95] flex items-end justify-center bg-gray-950/30 p-3 backdrop-blur-sm sm:items-center"
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -184,77 +218,98 @@ export function VocabularyPanel({
               role="dialog"
               aria-modal="true"
               aria-labelledby="vocab-detail-title"
-              initial={{ opacity: 0, y: 24, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.98 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
+              initial={{ opacity: 0, scale: 0.94, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 12 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               onClick={(event) => event.stopPropagation()}
-              className="w-full max-w-md rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6"
+              className="w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-[28px] border border-orange-200/90 bg-white p-5 shadow-[0_24px_50px_rgba(15,23,42,0.2)] sm:p-6"
             >
-              <div className="flex items-start justify-between gap-3">
+              {/* Modal Top Header */}
+              <div className="flex items-start justify-between gap-3 border-b border-orange-100/70 pb-3">
                 <div className="min-w-0">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">Chi tiết từ vựng</span>
-                  <h3 id="vocab-detail-title" className="mt-2 font-[var(--font-heading)] text-2xl font-bold leading-tight tracking-[-0.02em] text-[#172033]">
-                    <VocabularyHeadword item={selectedVocabulary} showFurigana={showFurigana} rtClassName="text-[0.4em]" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100/70 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#d83a00]">
+                    Chi tiết từ vựng
+                  </span>
+                  <h3 id="vocab-detail-title" className="mt-1.5 font-[var(--font-heading)] text-3xl font-black leading-tight tracking-[-0.02em] text-[#0f172a] sm:text-4xl">
+                    <VocabularyHeadword item={selectedVocabulary} showFurigana={showFurigana} rtClassName="text-[0.42em] font-extrabold text-[#c2410c]" />
                   </h3>
                   {showRomaji && (
-                    <p className="mt-1 text-sm text-orange-700">/{selectedVocabulary.pronunciation}/</p>
+                    <p className="mt-0.5 text-xs font-bold italic text-[#d97706]">/{selectedVocabulary.pronunciation}/</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => onToggleVocabulary(selectedVocabulary.id)}
-                  className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c] hover:text-[#172033]', focusRing)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-slate-50 text-gray-500 transition-colors hover:bg-slate-100 hover:text-gray-900"
                   aria-label="Đóng chi tiết từ vựng"
                 >
-                  <X size={18} aria-hidden="true" focusable="false" />
+                  <X size={18} />
                 </button>
               </div>
 
+              {/* Display Controls */}
               <div className="mt-3">
                 <VocabularyDisplayToggle
                   showFurigana={showFurigana}
                   showRomaji={showRomaji}
                   onToggleFurigana={onToggleFurigana}
                   onToggleRomaji={onToggleRomaji}
+                  compact
                 />
               </div>
 
-              <p className="mt-4 text-lg font-semibold text-[#172033]">{selectedVocabulary.meaning}</p>
-
-              <button
-                type="button"
-                onClick={() => onAudio(selectedVocabulary.id)}
-                className={cn(
-                  'mt-4 inline-flex items-center gap-2 rounded-xl border border-[#e8dccb] px-4 py-2.5 text-sm font-bold transition-colors',
-                  heardVocabularyId === selectedVocabulary.id ? 'bg-orange-700 text-white' : 'bg-[#fffdf8] text-orange-700 hover:bg-orange-50',
-                  focusRing
-                )}
-              >
-                <Volume2 size={16} aria-hidden="true" focusable="false" /> Nghe phát âm
-              </button>
-
-              <div className="mt-4 rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#95a0af]">Ví dụ</span>
-                <p lang="ja" className="mt-2 text-base font-semibold leading-relaxed text-[#172033]">{selectedVocabulary.example.jp}</p>
-                <p className="mt-1 text-sm leading-relaxed text-[#5f6b7c]">{selectedVocabulary.example.vi}</p>
+              {/* Vietnamese Meaning & Audio */}
+              <div className="mt-3.5 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-[#fffaf5] p-3.5">
+                <p className="text-xl font-black text-[#0f172a] min-w-0 flex-1">{selectedVocabulary.meaning}</p>
+                <button
+                  type="button"
+                  onClick={() => onAudio(selectedVocabulary.id)}
+                  className={cn(
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-extrabold transition-all duration-200 shadow-2xs',
+                    heardVocabularyId === selectedVocabulary.id
+                      ? 'bg-[#d83a00] text-white ring-2 ring-orange-400/40'
+                      : 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white hover:opacity-95'
+                  )}
+                >
+                  <Volume2 size={16} className={heardVocabularyId === selectedVocabulary.id ? 'animate-bounce' : ''} />
+                  <span>Phát âm</span>
+                </button>
               </div>
 
+              {/* Example Sentence Box */}
+              <div className="mt-3.5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-3.5 space-y-1 text-left">
+                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-[#047857]">Ví dụ câu</span>
+                <p lang="ja" className="text-base font-bold leading-snug text-[#0f172a]">{selectedVocabulary.example.jp}</p>
+                <p className="text-xs font-semibold leading-snug text-[#334155]">{selectedVocabulary.example.vi}</p>
+              </div>
+
+              {/* Mnemonic Box */}
               {selectedVocabulary.mnemonic && (
-                <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/60 p-4">
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700">
-                    <Lightbulb size={13} aria-hidden="true" focusable="false" /> Mẻo nhớ
+                <div className="mt-3 rounded-2xl border border-[#fef08a] bg-[#fffbe6] p-3 text-left">
+                  <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.1em] text-[#78350f]">
+                    <Lightbulb size={13} aria-hidden="true" /> Mẹo nhớ
                   </span>
-                  <p className="mt-2 text-sm leading-relaxed text-[#4d5a6b]">{selectedVocabulary.mnemonic}</p>
+                  <p className="mt-1 text-xs font-semibold leading-relaxed text-[#78350f]">{selectedVocabulary.mnemonic}</p>
                 </div>
               )}
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">{selectedVocabulary.module}</span>
+              {/* Tags */}
+              <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+                <span className="rounded-lg bg-orange-100/80 border border-orange-200/60 px-2.5 py-0.5 text-[11px] font-extrabold text-[#9a3412]">{selectedVocabulary.module}</span>
                 {selectedVocabulary.tags.map((tag) => (
-                  <span key={tag} className="rounded-md border border-[#e8dccb] bg-[#fffdf8] px-3 py-1 text-xs font-medium text-[#5f6b7c]">{tag}</span>
+                  <span key={tag} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-[#475467]">{tag}</span>
                 ))}
               </div>
+
+              {/* Primary Bottom Close Button */}
+              <button
+                type="button"
+                onClick={() => onToggleVocabulary(selectedVocabulary.id)}
+                className="mt-4 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-sm font-extrabold text-white shadow-xs transition-all duration-200 hover:shadow-md active:scale-98"
+              >
+                Đóng chi tiết
+              </button>
             </motion.div>
           </motion.div>
         )}
@@ -268,16 +323,37 @@ interface VocabularyFlashcardsProps {
   showFurigana: boolean;
   showRomaji: boolean;
   heardVocabularyId: string | null;
+  isShuffle: boolean;
   onAudio: (vocabularyId: string) => void;
+  onToggleShuffle: (shuffle: boolean) => void;
 }
 
-function VocabularyFlashcards({ items, showFurigana, showRomaji, heardVocabularyId, onAudio }: VocabularyFlashcardsProps) {
+function VocabularyFlashcards({
+  items,
+  showFurigana,
+  showRomaji,
+  heardVocabularyId,
+  isShuffle,
+  onAudio,
+  onToggleShuffle,
+}: VocabularyFlashcardsProps) {
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const total = items.length;
+  // Generate shuffled deck if isShuffle is enabled
+  const displayItems = useMemo(() => {
+    if (!isShuffle) return items;
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [items, isShuffle]);
+
+  const total = displayItems.length;
   const safeIndex = total > 0 ? Math.min(index, total - 1) : 0;
-  const card = items[safeIndex];
+  const card = displayItems[safeIndex];
 
   const goTo = (nextIndex: number) => {
     if (total === 0) return;
@@ -301,24 +377,31 @@ function VocabularyFlashcards({ items, showFurigana, showRomaji, heardVocabulary
     }
   };
 
+  const progressPercent = total > 0 ? Math.round(((safeIndex + 1) / total) * 100) : 0;
+
   return (
-    <div className="mt-4 pb-20">
-      <div className="mb-3 flex items-center justify-between gap-3 px-1">
-        <button
-          type="button"
-          onClick={() => onAudio(card.id)}
-          className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8dccb] transition-colors',
-            heardVocabularyId === card.id ? 'bg-orange-700 text-white' : 'bg-orange-50 text-orange-700 hover:bg-orange-100',
-            focusRing
-          )}
-          aria-label={`Nghe phát âm ${card.word}`}
-        >
-          <Volume2 size={21} strokeWidth={1.8} aria-hidden="true" focusable="false" />
-        </button>
-        <span className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-3 py-2 text-xs font-bold text-[#7b8796]">Flashcard khóa học</span>
+    <div className="mt-2 space-y-4 pb-20">
+      {/* Top Header Bar & Progress Line */}
+      <div className="space-y-1.5 px-1">
+        <div className="flex items-center justify-between text-xs font-bold text-[#748092]">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-[#d83a00] animate-pulse" />
+            <span>Chế độ Flashcard</span>
+            <span className="rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.2 text-[10px] font-extrabold text-[#c2410c]">
+              {isShuffle ? '🔀 Ngẫu nhiên: Bật' : '➡️ Tuần tự (Mặc định)'}
+            </span>
+          </span>
+          <span className="font-extrabold text-[#d83a00]">{safeIndex + 1} / {total} ({progressPercent}%)</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eee5da]">
+          <div
+            className="h-full bg-gradient-to-r from-[#d83a00] to-[#f27427] transition-all duration-300 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
+      {/* Main Interactive 3D Card Container */}
       <div
         role="button"
         tabIndex={0}
@@ -326,60 +409,158 @@ function VocabularyFlashcards({ items, showFurigana, showRomaji, heardVocabulary
         aria-label={isFlipped ? 'Ẩn nghĩa và quay lại mặt trước' : 'Lật thẻ để xem nghĩa'}
         onClick={() => setIsFlipped((value) => !value)}
         onKeyDown={handleCardKeyDown}
-        className={cn('group block w-full cursor-pointer rounded-2xl text-left', focusRing)}
+        className={cn('group block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-[28px]')}
       >
         <div style={{ perspective: '1200px' }}>
           <motion.div
             animate={{ rotateY: isFlipped ? 180 : 0 }}
-            transition={{ duration: 0.46, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
             style={{ transformStyle: 'preserve-3d' }}
-            className="relative min-h-[25rem] md:min-h-[22rem]"
+            className="relative min-h-[24rem] md:min-h-[22rem]"
           >
-            <div aria-hidden={isFlipped} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} className="absolute inset-0 flex h-full flex-col rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 transition-transform group-hover:-translate-y-0.5 md:p-8">
-              <div className="flex min-h-[13rem] flex-1 flex-col items-center justify-center text-center md:min-h-[16rem]">
-                <VocabularyHeadword item={card} showFurigana={showFurigana} className="mt-5 max-w-full break-words text-center text-5xl font-bold tracking-[-0.02em] text-[#172033] md:text-7xl" rtClassName="text-[0.38em]" />
-                {showRomaji && <p className="mt-3 text-base font-bold italic text-orange-700/90 md:text-lg">{card.pronunciation}</p>}
-                <span className="mt-6 inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-white px-4 py-2 text-sm font-bold text-orange-800 shadow-sm">
-                  Lật thẻ <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[11px]">Space</span>
+            {/* FRONT OF CARD */}
+            <div
+              aria-hidden={isFlipped}
+              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+              className="absolute inset-0 flex h-full flex-col justify-between rounded-[28px] border-2 border-[#fed7aa] bg-white p-5 sm:p-7 shadow-[0_14px_36px_rgba(217,74,19,0.08)] transition-shadow group-hover:shadow-[0_18px_44px_rgba(217,74,19,0.14)]"
+            >
+              {/* Front Top Bar */}
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAudio(card.id);
+                  }}
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 shadow-2xs',
+                    heardVocabularyId === card.id
+                      ? 'bg-[#d83a00] text-white ring-4 ring-orange-400/30'
+                      : 'bg-orange-50 text-[#d83a00] hover:bg-orange-100 border border-orange-200'
+                  )}
+                  aria-label={`Nghe phát âm ${card.word}`}
+                >
+                  <Volume2 size={20} strokeWidth={2} className={heardVocabularyId === card.id ? 'animate-bounce' : ''} />
+                </button>
+
+                <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-extrabold text-[#9a3412] shadow-2xs">
+                  {card.module || 'Từ vựng'}
+                </span>
+              </div>
+
+              {/* Front Center Headword */}
+              <div className="flex min-h-[11rem] flex-1 flex-col items-center justify-center text-center my-2">
+                <VocabularyHeadword
+                  item={card}
+                  showFurigana={showFurigana}
+                  className="max-w-full break-words text-center text-5xl font-black tracking-[-0.02em] text-[#0f172a] sm:text-6xl md:text-7xl"
+                  rtClassName="text-[0.42em] font-extrabold text-[#c2410c]"
+                />
+                {showRomaji && (
+                  <p className="mt-3 text-base font-bold italic text-[#d97706] sm:text-lg">
+                    {card.pronunciation}
+                  </p>
+                )}
+              </div>
+
+              {/* Front Bottom Flip Prompt */}
+              <div className="flex justify-center pt-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-1.5 text-xs font-extrabold text-[#c2410c] shadow-2xs transition-transform group-hover:scale-105">
+                  Chạm để lật thẻ 🔄
                 </span>
               </div>
             </div>
-            <div aria-hidden={!isFlipped} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="absolute inset-0 flex h-full flex-col rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 md:p-8">
-              <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto pt-4 text-center md:min-h-[16rem] md:justify-center md:overflow-visible md:pt-0">
-                <h3 className="mt-2 break-words font-[var(--font-heading)] text-3xl font-bold tracking-[-0.02em] text-[#172033] md:text-4xl">{card.meaning}</h3>
-                <div className="mx-auto mt-6 w-full max-w-lg rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4 text-left">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700">Ví dụ</p>
-                  <p lang="ja" className="mt-2 break-words text-base font-bold leading-relaxed text-[#172033] md:text-lg">{card.example.jp}</p>
-                  <p className="mt-2 break-words text-sm font-medium leading-relaxed text-[#4d5a6b]">{card.example.vi}</p>
+
+            {/* BACK OF CARD */}
+            <div
+              aria-hidden={!isFlipped}
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+              }}
+              className="absolute inset-0 flex h-full flex-col justify-between rounded-[28px] border-2 border-[#bbf7d0] bg-white p-5 sm:p-7 shadow-[0_14px_36px_rgba(16,185,129,0.09)]"
+            >
+              {/* Back Top Tag */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full bg-[#059669] px-3.5 py-1 text-[11px] font-extrabold text-white shadow-2xs">
+                  Ý nghĩa & Ví dụ
+                </span>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAudio(card.id);
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 shadow-2xs border border-emerald-200 hover:bg-emerald-100"
+                  aria-label="Nghe phát âm"
+                >
+                  <Volume2 size={18} />
+                </button>
+              </div>
+
+              {/* Back Main Meaning */}
+              <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto my-2 text-center">
+                <h3 className="font-[var(--font-heading)] text-3xl font-black tracking-[-0.02em] text-[#0f172a] sm:text-4xl">
+                  {card.meaning}
+                </h3>
+
+                {/* Example Box */}
+                <div className="mt-3.5 w-full rounded-2xl border border-slate-200 bg-[#f8fafc] p-3.5 text-left shadow-2xs space-y-1">
+                  <div className="text-[10px] font-black uppercase tracking-[0.1em] text-[#047857]">Ví dụ câu</div>
+                  <p lang="ja" className="text-base sm:text-lg font-bold text-[#0f172a] leading-snug">
+                    {card.example.jp}
+                  </p>
+                  <p className="text-xs font-semibold text-[#334155] leading-snug">
+                    {card.example.vi}
+                  </p>
                 </div>
-                {card.mnemonic && <p className="mx-auto mt-3 max-w-lg break-words text-left text-sm leading-relaxed text-[#4d5a6b]">💡 {card.mnemonic}</p>}
+
+                {card.mnemonic && (
+                  <p className="mt-2.5 text-xs font-semibold leading-relaxed text-[#78350f] bg-[#fffbe6] rounded-xl p-2.5 text-left border border-[#fef08a]">
+                    💡 <strong>Mẹo nhớ:</strong> {card.mnemonic}
+                  </p>
+                )}
+              </div>
+
+              {/* Back Bottom Prompt */}
+              <div className="flex justify-center pt-1">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3.5 py-1 text-xs font-bold text-[#334155]">
+                  Chạm để quay lại mặt trước
+                </span>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
 
-      <div className="course-vocabulary-flashcard-navigation flex items-center justify-between gap-3">
+      {/* Navigation Bar */}
+      <div className="flex items-center justify-between gap-3 pt-1">
         <button
           type="button"
           onClick={() => goTo(safeIndex - 1)}
-          className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-3.5 text-xs font-bold text-[#5f6b7c] transition-colors hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-35', focusRing)}
+          className={cn(
+            'inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-[#e4d8c8] bg-white px-4 text-xs font-extrabold text-[#475467] transition-all duration-200 hover:border-orange-300 hover:text-[#d83a00] active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 shadow-2xs',
+            focusRing
+          )}
           aria-label="Thẻ trước"
           disabled={safeIndex === 0}
         >
-          <ChevronLeft size={16} aria-hidden="true" focusable="false" /> Thẻ trước
+          <ChevronLeft size={17} aria-hidden="true" /> Thẻ trước
         </button>
-
-        <span className="text-[11px] font-bold text-[#95a0af]">{safeIndex + 1} / {total}</span>
 
         <button
           type="button"
           onClick={() => goTo(safeIndex + 1)}
-          className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-orange-700 px-3.5 text-xs font-bold text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-35', focusRing)}
+          className={cn(
+            'inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-4 text-xs font-extrabold text-white shadow-xs transition-all duration-200 hover:shadow-md hover:from-[#c23400] hover:to-[#d84800] active:scale-95 disabled:cursor-not-allowed disabled:opacity-35',
+            focusRing
+          )}
           aria-label="Thẻ tiếp"
           disabled={safeIndex >= total - 1}
         >
-          Thẻ tiếp <ChevronRight size={16} aria-hidden="true" focusable="false" />
+          Thẻ tiếp <ChevronRight size={17} aria-hidden="true" />
         </button>
       </div>
     </div>

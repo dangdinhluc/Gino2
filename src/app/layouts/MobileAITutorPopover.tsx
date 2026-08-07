@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AITutorChatPanel } from '@/src/features/ai/components/AITutorChatPanel';
 import { useMockTutorChat } from '@/src/features/ai/hooks/useMockTutorChat';
+import { assetPath } from '@/src/shared/lib/assets';
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
@@ -60,37 +61,36 @@ export function MobileAITutorPopover() {
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen((currentState) => !currentState)}
-        aria-label={isOpen ? 'Ẩn chat AI' : 'Mở chat AI'}
+        aria-label={isOpen ? 'Ẩn chat AI' : 'Mở chat AI Tokutei'}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls="floating-ai-tutor-popover"
-        className={`fixed bottom-[5.4rem] right-3 z-[60] hidden min-h-11 min-[375px]:flex md:bottom-5 md:right-5 lg:bottom-6 lg:right-6 xl:right-7 ${focusRing}`}
+        className={`fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-3 z-[60] flex items-center transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 ${focusRing}`}
       >
         <motion.div
           animate={isOpen ? { y: 0, scale: 1 } : { y: [0, -6, 0], scale: 1 }}
-          transition={isOpen ? { duration: 0.18, ease: 'easeOut' } : { duration: 2, repeat: Infinity }}
-          className="relative flex items-center gap-2 rounded-2xl border border-[#e6ddd1] bg-[#fffaf3]/95 p-2 shadow-[0_18px_38px_-30px_rgba(148,163,184,0.22)] lg:rounded-full lg:px-3 lg:py-2.5"
+          transition={isOpen ? { duration: 0.18, ease: 'easeOut' } : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative flex flex-col items-center justify-center filter drop-shadow-[0_10px_20px_rgba(2,132,199,0.3)]"
         >
-          {!isOpen && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1 text-[9px] font-black text-white shadow-sm">1</span>}
-          <div className="relative flex h-8 w-8 items-center justify-center">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 blur-md opacity-20" />
+          {!isOpen && (
+            <span className="absolute -right-0.5 -top-0.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-1 text-[9px] font-black text-white shadow-md border-2 border-white">
+              1
+            </span>
+          )}
+
+          {/* Pure 3D Tanuki Mascot Image without rectangular box */}
+          <div className="relative h-13 w-13 shrink-0 overflow-visible flex items-center justify-center">
             <img
-              src={`${import.meta.env.BASE_URL}mascot.png`}
-              alt="Mascot"
-              className="relative z-10 h-full w-full object-contain"
-              onError={(event) => {
-                event.currentTarget.style.display = 'none';
-                event.currentTarget.parentElement!.innerHTML = '<span class="text-3xl relative">🐯</span>';
-              }}
+              src={assetPath('assets/tanuki_ai_chat_mascot.png')}
+              alt="Tokutei AI Chat Mascot"
+              className="h-full w-full object-contain scale-125"
             />
           </div>
-          <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter text-white shadow-sm">
-            AI
-          </div>
-          <div className="hidden lg:block">
-            <p className="text-[11px] font-black text-gray-900">Hỗ trợ học</p>
-            <p className="text-[10px] font-semibold text-gray-500">Chat nhanh với AI</p>
-          </div>
+
+          {/* AI CHAT Badge Floating Under Mascot */}
+          <span className="mt-0.5 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-white shadow-md border border-white">
+            AI CHAT
+          </span>
         </motion.div>
       </button>
 

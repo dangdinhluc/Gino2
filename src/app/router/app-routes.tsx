@@ -62,9 +62,10 @@ export function AppRoutes() {
       <Route path="friends" element={<FriendsPage />} />
       <Route path="messages" element={<MessagesPage />} />
       <Route path="settings" element={<SettingsPage />} />
-      <Route path="review" element={<ReviewCenterPage />} />
+      <Route path="review" element={<Navigate to="/app/practice" replace />} />
       <Route path="review/flashcards" element={<FlashcardSessionPage />} />
-      <Route path="practice" element={<PracticePage />} />
+      <Route path="practice" element={<ReviewCenterPage />} />
+      <Route path="practice/custom" element={<PracticePage />} />
       <Route path="hub" element={<LearningHubPage />} />
       <Route path="stats" element={<StatsAchievementsPage />} />
       <Route path="profile" element={<ProfilePage />} />

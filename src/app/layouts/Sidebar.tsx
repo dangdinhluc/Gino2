@@ -106,7 +106,7 @@ export function Sidebar() {
   const menuItems: { icon: typeof Home; label: string; path: string; tone: string; badge?: string }[] = [
     { icon: Home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
     { icon: Layout, label: 'Khóa học', path: '/app/courses', tone: 'sky' },
-    { icon: RotateCcw, label: 'Ôn tập', path: '/app/review', badge: dueCount > 0 ? String(dueCount) : undefined, tone: 'emerald' },
+    { icon: Sparkles, label: 'Luyện tập', path: '/app/practice', tone: 'emerald' },
     { icon: GraduationCap, label: 'Luyện thi', path: '/app/exams', tone: 'amber' },
     { icon: Bookmark, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
     { icon: BarChart3, label: 'Thống kê', path: '/app/stats', tone: 'blue' },
