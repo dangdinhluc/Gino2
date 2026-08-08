@@ -108,7 +108,6 @@ export function Sidebar() {
     { icon: Home, imageIcon: assets.shared.navigation.home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
     { icon: Layout, imageIcon: assets.shared.navigation.courses, label: 'Khóa học Tokutei', path: '/app/courses', tone: 'sky' },
     { icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary, label: 'Ôn tập SRS', path: '/app/practice', tone: 'emerald', badge: dueCount > 0 ? `${dueCount}` : undefined },
-    { icon: MessageCircle, imageIcon: assetPath('assets/tanuki_ai_chat_mascot.png'), label: 'Trợ lý AI Chat', path: '/app/ai-chat', tone: 'violet' },
     { icon: GraduationCap, imageIcon: assets.shared.navigation.exams, label: 'Trung tâm Luyện thi', path: '/app/exams', tone: 'amber' },
     { icon: Bookmark, imageIcon: assets.courses.workspace.vocabulary, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
     { icon: BarChart3, imageIcon: assets.games.icons.chart, label: 'Thống kê & Thành tích', path: '/app/stats', tone: 'blue' },
