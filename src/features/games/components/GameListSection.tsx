@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, RotateCcw, Clock } from 'lucide-react';
 import type { CourseGameType } from '@/src/features/games/types';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export interface GameListItem {
   type: CourseGameType;
@@ -28,7 +28,7 @@ const defaultGames: GameListItem[] = [
     description: 'Bay qua thử thách và chọn đúng nghĩa của từ đang học.',
     rounds: 6,
     duration: '2 phút',
-    thumbnail: assetPath('assets/thumb_flappy.png'),
+    thumbnail: assets.games.thumbnails.flappy,
   },
   {
     type: 'vocab-sprint',
@@ -38,7 +38,7 @@ const defaultGames: GameListItem[] = [
     description: 'Chọn nghĩa đúng thật nhanh để củng cố nhóm từ vừa học.',
     rounds: 6,
     duration: '1 phút',
-    thumbnail: assetPath('assets/thumb_sprint.png'),
+    thumbnail: assets.games.thumbnails.sprint,
   },
   {
     type: 'situation-game',
@@ -48,7 +48,7 @@ const defaultGames: GameListItem[] = [
     description: 'Xử lý tình huống bằng câu hỏi ôn tập của khóa này.',
     rounds: 4,
     duration: '2 phút',
-    thumbnail: assetPath('assets/thumb_situation.png'),
+    thumbnail: assets.games.thumbnails.situation,
   },
 ];
 

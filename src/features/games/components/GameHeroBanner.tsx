@@ -1,7 +1,7 @@
 import React from 'react';
 import { Gamepad2, Sparkles, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export function GameHeroBanner() {
   return (
@@ -85,7 +85,7 @@ export function GameHeroBanner() {
             className="cursor-pointer"
           >
             <img
-              src={assetPath('assets/mascot_tanuki.png')}
+              src={assets.games.mascot}
               alt="Tanuki Mascot với Cúp Chiến Thắng"
               className="h-28 w-auto object-contain drop-shadow-[0_8px_16px_rgba(217,74,19,0.18)] sm:h-32"
             />

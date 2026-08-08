@@ -1,5 +1,5 @@
 import React from 'react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export interface GameStats {
   gamesCount: number;
@@ -24,7 +24,7 @@ export function GameStatsGrid({ stats = defaultStats }: GameStatsGridProps) {
       <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs transition-shadow hover:shadow-xs">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-100/70 p-2">
           <img
-            src={assetPath('assets/game-icons/icon_gamepad.png')}
+            src={assets.games.icons.gamepad}
             alt="Game icon"
             className="h-7 w-7 object-contain"
           />
@@ -41,7 +41,7 @@ export function GameStatsGrid({ stats = defaultStats }: GameStatsGridProps) {
       <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs transition-shadow hover:shadow-xs">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-100/70 p-2">
           <img
-            src={assetPath('assets/game-icons/icon_chart.png')}
+            src={assets.games.icons.chart}
             alt="Chart icon"
             className="h-7 w-7 object-contain"
           />
@@ -58,7 +58,7 @@ export function GameStatsGrid({ stats = defaultStats }: GameStatsGridProps) {
       <div className="flex items-center gap-2.5 rounded-[20px] border border-[#f3e8da] bg-[#fffdfa] p-3 shadow-2xs transition-shadow hover:shadow-xs">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100/70 p-2">
           <img
-            src={assetPath('assets/game-icons/icon_trophy.png')}
+            src={assets.games.icons.trophy}
             alt="Trophy icon"
             className="h-7 w-7 object-contain"
           />

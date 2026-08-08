@@ -1,5 +1,5 @@
 import React from 'react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 import { motion } from 'motion/react';
 
 interface FloatingAudioButtonProps {
@@ -22,7 +22,7 @@ export function FloatingAudioButton({ onClick }: FloatingAudioButtonProps) {
         className="relative flex h-13 w-13 items-center justify-center rounded-[20px] border border-white/50 bg-gradient-to-tr from-[#d94a13] via-[#e85b19] to-[#fa7728] p-2 text-white shadow-[0_8px_22px_rgba(217,74,19,0.38)] backdrop-blur-xs transition-shadow hover:shadow-[0_12px_28px_rgba(217,74,19,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
       >
         <img
-          src={assetPath('assets/practice-icons/listening.webp')}
+          src={assets.practice.icons.listening}
           alt="Âm thanh"
           className="h-full w-full object-contain drop-shadow-xs"
         />

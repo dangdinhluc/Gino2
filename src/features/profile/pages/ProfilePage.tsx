@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { assets } from '@/src/shared/lib/assets';
 import {
   Bell,
   BookOpen,
@@ -40,7 +41,7 @@ export default function Profile() {
         <div className="profile-identity-copy">
           <div className="profile-mascot-wrap">
             <img
-              src={`${import.meta.env.BASE_URL}mascot.png`}
+              src={assets.shared.mascots.brand}
               alt="Meow đồng hành học tập"
               className="profile-mascot"
             />

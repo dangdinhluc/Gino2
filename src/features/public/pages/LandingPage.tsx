@@ -10,8 +10,7 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react';
-
-const assetPath = (name: string) => `${import.meta.env.BASE_URL}${name}`;
+import { assets } from '@/src/shared/lib/assets';
 
 const heroStats = [
   { value: '1000+', label: 'TỪ VỰNG' },
@@ -53,7 +52,7 @@ export default function LandingPage() {
       <section className="landing-hero" aria-labelledby="landing-title">
         <div
           className="landing-hero-background"
-          style={{ backgroundImage: `url("${assetPath('english-hero-bg.jpg')}")` }}
+          style={{ backgroundImage: `url("${assets.shared.backgrounds.englishHero}")` }}
           aria-hidden="true"
         />
         <div className="landing-hero-overlay" aria-hidden="true" />
@@ -69,7 +68,7 @@ export default function LandingPage() {
 
         <header className="landing-header">
           <Link className="landing-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
-            <img src={assetPath('meow-mascot.png')} alt="Meow" />
+            <img src={assets.shared.mascots.meow} alt="Meow" />
             <span>
               <strong>TOKUTEI GINO</strong>
               <small>TIẾNG NHẬT ĐI LÀM</small>
@@ -111,7 +110,7 @@ export default function LandingPage() {
 
           <img
             className="landing-mascot"
-            src={assetPath('meow-mascot.png')}
+            src={assets.shared.mascots.meow}
             alt="Mascot Gino đang học tiếng Nhật"
           />
           <div className="landing-floating-badge landing-streak-badge">

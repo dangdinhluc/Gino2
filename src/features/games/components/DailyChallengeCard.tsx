@@ -1,5 +1,5 @@
 import React from 'react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export interface DailyChallengeData {
   title: string;
@@ -34,7 +34,7 @@ export function DailyChallengeCard({ challenge = defaultChallenge, onClaimReward
         {/* Left Calendar 3D Icon */}
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 shadow-xs border border-orange-100">
           <img
-            src={assetPath('assets/game-icons/icon_calendar.png')}
+            src={assets.games.icons.calendar}
             alt="Calendar"
             className="h-9 w-9 object-contain"
           />
@@ -75,7 +75,7 @@ export function DailyChallengeCard({ challenge = defaultChallenge, onClaimReward
           title="Nhận phần thưởng"
         >
           <img
-            src={assetPath('assets/gift_box.png')}
+            src={assets.games.giftBox}
             alt="Gift Box"
             className="h-16 w-16 object-contain drop-shadow-md sm:h-18 sm:w-18"
           />

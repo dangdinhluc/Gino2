@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { decideAuthRouteAccess, type ProtectedRouteArea } from '@/src/features/auth/lib/authRouteDecisions';
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
+import { assets } from '@/src/shared/lib/assets';
 
 const LOCAL_ACCOUNT_EMAILS: Record<ProtectedRouteArea, string> = {
   admin: 'admin@example.test',
@@ -232,7 +233,7 @@ export default function LoginPage({ area }: LoginPageProps) {
               className="pointer-events-none relative hidden items-center gap-4 lg:flex"
             >
               <motion.img
-                src={`${import.meta.env.BASE_URL}mascot.png`}
+                src={assets.shared.mascots.brand}
                 alt=""
                 aria-hidden
                 className="h-32 w-32 object-contain drop-shadow-[0_18px_24px_rgba(201,106,27,0.25)]"

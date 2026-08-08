@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export interface VocabularyOverviewStats {
   learnedCount: number;
@@ -49,7 +49,7 @@ export function VocabularyOverviewCard({ stats = defaultStats }: VocabularyOverv
         {/* Right Large Tanuki Mascot (No Animations, Large Crisp View) */}
         <div className="relative shrink-0 -my-3 -mr-2">
           <img
-            src={assetPath('assets/tanuki_vocab_mascot.png')}
+            src={assets.vocabulary.mascot}
             alt="Tanuki Flashcard Mascot"
             className="h-20 w-auto object-contain drop-shadow-sm sm:h-24 md:h-28"
           />

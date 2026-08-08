@@ -14,7 +14,7 @@ import {
   TabButton,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { Bird, ChevronRight, FileText, Flame, Gamepad2, GraduationCap, Headphones, Home, Layers, Menu, Target, Zap } from 'lucide-react';
+import { Bird, ChevronRight, Flame, Headphones, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -28,19 +28,10 @@ import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/
 import type { CourseGameType } from '@/src/features/games/types';
 import { cn } from '@/src/lib/utils';
 import PracticePage from '@/src/features/review/pages/PracticePage';
-
-import { assetPath } from '@/src/shared/lib/assets';
-
-type WorkspaceTab = 'vocabulary' | 'documents' | 'practice' | 'games' | 'exams';
-
-// Thứ tự tab đi theo mạch học: học từ -> đọc tài liệu -> luyện tập -> chơi -> thi.
-const workspaceTabs = [
-  { id: 'vocabulary', label: 'Từ vựng', icon: Layers, imageIcon: assetPath('assets/course-workspace-icons/workspace_vocab.png') },
-  { id: 'documents', label: 'Tài liệu', icon: FileText, imageIcon: assetPath('assets/course-workspace-icons/workspace_documents.png') },
-  { id: 'practice', label: 'Luyện tập', icon: Target, imageIcon: assetPath('assets/course-workspace-icons/workspace_practice.png') },
-  { id: 'games', label: 'Game', icon: Gamepad2, imageIcon: assetPath('assets/course-workspace-icons/workspace_game.png') },
-  { id: 'exams', label: 'Thi thử', icon: GraduationCap, imageIcon: assetPath('assets/course-workspace-icons/workspace_exam.png') },
-] satisfies Array<{ id: WorkspaceTab; label: string; icon: typeof Layers; imageIcon: string }>;
+import {
+  courseWorkspaceTabs,
+  type CourseWorkspaceSection,
+} from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
 function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
   return documents[0];
@@ -80,7 +71,7 @@ export default function CourseLearningWorkspace() {
   const weeklyXp = useProgressStore((state) => state.weeklyXp);
   const learnerLevel = Math.floor(weeklyXp / 500) + 1;
 
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('vocabulary');
+  const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>('vocabulary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMenuGuideVisible, setIsMenuGuideVisible] = useState(false);
   const [activeExam, setActiveExam] = useState<CourseExamItem | null>(null);
@@ -334,7 +325,7 @@ export default function CourseLearningWorkspace() {
     }, 1200);
   };
 
-  const handleWorkspaceTabSelect = (tab: WorkspaceTab) => {
+  const handleWorkspaceTabSelect = (tab: CourseWorkspaceSection) => {
     setActiveTab(tab);
   };
 
@@ -352,32 +343,34 @@ export default function CourseLearningWorkspace() {
     setIsMenuOpen(true);
   };
 
-  const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: WorkspaceTab) => {
-    const currentIndex = workspaceTabs.findIndex((tab) => tab.id === currentTab);
+  const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: CourseWorkspaceSection) => {
+    const currentIndex = courseWorkspaceTabs.findIndex((tab) => tab.id === currentTab);
     let nextIndex = currentIndex;
 
     if (event.key === 'ArrowRight') {
-      nextIndex = (currentIndex + 1) % workspaceTabs.length;
+      nextIndex = (currentIndex + 1) % courseWorkspaceTabs.length;
     } else if (event.key === 'ArrowLeft') {
-      nextIndex = (currentIndex - 1 + workspaceTabs.length) % workspaceTabs.length;
+      nextIndex = (currentIndex - 1 + courseWorkspaceTabs.length) % courseWorkspaceTabs.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
     } else if (event.key === 'End') {
-      nextIndex = workspaceTabs.length - 1;
+      nextIndex = courseWorkspaceTabs.length - 1;
     } else {
       return;
     }
 
     event.preventDefault();
-    const nextTab = workspaceTabs[nextIndex];
+    const nextTab = courseWorkspaceTabs[nextIndex];
     setActiveTab(nextTab.id);
     window.requestAnimationFrame(() => {
-      document.getElementById(`course-workspace-compact-tab-${nextTab.id}`)?.focus();
+      document
+        .getElementById(`course-workspace-${event.currentTarget.id.includes('-rail-') ? 'rail' : 'compact'}-tab-${nextTab.id}`)
+        ?.focus();
     });
   };
 
   // Menu tổng: chuyển khu vực trong khóa hoặc đi ra ngoài (gồm trở về trang chủ).
-  const handleSelectSection = (section: WorkspaceTab) => {
+  const handleSelectSection = (section: CourseWorkspaceSection) => {
     setActiveTab(section);
     setIsMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -395,12 +388,12 @@ export default function CourseLearningWorkspace() {
     <div
       data-course-workspace-background
       className={cn(
-        'relative min-h-[calc(100dvh-1.5rem)] space-y-4',
+        'course-learning-workspace relative min-h-[calc(100dvh-1.5rem)] space-y-4',
         isReviewSessionActive ? 'pb-8' : 'pb-[calc(6.25rem+env(safe-area-inset-bottom))]'
       )}
     >
       {/* Ultra-Modern Floating Workspace Header */}
-      <header className="sticky top-0 z-40 -mx-3 border-b border-[#eedecf]/80 bg-[#fffaf5]/96 px-3.5 py-2 backdrop-blur-xl shadow-[0_2px_12px_rgba(217,74,19,0.04)]">
+      <header className="course-workspace-header sticky top-0 z-40 -mx-3 border-b border-[#eedecf]/80 bg-[#fffaf5]/96 px-3.5 py-2 backdrop-blur-xl shadow-[0_2px_12px_rgba(217,74,19,0.04)]">
         <div className="mx-auto flex w-full max-w-[980px] items-center justify-between gap-3">
           {/* Left: 3D Mascot Menu Drawer Trigger */}
           <div className="relative shrink-0">
@@ -513,9 +506,39 @@ export default function CourseLearningWorkspace() {
         </div>
       </header>
 
-      <main className={cn('mx-auto w-full', activeTab === 'practice' || activeTab === 'exams' ? 'max-w-none' : 'max-w-[980px]')}>
+      <nav className="course-workspace-desktop-tabs" role="tablist" aria-label="Chọn khu vực học trong khóa">
+        {courseWorkspaceTabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`course-workspace-rail-tab-${tab.id}`}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={isActive ? `course-workspace-panel-${tab.id}` : undefined}
+              tabIndex={isActive ? 0 : -1}
+              onKeyDown={(event) => handleWorkspaceTabKeyDown(event, tab.id)}
+              onClick={() => handleWorkspaceTabSelect(tab.id)}
+              className={cn('course-workspace-desktop-tab', isActive && 'is-active', focusRing)}
+            >
+              <span className="course-workspace-desktop-tab-icon">
+                <img src={tab.imageIcon} alt="" />
+              </span>
+              <span className="course-workspace-desktop-tab-copy">
+                <span>{tab.label}</span>
+                <small>{tab.hint}</small>
+              </span>
+              <ChevronRight className="course-workspace-desktop-tab-arrow" size={16} aria-hidden="true" />
+            </button>
+          );
+        })}
+      </nav>
+
+      <main className={cn('course-workspace-main mx-auto w-full', activeTab === 'practice' || activeTab === 'exams' ? 'max-w-none' : 'max-w-[980px]')}>
         <AnimatePresence mode="wait">
           <motion.div
+            className="course-workspace-panel"
             key={activeTab}
             id={`course-workspace-panel-${activeTab}`}
             role={isReviewSessionActive ? undefined : 'tabpanel'}
@@ -548,7 +571,7 @@ export default function CourseLearningWorkspace() {
               />
             )}
             {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
-            {activeTab === 'practice' && <PracticePage embedded courseSections={vocabularyCategories} />}
+            {activeTab === 'practice' && <PracticePage embedded />}
             {activeTab === 'games' && (
               <GamesPanel
                 activeGameType={activeGameType}
@@ -565,9 +588,9 @@ export default function CourseLearningWorkspace() {
       </main>
 
       {!isReviewSessionActive && (
-        <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
+        <nav className="course-workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
           <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
-            {workspaceTabs.map((tab) => (
+            {courseWorkspaceTabs.map((tab) => (
               <div key={tab.id} className="min-w-0" role="presentation">
                 <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
               </div>

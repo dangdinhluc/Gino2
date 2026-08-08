@@ -3,7 +3,7 @@ import { ArrowRight, Check, ChevronDown, Clock3, Play, RotateCcw, Sparkles } fro
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { FloatingAudioButton } from '@/src/features/games/components/FloatingAudioButton';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 type PracticeKind = 'vocabulary' | 'question' | 'all';
 
@@ -16,12 +16,12 @@ interface ScopeOption {
 }
 
 const scopes: ScopeOption[] = [
-  { id: 'all', title: 'Tất cả chủ đề', subtitle: 'Toàn bộ từ vựng & câu hỏi', countText: '120+ câu', icon: assetPath('assets/practice-icons/goal.webp') },
-  { id: 'workplace', title: 'Workplace cơ bản', subtitle: 'Từ vựng & hội thoại nơi làm việc', countText: '35 câu', icon: assetPath('assets/practice-icons/vocabulary-book.webp') },
-  { id: 'communication', title: 'Giao tiếp hàng ngày', subtitle: 'Phản xạ giao tiếp với đồng nghiệp', countText: '40 câu', icon: assetPath('assets/practice-icons/flashcards.webp') },
-  { id: 'advanced', title: 'Từ vựng Nâng cao', subtitle: 'Chuyên môn & an toàn lao động', countText: '30 câu', icon: assetPath('assets/practice-icons/badge-orange-aa.webp') },
-  { id: 'grammar', title: 'Ngữ pháp mẫu câu', subtitle: 'Các mẫu ngữ pháp N4-N3 trọng tâm', countText: '25 câu', icon: assetPath('assets/practice-icons/worksheet-quiz.webp') },
-  { id: 'listening', title: 'Nghe hiểuTokutei', subtitle: 'Luyện phản xạ âm thanh & hội thoại', countText: '20 câu', icon: assetPath('assets/practice-icons/listening.webp') },
+  { id: 'all', title: 'Tất cả chủ đề', subtitle: 'Toàn bộ từ vựng & câu hỏi', countText: '120+ câu', icon: assets.practice.icons.goal },
+  { id: 'workplace', title: 'Workplace cơ bản', subtitle: 'Từ vựng & hội thoại nơi làm việc', countText: '35 câu', icon: assets.practice.icons.vocabularyBook },
+  { id: 'communication', title: 'Giao tiếp hàng ngày', subtitle: 'Phản xạ giao tiếp với đồng nghiệp', countText: '40 câu', icon: assets.practice.icons.flashcards },
+  { id: 'advanced', title: 'Từ vựng Nâng cao', subtitle: 'Chuyên môn & an toàn lao động', countText: '30 câu', icon: assets.practice.icons.badgeOrangeAa },
+  { id: 'grammar', title: 'Ngữ pháp mẫu câu', subtitle: 'Các mẫu ngữ pháp N4-N3 trọng tâm', countText: '25 câu', icon: assets.practice.icons.worksheetQuiz },
+  { id: 'listening', title: 'Nghe hiểuTokutei', subtitle: 'Luyện phản xạ âm thanh & hội thoại', countText: '20 câu', icon: assets.practice.icons.listening },
 ];
 
 const countOptions = [
@@ -78,7 +78,7 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
 
           <div className="relative shrink-0 block -my-1 -mr-1 sm:-my-2 sm:-mr-2">
             <img
-              src={assetPath('assets/practice-icons/hero-workbook.webp')}
+              src={assets.practice.icons.heroWorkbook}
               alt="Hero workbook"
               className="h-16 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-28 drop-shadow-md"
             />
@@ -89,9 +89,9 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
       {/* Stats Summary */}
       <section className="grid grid-cols-3 gap-1 rounded-[22px] border border-[#f5ece1] bg-white p-2.5 sm:p-4 shadow-[0_6px_20px_rgba(217,74,19,0.05)] divide-x divide-[#f5ece1]">
         {[
-          { value: '12', label: 'bài đã luyện', icon: assetPath('assets/practice-icons/completed.webp') },
-          { value: '86%', label: 'độ chính xác', icon: assetPath('assets/practice-icons/goal.webp') },
-          { value: String(streak || 5), label: 'ngày liên tiếp', icon: assetPath('assets/practice-icons/streak.webp') },
+          { value: '12', label: 'bài đã luyện', icon: assets.practice.icons.completed },
+          { value: '86%', label: 'độ chính xác', icon: assets.practice.icons.goal },
+          { value: String(streak || 5), label: 'ngày liên tiếp', icon: assets.practice.icons.streak },
         ].map((stat) => (
           <div key={stat.label} className="flex flex-col items-center justify-center text-center px-1 sm:px-2 space-y-0.5">
             <div className="flex items-center gap-1 text-[10px] font-semibold text-[#717d8f] sm:text-xs">
@@ -122,19 +122,19 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
                 id: 'vocabulary' as const,
                 label: 'Từ vựng',
                 subLabel: 'Ôn từ & cụm từ',
-                icon: assetPath('assets/course-workspace-icons/workspace_vocab.png'),
+                icon: assets.courses.workspace.vocabulary,
               },
               {
                 id: 'question' as const,
                 label: 'Câu hỏi',
                 subLabel: 'Làm bài kiểm tra',
-                icon: assetPath('assets/course-workspace-icons/workspace_exam.png'),
+                icon: assets.courses.workspace.exam,
               },
               {
                 id: 'all' as const,
                 label: 'Hỗn hợp',
                 subLabel: 'Kết hợp cả hai',
-                icon: assetPath('assets/course-workspace-icons/workspace_practice.png'),
+                icon: assets.courses.workspace.practice,
               },
             ].map((option) => {
               const isActive = selectedKind === option.id;
@@ -271,7 +271,7 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
               score: 88,
               detail: '13/15 câu đúng',
               minutes: '8 phút',
-              icon: assetPath('assets/practice-icons/goal.webp'),
+              icon: assets.practice.icons.goal,
               tone: 'bg-[#edf9e9]',
               scoreTone: 'text-emerald-600',
             },
@@ -281,7 +281,7 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
               score: 76,
               detail: '19/25 câu đúng',
               minutes: '11 phút',
-              icon: assetPath('assets/practice-icons/listening.webp'),
+              icon: assets.practice.icons.listening,
               tone: 'bg-[#f0edff]',
               scoreTone: 'text-amber-600',
             },
@@ -317,5 +317,4 @@ export default function PracticePage({ embedded = false }: { embedded?: boolean 
     </div>
   );
 }
-
 

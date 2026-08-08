@@ -29,7 +29,7 @@ import {
 } from '@/src/features/review/lib/reviewSelectors';
 import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export default function ReviewCenter() {
   const states = useReviewStore((state) => state.states);
@@ -110,7 +110,7 @@ export default function ReviewCenter() {
             {/* Right 3D Illustration */}
             <div className="relative shrink-0 hidden sm:block">
               <img
-                src={assetPath('assets/course-workspace-icons/workspace_vocab.png')}
+                src={assets.courses.workspace.vocabulary}
                 alt="SRS Review Mascot"
                 className="h-20 w-auto object-contain drop-shadow-md"
               />

@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { assets } from '@/src/shared/lib/assets';
 
 export const APP_BACKGROUNDS = [
   {
     id: 'sakura',
     label: 'Hoa anh đào',
     description: 'Nền chính của Tokutei Gino',
-    preview: "url('/english-hero-bg.jpg') center / cover",
+    preview: `url('${assets.shared.backgrounds.englishHero}') center / cover`,
   },
   {
     id: 'paper',
@@ -17,7 +18,7 @@ export const APP_BACKGROUNDS = [
     id: 'night',
     label: 'Đêm yên tĩnh',
     description: 'Nền tối dịu cho buổi học muộn',
-    preview: "linear-gradient(135deg, rgba(27, 22, 27, 0.82), rgba(73, 45, 50, 0.8)), url('/dashboard-library-bg.png') center / cover",
+    preview: `linear-gradient(135deg, rgba(27, 22, 27, 0.82), rgba(73, 45, 50, 0.8)), url('${assets.shared.backgrounds.dashboardLibrary}') center / cover`,
   },
 ] as const;
 
@@ -39,6 +40,11 @@ function getInitialBackground(): AppBackgroundId {
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const [background, setBackground] = useState<AppBackgroundId>(getInitialBackground);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--asset-english-hero-background', `url("${assets.shared.backgrounds.englishHero}")`);
+    document.documentElement.style.setProperty('--asset-dashboard-library-background', `url("${assets.shared.backgrounds.dashboardLibrary}")`);
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.appBackground = background;

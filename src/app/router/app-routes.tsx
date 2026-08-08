@@ -2,12 +2,9 @@ import { Navigate, Route } from 'react-router-dom';
 import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 import DashboardPage from '@/src/features/dashboard/pages/DashboardPage';
-import SearchPage from '@/src/features/dashboard/pages/SearchPage';
 import StatsAchievementsPage from '@/src/features/dashboard/pages/StatsAchievementsPage';
-import RoadmapPage from '@/src/features/roadmap/pages/RoadmapPage';
 import CourseListPage from '@/src/features/courses/pages/CourseListPage';
 import CourseLearningPage from '@/src/features/courses/pages/CourseLearningPage';
-import LessonPlayerPage from '@/src/features/courses/pages/LessonPlayerPage';
 import ExamCenterPage from '@/src/features/exams/pages/ExamCenterPage';
 import ExamRunnerPage from '@/src/features/exams/pages/ExamRunnerPage';
 import ExamResultPage from '@/src/features/exams/pages/ExamResultPage';
@@ -41,18 +38,15 @@ export function AppRoutes() {
     >
       <Route index element={<Navigate to="/app/dashboard" replace />} />
       <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="roadmap" element={<RoadmapPage />} />
       <Route path="courses" element={<CourseListPage />} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
       <Route path="courses/:id/learn" element={<CourseLearningPage />} />
-      <Route path="courses/:id/lessons/:lessonId" element={<LessonPlayerPage />} />
       <Route path="exams" element={<ExamCenterPage />} />
       <Route path="exams/:id/start" element={<ExamRunnerPage />} />
       <Route path="exams/:id/result" element={<ExamResultPage />} />
       <Route path="grammar" element={<GrammarLibraryPage />} />
       <Route path="grammar/:id" element={<GrammarTopicDetailPage />} />
       <Route path="vocabulary/:wordId" element={<VocabularyDetailPage />} />
-      <Route path="search" element={<SearchPage />} />
       <Route path="ai-lab" element={<AIWritingLabPage />} />
       <Route path="ai-lab/history" element={<WritingHistoryPage />} />
       <Route path="ai-speak" element={<AISprechenLabPage />} />

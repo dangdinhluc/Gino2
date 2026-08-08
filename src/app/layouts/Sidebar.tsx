@@ -21,6 +21,7 @@ import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
 import { startOfDay, xpForRating } from '@/src/features/review/lib/srs';
+import { assetPath, assets } from '@/src/shared/lib/assets';
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -103,13 +104,14 @@ export function Sidebar() {
   const totalXp = totalReviewXp + weeklyXp;
   const level = Math.floor(totalXp / 300) + 1;
 
-  const menuItems: { icon: typeof Home; label: string; path: string; tone: string; badge?: string }[] = [
-    { icon: Home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
-    { icon: Layout, label: 'Khóa học', path: '/app/courses', tone: 'sky' },
-    { icon: Sparkles, label: 'Luyện tập', path: '/app/practice', tone: 'emerald' },
-    { icon: GraduationCap, label: 'Luyện thi', path: '/app/exams', tone: 'amber' },
-    { icon: Bookmark, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
-    { icon: BarChart3, label: 'Thống kê', path: '/app/stats', tone: 'blue' },
+  const menuItems: { icon: typeof Home; imageIcon?: string; label: string; path: string; tone: string; badge?: string }[] = [
+    { icon: Home, imageIcon: assets.shared.navigation.home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
+    { icon: Layout, imageIcon: assets.shared.navigation.courses, label: 'Khóa học Tokutei', path: '/app/courses', tone: 'sky' },
+    { icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary, label: 'Ôn tập SRS', path: '/app/practice', tone: 'emerald', badge: dueCount > 0 ? `${dueCount}` : undefined },
+    { icon: MessageCircle, imageIcon: assetPath('assets/tanuki_ai_chat_mascot.png'), label: 'Trợ lý AI Chat', path: '/app/ai-chat', tone: 'violet' },
+    { icon: GraduationCap, imageIcon: assets.shared.navigation.exams, label: 'Trung tâm Luyện thi', path: '/app/exams', tone: 'amber' },
+    { icon: Bookmark, imageIcon: assets.courses.workspace.vocabulary, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
+    { icon: BarChart3, imageIcon: assets.games.icons.chart, label: 'Thống kê & Thành tích', path: '/app/stats', tone: 'blue' },
     { icon: Settings, label: 'Cài đặt', path: '/app/settings', tone: 'sky' },
   ];
 
@@ -136,17 +138,17 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'relative z-30 hidden h-full min-h-0 overflow-visible border-r border-[#e7ddcf] bg-[linear-gradient(180deg,rgba(255,251,245,0.96)_0%,rgba(247,242,234,0.98)_100%)] shadow-[0_24px_50px_-38px_rgba(148,163,184,0.18)] md:flex md:flex-col',
-        isCollapsed ? 'w-20' : 'w-20 xl:w-[17rem]'
+        'relative z-30 hidden h-full min-h-0 overflow-visible border-r border-[#e7ddcf] bg-[linear-gradient(180deg,rgba(255,251,245,0.96)_0%,rgba(247,242,234,0.98)_100%)] shadow-[0_24px_50px_-38px_rgba(148,163,184,0.18)] lg:flex lg:flex-col',
+        isCollapsed ? 'w-20' : 'w-20 lg:w-[16rem] xl:w-[17rem]'
       )}
     >
-      <div className={cn('shrink-0 pb-3 pt-4', isCollapsed ? 'px-2.5' : 'px-2.5 xl:px-4')}>
+      <div className={cn('shrink-0 pb-3 pt-4', isCollapsed ? 'px-2.5' : 'px-2.5 lg:px-4')}>
         <div
           className={cn(
             'relative flex items-center',
             isCollapsed
               ? 'flex-col justify-center gap-3'
-              : 'flex-col justify-center gap-3 xl:flex-row xl:justify-start xl:gap-2 xl:px-2 xl:pr-12'
+              : 'flex-col justify-center gap-3 lg:flex-row lg:justify-start lg:gap-2 lg:px-2 lg:pr-12'
           )}
         >
           <div className={cn('flex min-w-0 items-center gap-2', isCollapsed && 'justify-center')}>
@@ -154,7 +156,7 @@ export function Sidebar() {
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-50 blur-md" />
               <div className="relative flex h-full w-full items-center justify-center rounded-full bg-white shadow-lg">
                 <img
-                  src={`${import.meta.env.BASE_URL}mascot.png`}
+                  src={assets.shared.mascots.brand}
                   alt="Mascot"
                   className="h-full w-full object-contain p-1"
                   onError={(e) => {
@@ -165,7 +167,7 @@ export function Sidebar() {
               </div>
             </motion.div>
             {!isCollapsed && (
-              <h1 className="hidden truncate whitespace-nowrap text-xl font-black italic tracking-tighter text-gray-800 uppercase xl:block">
+              <h1 className="hidden truncate whitespace-nowrap text-xl font-black italic tracking-tighter text-gray-800 uppercase lg:block">
                 TOKUTEI<span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent"> GINO</span>
               </h1>
             )}
@@ -178,27 +180,27 @@ export function Sidebar() {
             aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
             title={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
             className={cn(
-              'hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e1d8cb] bg-[#fffaf3] text-orange-500 shadow-[0_14px_28px_-22px_rgba(148,163,184,0.2)] transition-colors hover:border-[#dccfbe] hover:bg-[#f8f1e6] xl:flex',
-              isCollapsed ? 'relative' : 'relative xl:absolute xl:right-2 xl:top-1/2 xl:-translate-y-1/2'
+              'hidden h-9 w-9 items-center justify-center rounded-xl border border-[#e1d8cb] bg-[#fffaf3] text-orange-500 shadow-[0_14px_28px_-22px_rgba(148,163,184,0.2)] transition-colors hover:border-[#dccfbe] hover:bg-[#f8f1e6] lg:flex',
+              isCollapsed ? 'relative' : 'relative lg:absolute lg:right-2 lg:top-1/2 lg:-translate-y-1/2'
             )}
           >
             {isCollapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
           </motion.button>
         </div>
 
-        {!isCollapsed && <div className="mx-2 mt-4 hidden h-px bg-gradient-to-r from-transparent via-[#eadfce] to-transparent xl:block" />}
+        {!isCollapsed && <div className="mx-2 mt-4 hidden h-px bg-gradient-to-r from-transparent via-[#eadfce] to-transparent lg:block" />}
       </div>
 
       <div
         className={cn(
           'no-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-2',
-          isCollapsed ? 'px-2.5' : 'px-2.5 xl:px-4'
+          isCollapsed ? 'px-2.5' : 'px-2.5 lg:px-4'
         )}
       >
         <nav
           className={cn(
             'w-full rounded-[1.75rem] border border-[#e6ddd1] bg-[#fffaf3]/86 p-2.5 shadow-[0_18px_42px_-34px_rgba(148,163,184,0.16)] backdrop-blur-sm',
-            isCollapsed ? 'px-2 py-2.5' : 'px-2 py-2.5 xl:p-2.5'
+            isCollapsed ? 'px-2 py-2.5' : 'px-2 py-2.5 lg:p-2.5'
           )}
         >
           <div className={cn('space-y-1.5', isCollapsed && 'space-y-2')}>
@@ -211,7 +213,7 @@ export function Sidebar() {
                   className={({ isActive }) =>
                     cn(
                       'group relative flex items-center justify-between overflow-visible rounded-2xl border font-bold transition-all whitespace-nowrap',
-                      isCollapsed ? 'h-12 w-full justify-center px-0' : 'h-12 w-full justify-center px-0 xl:h-auto xl:justify-between xl:px-2.5 xl:py-2.5 xl:text-sm',
+                      isCollapsed ? 'h-12 w-full justify-center px-0' : 'h-12 w-full justify-center px-0 lg:h-auto lg:justify-between lg:px-2.5 lg:py-2.5 lg:text-sm',
                       isActive
                         ? tone.active
                         : 'border-transparent text-gray-500 hover:border-orange-100 hover:bg-white hover:text-gray-900 hover:shadow-sm'
@@ -229,18 +231,22 @@ export function Sidebar() {
                       <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
                         <div
                           className={cn(
-                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-white transition-all',
+                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-white p-1 transition-all overflow-hidden',
                             isActive ? tone.icon : cn('border-slate-200 text-gray-400', tone.hover)
                           )}
                         >
-                          <item.icon size={isCollapsed ? 19 : 17} className="shrink-0" />
+                          {item.imageIcon ? (
+                            <img src={item.imageIcon} alt="" className="h-full w-full object-contain drop-shadow-2xs transition-transform group-hover:scale-110" />
+                          ) : (
+                            <item.icon size={isCollapsed ? 19 : 17} className="shrink-0" />
+                          )}
                         </div>
-                        {!isCollapsed && <span className="hidden xl:inline">{item.label}</span>}
+                        {!isCollapsed && <span className="hidden lg:inline">{item.label}</span>}
                       </div>
                       {!isCollapsed && item.badge && (
                         <span
                           className={cn(
-                            'hidden h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-gradient-to-r px-1 text-[10px] font-black text-white shadow-sm xl:flex',
+                            'hidden h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-gradient-to-r px-1 text-[10px] font-black text-white shadow-sm lg:flex',
                             tone.badge
                           )}
                         >
@@ -250,7 +256,7 @@ export function Sidebar() {
                       {!isCollapsed && item.badge && (
                         <span
                           className={cn(
-                            'absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r text-[8px] font-black text-white shadow-sm xl:hidden',
+                            'absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r text-[8px] font-black text-white shadow-sm lg:hidden',
                             tone.badge
                           )}
                         >
@@ -278,11 +284,11 @@ export function Sidebar() {
         <nav
           className={cn(
             'mt-4 w-full rounded-[1.75rem] border border-[#e6ddd1] bg-[#fffaf3]/86 p-2.5 shadow-[0_18px_42px_-34px_rgba(148,163,184,0.16)] backdrop-blur-sm',
-            isCollapsed ? 'px-2 py-2.5' : 'px-2 py-2.5 xl:p-2.5'
+            isCollapsed ? 'px-2 py-2.5' : 'px-2 py-2.5 lg:p-2.5'
           )}
         >
           {!isCollapsed && (
-            <p className="mb-2 hidden whitespace-nowrap px-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400 xl:block">
+            <p className="mb-2 hidden whitespace-nowrap px-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400 lg:block">
               Cộng đồng
             </p>
           )}
@@ -296,7 +302,7 @@ export function Sidebar() {
                   className={({ isActive }) =>
                     cn(
                       'group relative flex items-center justify-between overflow-visible rounded-2xl border font-bold transition-all whitespace-nowrap',
-                      isCollapsed ? 'h-12 w-full justify-center px-0' : 'h-12 w-full justify-center px-0 xl:h-auto xl:justify-between xl:px-2.5 xl:py-2.5 xl:text-sm',
+                      isCollapsed ? 'h-12 w-full justify-center px-0' : 'h-12 w-full justify-center px-0 lg:h-auto lg:justify-between lg:px-2.5 lg:py-2.5 lg:text-sm',
                       isActive
                         ? tone.active
                         : 'border-transparent text-gray-500 hover:border-orange-100 hover:bg-white hover:text-gray-900 hover:shadow-sm'
@@ -320,7 +326,7 @@ export function Sidebar() {
                         >
                           <item.icon size={isCollapsed ? 19 : 17} className="shrink-0" />
                         </div>
-                        {!isCollapsed && <span className="hidden xl:inline">{item.label}</span>}
+                        {!isCollapsed && <span className="hidden lg:inline">{item.label}</span>}
                       </div>
                     </>
                   )}
@@ -335,7 +341,7 @@ export function Sidebar() {
         ref={profileRef}
         className={cn(
           'relative shrink-0 border-t border-[#e6ddd1] bg-[#fffaf3]/72 backdrop-blur-sm',
-          isCollapsed ? 'p-2.5' : 'p-2.5 xl:p-4'
+          isCollapsed ? 'p-2.5' : 'p-2.5 lg:p-4'
         )}
       >
         <div className="relative">
@@ -349,7 +355,7 @@ export function Sidebar() {
             onBlur={hideRailHint}
             className={cn(
               'group relative flex w-full items-center overflow-visible rounded-[1.4rem] border border-[#e6ddd1] bg-[#fffaf3]/92 shadow-[0_18px_40px_-32px_rgba(148,163,184,0.18)] transition-all hover:border-[#dccfbe] hover:shadow-[0_22px_46px_-32px_rgba(180,138,91,0.16)]',
-              isCollapsed ? 'justify-center px-0 py-2.5' : 'justify-center px-0 py-2.5 xl:justify-start xl:px-3.5 xl:py-3 xl:pr-12'
+              isCollapsed ? 'justify-center px-0 py-2.5' : 'justify-center px-0 py-2.5 lg:justify-start lg:px-3.5 lg:py-3 lg:pr-12'
             )}
             title="Hồ sơ học tập"
             aria-label="Hồ sơ học tập"
@@ -364,7 +370,7 @@ export function Sidebar() {
                 </div>
               </div>
               {!isCollapsed && (
-                <div className="hidden text-left xl:block">
+                <div className="hidden text-left lg:block">
                   <div className="text-sm font-black uppercase text-gray-800">Anh</div>
                   <div className="mt-0.5 flex items-center gap-2 text-[10px] font-bold text-gray-400">
                     <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">Tokutei Track</span>
@@ -376,7 +382,7 @@ export function Sidebar() {
           </motion.button>
 
           {!isCollapsed && (
-            <div className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-[#e1d8cb] bg-[#fffaf3] text-orange-400 xl:flex">
+            <div className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-[#e1d8cb] bg-[#fffaf3] text-orange-400 lg:flex">
               <Sparkles size={15} />
             </div>
           )}
@@ -392,7 +398,7 @@ export function Sidebar() {
                 'absolute z-40 overflow-hidden rounded-[1.75rem] border border-[#e6ddd1] bg-[#fffaf3] p-4 shadow-[0_28px_60px_-34px_rgba(148,163,184,0.22)]',
                 isCollapsed
                   ? 'bottom-4 left-full ml-3 w-72'
-                  : 'bottom-4 left-full ml-3 w-72 xl:bottom-full xl:left-4 xl:right-4 xl:mb-3 xl:ml-0 xl:w-auto'
+                  : 'bottom-4 left-full ml-3 w-72 lg:bottom-full lg:left-4 lg:right-4 lg:mb-3 lg:ml-0 lg:w-auto'
               )}
             >
               <div className="space-y-4">

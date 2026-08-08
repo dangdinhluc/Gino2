@@ -14,15 +14,14 @@ import {
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
 import { useReviewStore } from '@/src/features/review/store/reviewStore';
-
-const assetPath = (name: string) => `${import.meta.env.BASE_URL}${name}`;
+import { assets } from '@/src/shared/lib/assets';
 
 const bottomItems = [
-  { label: 'Trang chủ', path: '/app/dashboard', icon: Home, imageIcon: assetPath('assets/nav-icons/nav_home.png') },
-  { label: 'Khóa học', path: '/app/courses', icon: BookOpen, imageIcon: assetPath('assets/nav-icons/nav_courses.png') },
-  { label: 'Ôn tập', path: '/app/practice', icon: Sparkles, imageIcon: assetPath('assets/nav-icons/nav_vocabulary.png') },
-  { label: 'Luyện thi', path: '/app/exams', icon: ClipboardCheck, imageIcon: assetPath('assets/nav-icons/nav_exams.png') },
-  { label: 'Cá nhân', path: '/app/profile', icon: UserRound, imageIcon: assetPath('assets/nav-icons/nav_profile.png') },
+  { label: 'Trang chủ', path: '/app/dashboard', icon: Home, imageIcon: assets.shared.navigation.home },
+  { label: 'Khóa học', path: '/app/courses', icon: BookOpen, imageIcon: assets.shared.navigation.courses },
+  { label: 'Ôn tập', path: '/app/practice', icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary },
+  { label: 'Luyện thi', path: '/app/exams', icon: ClipboardCheck, imageIcon: assets.shared.navigation.exams },
+  { label: 'Cá nhân', path: '/app/profile', icon: UserRound, imageIcon: assets.shared.navigation.profile },
 ];
 
 export function TokuteiAppChrome() {
@@ -32,9 +31,9 @@ export function TokuteiAppChrome() {
 
   return (
     <>
-      <header className="dashboard-topbar">
+      <header className="dashboard-topbar tokutei-mobile-chrome">
         <Link to="/app/dashboard" className="dashboard-brand" aria-label="TOKUTEI GINO - Trang chủ">
-          <img src={assetPath('meow-mascot.png')} alt="Meow" />
+          <img src={assets.shared.mascots.meow} alt="Meow" />
           <span>
             <strong>TOKUTEI GINO</strong>
             <small>TIẾNG NHẬT ĐI LÀM</small>
@@ -90,7 +89,7 @@ export function TokuteiAppChrome() {
               </button>
 
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] shadow-md">
-                <img src={assetPath('meow-mascot.png')} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
+                <img src={assets.shared.mascots.meow} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
               </div>
 
               <div>

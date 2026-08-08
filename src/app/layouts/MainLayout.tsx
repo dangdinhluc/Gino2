@@ -24,12 +24,12 @@ export function MainLayout() {
 
   return (
     <div className="app-layout-root flex h-[100dvh] overflow-hidden">
-      {!isFocusRoute && !useTokuteiChrome && <Sidebar />}
-      <main ref={mainRef} className={`relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain ${useTokuteiChrome ? 'tokutei-app-main' : ''}`}>
+      {!isFocusRoute && <Sidebar />}
+      <main ref={mainRef} className={`desktop-workspace-main relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain ${useTokuteiChrome ? 'tokutei-app-main' : ''}`}>
         {!isFocusRoute && !useTokuteiChrome && <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.06),transparent_34%)]" />}
         {!isFocusRoute && !useTokuteiChrome && <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.035),transparent_72%)]" />}
         {useTokuteiChrome && !isDashboardRoute && <TokuteiAppChrome />}
-        <div className={`app-route-shell relative z-10 ${!isFocusRoute ? 'app-route-shell-wide' : ''} ${isFocusRoute ? 'app-route-shell-focus' : ''} ${isDashboardRoute ? 'app-route-shell-dashboard' : ''}`}>
+        <div className={`app-route-shell desktop-route-frame relative z-10 ${!isFocusRoute ? 'app-route-shell-wide' : ''} ${isFocusRoute ? 'app-route-shell-focus' : ''} ${isDashboardRoute ? 'app-route-shell-dashboard' : ''}`}>
           <Outlet />
         </div>
       </main>

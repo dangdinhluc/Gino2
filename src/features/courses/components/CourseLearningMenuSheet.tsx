@@ -17,18 +17,10 @@ import {
   Zap,
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { assetPath } from '@/src/shared/lib/assets';
-
-export type CourseMenuSection = 'vocabulary' | 'documents' | 'practice' | 'games' | 'exams';
-
-// Các khu vực bên trong khóa học đang mở.
-const sectionItems = [
-  { id: 'vocabulary', label: 'Từ vựng', hint: 'Danh sách từ & Flashcards', imageIcon: assetPath('assets/course-workspace-icons/workspace_vocab.png') },
-  { id: 'documents', label: 'Tài liệu', hint: 'Bài đọc, quy trình & hội thoại', imageIcon: assetPath('assets/course-workspace-icons/workspace_documents.png') },
-  { id: 'practice', label: 'Luyện tập', hint: 'Phản xạ theo chủ đề & cấp độ', imageIcon: assetPath('assets/course-workspace-icons/workspace_practice.png') },
-  { id: 'games', label: 'Game', hint: 'Flappy Vocab, Sprint & Tình huống', imageIcon: assetPath('assets/course-workspace-icons/workspace_game.png') },
-  { id: 'exams', label: 'Thi thử', hint: 'Đề thi mô phỏng Tokutei chuẩn hóa', imageIcon: assetPath('assets/course-workspace-icons/workspace_exam.png') },
-] satisfies Array<{ id: CourseMenuSection; label: string; hint: string; imageIcon: string }>;
+import {
+  courseWorkspaceTabs,
+  type CourseWorkspaceSection,
+} from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
 // Các đường dẫn đi ra ngoài khóa học với link chuẩn xác 100%.
 const navigationItems = [
@@ -43,7 +35,7 @@ const navigationItems = [
 ];
 
 interface CourseLearningMenuSheetProps {
-  activeSection: CourseMenuSection;
+  activeSection: CourseWorkspaceSection;
   courseTitle: string;
   isOpen: boolean;
   level: number;
@@ -51,7 +43,7 @@ interface CourseLearningMenuSheetProps {
   streak: number;
   onClose: () => void;
   onNavigate: (path: string) => void;
-  onSelectSection: (section: CourseMenuSection) => void;
+  onSelectSection: (section: CourseWorkspaceSection) => void;
 }
 
 export function CourseLearningMenuSheet({
@@ -144,7 +136,7 @@ export function CourseLearningMenuSheet({
               </span>
 
               <ul className="space-y-1.5">
-                {sectionItems.map((item) => {
+                {courseWorkspaceTabs.map((item) => {
                   const isActive = item.id === activeSection;
                   return (
                     <li key={item.id}>

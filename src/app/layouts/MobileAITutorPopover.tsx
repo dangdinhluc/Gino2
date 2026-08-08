@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AITutorChatPanel } from '@/src/features/ai/components/AITutorChatPanel';
 import { useMockTutorChat } from '@/src/features/ai/hooks/useMockTutorChat';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
@@ -65,7 +65,7 @@ export function MobileAITutorPopover() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls="floating-ai-tutor-popover"
-        className={`fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-3 z-[60] flex items-center transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 ${focusRing}`}
+        className={`mobile-ai-tutor-trigger fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-3 z-[60] flex items-center transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 ${focusRing}`}
       >
         <motion.div
           animate={isOpen ? { y: 0, scale: 1 } : { y: [0, -6, 0], scale: 1 }}
@@ -81,7 +81,7 @@ export function MobileAITutorPopover() {
           {/* Pure 3D Tanuki Mascot Image without rectangular box */}
           <div className="relative h-13 w-13 shrink-0 overflow-visible flex items-center justify-center">
             <img
-              src={assetPath('assets/tanuki_ai_chat_mascot.png')}
+              src={assets.shared.mascots.aiTutorTanuki}
               alt="Tokutei AI Chat Mascot"
               className="h-full w-full object-contain scale-125"
             />

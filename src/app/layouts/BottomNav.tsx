@@ -4,22 +4,22 @@ import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export function BottomNav() {
   const reviewStates = useReviewStore((state) => state.states);
   const dueCount = useMemo(() => collectDueCards(reviewStates, Date.now()).length, [reviewStates]);
 
   const navItems = [
-    { label: 'Trang chủ', path: '/app/dashboard', icon: assetPath('assets/nav-icons/nav_home.png') },
-    { label: 'Khóa học', path: '/app/courses', icon: assetPath('assets/nav-icons/nav_courses.png') },
-    { label: 'Ôn tập', path: '/app/practice', icon: assetPath('assets/nav-icons/nav_vocabulary.png') },
-    { label: 'Luyện thi', path: '/app/exams', icon: assetPath('assets/nav-icons/nav_exams.png'), badge: dueCount },
-    { label: 'Cá nhân', path: '/app/profile', icon: assetPath('assets/nav-icons/nav_profile.png') },
+    { label: 'Trang chủ', path: '/app/dashboard', icon: assets.shared.navigation.home },
+    { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
+    { label: 'Ôn tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary },
+    { label: 'Luyện thi', path: '/app/exams', icon: assets.shared.navigation.exams, badge: dueCount },
+    { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex min-h-[4.5rem] items-center justify-around border-t border-[#e8dccb] bg-[#fffaf5]/96 px-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] pt-1 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex min-h-[4.5rem] items-center justify-around border-t border-[#e8dccb] bg-[#fffaf5]/96 px-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] pt-1 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl lg:hidden">
       {navItems.map((item) => (
         <NavLink
           key={item.path}

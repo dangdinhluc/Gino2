@@ -17,7 +17,8 @@ import {
 import { Link } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
-import { assetPath } from '@/src/shared/lib/assets';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
+import { assets } from '@/src/shared/lib/assets';
 
 const ALL_LEVELS = 'Tất cả';
 
@@ -88,7 +89,7 @@ export default function CourseList() {
           {/* Right 3D Illustration */}
           <div className="relative shrink-0 hidden sm:block">
             <img
-              src={assetPath('assets/nav-icons/nav_courses.png')}
+              src={assets.shared.navigation.courses}
               alt="Tokutei Courses"
               className="h-16 w-auto object-contain drop-shadow-md sm:h-20"
             />
@@ -255,7 +256,7 @@ export default function CourseList() {
       ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
-            {filteredCourses.map((course, idx) => (
+            {filteredCourses.map((course) => (
               <motion.div
                 key={course.id}
                 layout
@@ -276,7 +277,7 @@ export default function CourseList() {
                       className="pointer-events-none absolute -right-4 -top-6 select-none text-7xl font-black text-[#f7c297]/15"
                       aria-hidden="true"
                     >
-                      {idx === 0 ? '基' : '職'}
+                      {course.level.includes('Workplace') ? '職' : '基'}
                     </div>
 
                     {/* Level Pill */}
@@ -290,17 +291,17 @@ export default function CourseList() {
                       </span>
                     </div>
 
-                    {/* 3D Course Icon Illustration */}
-                    <div className="z-10 shrink-0">
-                      <img
-                        src={assetPath(
-                          idx === 0
-                            ? 'assets/course-workspace-icons/workspace_vocab.png'
-                            : 'assets/course-workspace-icons/workspace_practice.png'
-                        )}
-                        alt=""
-                        className="h-20 w-auto object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
-                      />
+                    {/* Same five workspace illustrations used inside the course. */}
+                    <div className="z-10 flex shrink-0 items-center gap-1 rounded-2xl border border-white/80 bg-white/70 p-1.5 shadow-2xs backdrop-blur-xs transition-transform duration-300 group-hover:scale-105">
+                      {courseWorkspaceTabs.map((tab) => (
+                        <span
+                          key={tab.id}
+                          title={tab.label}
+                          className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/85 p-1 sm:h-9 sm:w-9"
+                        >
+                          <img src={tab.imageIcon} alt="" className="h-full w-full object-contain drop-shadow-2xs" />
+                        </span>
+                      ))}
                     </div>
                   </div>
 

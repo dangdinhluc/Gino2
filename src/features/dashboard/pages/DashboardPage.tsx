@@ -28,8 +28,7 @@ import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
 import { xpForRating } from '@/src/features/review/lib/srs';
 import { useReviewStore } from '@/src/features/review/store/reviewStore';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
-
-const assetPath = (name: string) => `${import.meta.env.BASE_URL}${name}`;
+import { assets } from '@/src/shared/lib/assets';
 
 const sakuraPetals = [
   ['4%', 12, '-2s', '16s'],
@@ -80,7 +79,7 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <header className="dashboard-topbar">
         <Link to="/app/dashboard" className="dashboard-brand" aria-label="TOKUTEI GINO - Trang chủ">
-          <img src={assetPath('meow-mascot.png')} alt="Meow" />
+          <img src={assets.shared.mascots.meow} alt="Meow" />
           <span>
             <strong>TOKUTEI GINO</strong>
             <small>TIẾNG NHẬT ĐI LÀM</small>
@@ -136,7 +135,7 @@ export default function Dashboard() {
               </button>
 
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] shadow-md">
-                <img src={assetPath('meow-mascot.png')} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
+                <img src={assets.shared.mascots.meow} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
               </div>
 
               <div>
@@ -174,7 +173,7 @@ export default function Dashboard() {
       <main className="dashboard-main">
         <section
           className="dashboard-hero"
-          style={{ backgroundImage: `linear-gradient(180deg, rgba(255, 250, 246, .12), rgba(255, 250, 246, .76)), url("${assetPath('english-hero-bg.jpg')}")` }}
+          style={{ backgroundImage: `linear-gradient(180deg, rgba(255, 250, 246, .12), rgba(255, 250, 246, .76)), url("${assets.shared.backgrounds.englishHero}")` }}
         >
           <div className="dashboard-sakura-layer" aria-hidden="true">
             {sakuraPetals.map(([left, size, delay, duration], index) => (
@@ -203,7 +202,7 @@ export default function Dashboard() {
           </div>
           <div className="dashboard-mascot-wrap">
             <div className="dashboard-system-note">【 HỆ THỐNG 】<br /><span className="dashboard-system-copy">Kí Chủ, trạng thái học tập đã sẵn sàng. Nhiệm vụ vẫn chờ đây.</span> ⏳</div>
-            <img className="dashboard-mascot drop-shadow-2xl" src={assetPath('sleeping-meow-mascot.png')} alt="Meow đang nghỉ" />
+            <img className="dashboard-mascot drop-shadow-2xl" src={assets.shared.mascots.sleepingMeow} alt="Meow đang nghỉ" />
           </div>
         </section>
 

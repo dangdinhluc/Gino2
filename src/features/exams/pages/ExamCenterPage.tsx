@@ -17,7 +17,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { assetPath } from '@/src/shared/lib/assets';
+import { assets } from '@/src/shared/lib/assets';
 
 export default function ExamCenter() {
   const [query, setQuery] = useState('');
@@ -83,7 +83,7 @@ export default function ExamCenter() {
           {/* Right 3D Tanuki Mascot */}
           <div className="relative shrink-0 hidden sm:block -my-3 -mr-2">
             <img
-              src={assetPath('assets/tanuki_exam_mascot.png')}
+              src={assets.exams.mascot}
               alt="Tokutei Exam Tanuki Mascot"
               className="h-24 w-auto object-contain drop-shadow-md sm:h-28 md:h-32"
             />
@@ -283,11 +283,7 @@ export default function ExamCenter() {
                   {/* 3D Exam Badge */}
                   <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff7f0] to-[#ffeedd] border border-orange-200/60 p-2 shadow-2xs group-hover:scale-105 transition-transform">
                     <img
-                      src={assetPath(
-                        exam.type === 'Interview'
-                          ? 'assets/course-workspace-icons/workspace_practice.png'
-                          : 'assets/course-workspace-icons/workspace_exam.png'
-                      )}
+                      src={exam.type === 'Interview' ? assets.courses.workspace.practice : assets.courses.workspace.exam}
                       alt=""
                       className="h-full w-full object-contain drop-shadow-xs"
                     />
