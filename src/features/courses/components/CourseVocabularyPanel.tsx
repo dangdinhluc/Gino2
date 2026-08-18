@@ -1,12 +1,14 @@
 import { type KeyboardEvent, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, ChevronLeft, ChevronRight, Lightbulb, Shuffle, Volume2, X } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, Shuffle, Volume2, X } from 'lucide-react';
 import {
   emptyStateClass,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { type CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
-import { cn } from '@/src/lib/utils';
+import { type CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
+import { submitVocabularyRating, type VocabularyRating } from '@/src/features/courses/repositories/learningProgressRepository';
+import { Confetti } from '@/src/shared/components/Confetti';
+import { cn, vibrate } from '@/src/lib/utils';
 
 type VocabularyView = 'list' | 'flashcard';
 
@@ -114,20 +116,20 @@ export function VocabularyPanel({
 
   const stats = useMemo(() => {
     const totalCount = filteredVocabulary.length;
-    const heardCount = filteredVocabulary.filter((item) => item.id === heardVocabularyId).length;
+    const learnedCount = filteredVocabulary.filter((item) => item.status !== 'new').length;
+    const categoryCount = new Set(filteredVocabulary.map((item) => item.module)).size;
     return {
-      totalCount,
-      learnedCount: totalCount,
-      accuracyPercent: 100,
-      dueCount: heardCount,
+      learnedCount,
+      categoryCount,
+      progressPercent: totalCount > 0 ? Math.round((learnedCount / totalCount) * 100) : 0,
     };
-  }, [filteredVocabulary, heardVocabularyId]);
+  }, [filteredVocabulary]);
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-2.5 pb-28 sm:pb-32">
+    <div className="mx-auto w-full max-w-xl space-y-2.5 pb-28 sm:pb-32 lg:max-w-none lg:space-y-4">
       <VocabularyOverviewCard stats={stats} />
 
-      <div className="sticky top-[68px] z-30 rounded-[20px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">
+      <div className="sticky top-[68px] z-30 space-y-2 rounded-[20px] border border-[#eee3d5] bg-white/95 p-2.5 shadow-2xs backdrop-blur-md lg:space-y-3 lg:rounded-[24px] lg:p-4">
         <div className="flex items-center gap-2">
           <VocabularyModeSegment mode={view} onModeChange={setView} compact />
           {view === 'list' ? (
@@ -184,9 +186,9 @@ export function VocabularyPanel({
           onToggleShuffle={setIsShuffle}
         />
       ) : (
-        <div className="rounded-[22px] border border-[#efe5d7] bg-white p-2 shadow-2xs">
+        <div className="rounded-[22px] border border-[#efe5d7] bg-white p-2 shadow-2xs lg:p-3">
           {filteredVocabulary.length > 0 ? (
-            <ul className="divide-y divide-[#efe5d7]/60">
+            <ul className="divide-y divide-[#efe5d7]/60 lg:grid lg:grid-cols-2 lg:gap-2 lg:divide-y-0">
               {filteredVocabulary.map((item) => (
                 <VocabularyListItemRow
                   key={item.id}
@@ -339,6 +341,9 @@ function VocabularyFlashcards({
 }: VocabularyFlashcardsProps) {
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [rated, setRated] = useState<Record<string, VocabularyRating>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Generate shuffled deck if isShuffle is enabled
   const displayItems = useMemo(() => {
@@ -360,6 +365,56 @@ function VocabularyFlashcards({
     setIsFlipped(false);
     setIndex(((nextIndex % total) + total) % total);
   };
+
+  const handleRate = async (rating: VocabularyRating) => {
+    if (!card || rated[card.id] || isSaving) return;
+    setIsSaving(true);
+    setSaveError(null);
+    vibrate(rating === 'again' ? [60, 30, 60] : [20, 40, 60]);
+    try {
+      await submitVocabularyRating(card.id, rating);
+      setRated((current) => ({ ...current, [card.id]: rating }));
+    } catch (reason) {
+      setSaveError(reason instanceof Error ? reason.message : 'Không lưu được kết quả ôn từ.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const ratedCount = total > 0 ? displayItems.filter((item) => rated[item.id]).length : 0;
+  const allRated = total > 0 && ratedCount >= total;
+  const rememberedCount = displayItems.filter((item) => rated[item.id] && rated[item.id] !== 'again').length;
+
+  if (allRated) {
+    return (
+      <div className="relative mt-2 space-y-4 pb-20">
+        <Confetti />
+        <div className="relative rounded-[28px] border-2 border-emerald-200 bg-white p-6 text-center shadow-[0_14px_36px_rgba(16,185,129,0.08)] sm:p-9">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-white"><CheckCircle2 size={28} /></span>
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">Đã ôn xong</p>
+          <h2 className="mt-2 font-[var(--font-heading)] text-2xl font-black tracking-[-0.03em] text-[#172033]">Ôn từ hoàn tất</h2>
+          <div className="mx-auto mt-5 grid max-w-xs grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3">
+              <strong className="block text-2xl font-black text-emerald-700">{rememberedCount}</strong>
+              <span className="text-xs font-bold text-emerald-800">từ đã nhớ</span>
+            </div>
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-3">
+              <strong className="block text-2xl font-black text-orange-700">{total - rememberedCount}</strong>
+              <span className="text-xs font-bold text-orange-800">cần ôn lại</span>
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-[#5f6b7c]">Lịch ôn đã được cập nhật theo mức độ nhớ của anh.</p>
+          <button
+            type="button"
+            onClick={() => { setRated({}); setIndex(0); setIsFlipped(false); }}
+            className={cn('mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white hover:bg-orange-800', focusRing)}
+          >
+            <RotateCcw size={16} /> Ôn lại lượt nữa
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!card) {
     return (
@@ -402,6 +457,17 @@ function VocabularyFlashcards({
       </div>
 
       {/* Main Interactive 3D Card Container */}
+      <motion.div
+        drag={total > 1 ? 'x' : false}
+        dragDirectionLock
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.12}
+        onDragEnd={(_, info) => {
+          if (info.offset.x <= -80) goTo(safeIndex + 1);
+          else if (info.offset.x >= 80) goTo(safeIndex - 1);
+        }}
+        className="w-full"
+      >
       <div
         role="button"
         tabIndex={0}
@@ -524,16 +590,46 @@ function VocabularyFlashcards({
                 )}
               </div>
 
-              {/* Back Bottom Prompt */}
-              <div className="flex justify-center pt-1">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3.5 py-1 text-xs font-bold text-[#334155]">
-                  Chạm để quay lại mặt trước
-                </span>
+              {/* Back Bottom: rating + quay lại mặt trước */}
+              <div className="space-y-2.5 pt-1">
+                <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Đánh giá mức nhớ">
+                  {([
+                    { id: 'again' as const, label: 'Quên', className: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' },
+                    { id: 'hard' as const, label: 'Khó', className: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' },
+                    { id: 'good' as const, label: 'Nhớ', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' },
+                    { id: 'easy' as const, label: 'Rất nhớ', className: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' },
+                  ]).map((option) => {
+                    const isRated = rated[card.id] === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); void handleRate(option.id); }}
+                        disabled={Boolean(rated[card.id]) || isSaving}
+                        className={cn(
+                          'flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl border text-[11px] font-black transition-all duration-150 active:scale-95 disabled:opacity-60',
+                          option.className,
+                          isRated && 'ring-2 ring-offset-1',
+                          focusRing,
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {saveError && <p className="text-center text-[11px] font-semibold text-red-700">{saveError}</p>}
+                <div className="flex justify-center">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3.5 py-1 text-xs font-bold text-[#334155]">
+                    Chạm để quay lại mặt trước
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
+      </motion.div>
 
       {/* Navigation Bar */}
       <div className="flex items-center justify-between gap-3 pt-1">
@@ -563,6 +659,10 @@ function VocabularyFlashcards({
           Thẻ tiếp <ChevronRight size={17} aria-hidden="true" />
         </button>
       </div>
+
+      {total > 1 && (
+        <p className="text-center text-[11px] font-bold text-[#95a0af]">Vuốt ← → chuyển thẻ · Chạm để lật</p>
+      )}
     </div>
   );
 }
