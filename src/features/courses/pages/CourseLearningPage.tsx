@@ -2,11 +2,10 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
-import { CourseExamRunner, type CourseExamQuestion } from '@/src/features/courses/components/CourseExamRunner';
+import { CourseDailyQuest } from '@/src/features/courses/components/CourseDailyQuest';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
-import { FloatingAudioButton } from '@/src/features/games/components/FloatingAudioButton';
-import { CourseReviewPanel, type ReviewMode } from '@/src/features/courses/components/CourseReviewPanel';
-import { VocabularyPanel, getVocabularyDisplayName } from '@/src/features/courses/components/CourseVocabularyPanel';
+import { CoursePracticePanel } from '@/src/features/courses/components/CoursePracticePanel';
+import { VocabularyPanel } from '@/src/features/courses/components/CourseVocabularyPanel';
 import {
   DocumentsPanel,
   ExamsPanel,
@@ -17,83 +16,62 @@ import {
 import { Bird, ChevronRight, Flame, Headphones, Zap } from 'lucide-react';
 import {
   type CourseDocumentItem,
-  type CourseExamItem,
+  type CourseLearningWorkspaceData,
   type CoursePodcastItem,
-  type CourseReviewQuestion,
-  type NonEmptyArray,
-} from '@/src/features/courses/mock/courseLearningMock';
+} from '@/src/features/courses/courseLearning.types';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
-import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { saveReviewAttempt, saveVocabularyReview } from '@/src/features/courses/repositories/learningProgressRepository';
-import type { CourseGameType } from '@/src/features/games/types';
+import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
+import { speakJapanese, stopSpeaking } from '@/src/shared/lib/tts';
 import { cn } from '@/src/lib/utils';
-import PracticePage from '@/src/features/review/pages/PracticePage';
 import {
   courseWorkspaceTabs,
   type CourseWorkspaceSection,
 } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
-function getInitialDocument(documents: NonEmptyArray<CourseDocumentItem>): CourseDocumentItem {
-  return documents[0];
+function getInitialDocument(documents: CourseDocumentItem[]): CourseDocumentItem {
+  const document = documents[0];
+  if (!document) throw new Error('Khóa học chưa có tài liệu để hiển thị.');
+  return document;
 }
 
-function getInitialPodcast(podcasts: NonEmptyArray<CoursePodcastItem>): CoursePodcastItem {
-  return podcasts[0];
+function getInitialPodcast(podcasts: CoursePodcastItem[]): CoursePodcastItem {
+  const podcast = podcasts[0];
+  if (!podcast) throw new Error('Khóa học chưa có audio để hiển thị.');
+  return podcast;
 }
 
-function reviewSkillLabel(type: CourseReviewQuestion['type']) {
-  switch (type) {
-    case 'meaning':
-      return 'Từ vựng';
-    case 'article':
-      return 'Tình huống';
-    case 'sentence':
-      return 'Phỏng vấn';
-    case 'listening':
-      return 'Nghe hiểu';
-    default:
-      return 'Tổng ôn';
-  }
-}
-
-function buildQuizOptions(answer: string, pool: string[], limit = 4) {
-  const uniqueDistractors = pool.filter((option, index, options) => option !== answer && options.indexOf(option) === index);
-  return [answer, ...uniqueDistractors].slice(0, limit).sort((a, b) => a.localeCompare(b, 'vi'));
-}
-
-export default function CourseLearningWorkspace() {
-  const { id } = useParams();
+function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearningWorkspaceData }) {
   const navigate = useNavigate();
-  const workspace = useCourseLearningWorkspace(id);
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
-
-  const streak = useProgressStore((state) => state.streak);
-  const weeklyXp = useProgressStore((state) => state.weeklyXp);
-  const learnerLevel = Math.floor(weeklyXp / 500) + 1;
 
   const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>('vocabulary');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMenuGuideVisible, setIsMenuGuideVisible] = useState(false);
-  const [activeExam, setActiveExam] = useState<CourseExamItem | null>(null);
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [vocabularyCategory, setVocabularyCategory] = useState('all');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
   const [showFurigana, setShowFurigana] = useState(true);
   const [showRomaji, setShowRomaji] = useState(true);
-  const [reviewMode, setReviewMode] = useState<ReviewMode | null>(null);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [vocabularyQuestionIndex, setVocabularyQuestionIndex] = useState(0);
-  const [selectedVocabularyAnswer, setSelectedVocabularyAnswer] = useState<string | null>(null);
-  const [reviewStats, setReviewStats] = useState({ answered: 0, correct: 0 });
-  const [isSessionSummaryOpen, setIsSessionSummaryOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState(getInitialDocument(documents).id);
-  const [activeGameType, setActiveGameType] = useState<CourseGameType>('flappy-vocab');
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
   const [activePodcastId, setActivePodcastId] = useState(getInitialPodcast(podcasts).id);
   const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
-  const vocabularyAudioTimerRef = useRef<number | null>(null);
+  const [vocabularyAudioError, setVocabularyAudioError] = useState<string | null>(null);
+  const [learnerStats, setLearnerStats] = useState<LearnerStatsSnapshot | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const vocabularyAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ttsTimerRef = useRef<number | null>(null);
+  const streak = learnerStats?.currentStreak ?? null;
+  const learnerLevel = learnerStats ? Math.floor(learnerStats.totalXp / 500) + 1 : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLearnerStats()
+      .then((stats) => { if (!cancelled) setLearnerStats(stats); })
+      .catch((error: unknown) => { if (!cancelled) setStatsError(error instanceof Error ? error.message : 'Không đồng bộ được chỉ số học tập.'); });
+    return () => { cancelled = true; };
+  }, [course.id]);
 
   const vocabularyCategories = useMemo(() => {
     const categoryCounts = new Map<string, number>();
@@ -138,52 +116,8 @@ export default function CourseLearningWorkspace() {
     });
   }, [categoryVocabulary, vocabularySearchQuery]);
 
-  const vocabularyQuizQuestions = useMemo(() => {
-    const meaningPool = vocabulary.map((item) => item.meaning);
-
-    return vocabulary.map((item) => ({
-      id: `vq-${item.id}`,
-      type: 'meaning' as const,
-      prompt: `\"${getVocabularyDisplayName(item)}\" nghĩa là gì?`,
-      options: buildQuizOptions(item.meaning, meaningPool),
-      answer: item.meaning,
-      explanation: `${getVocabularyDisplayName(item)} nghĩa là \"${item.meaning}\". Ví dụ: ${item.example.jp}`,
-      source: `Từ vựng: ${item.module}`,
-    })) satisfies CourseReviewQuestion[];
-  }, [vocabulary]);
-
-  const courseExamQuestions = useMemo<CourseExamQuestion[]>(() => {
-    const meaningPool = vocabulary.map((item) => item.meaning);
-    const fromReview: CourseExamQuestion[] = reviewQuestions.map((question) => ({
-      id: `exam-${question.id}`,
-      prompt: question.prompt,
-      options: question.options,
-      answer: question.answer,
-      explanation: question.explanation,
-      skill: reviewSkillLabel(question.type),
-    }));
-    const fromVocabulary: CourseExamQuestion[] = vocabulary.slice(0, 6).map((item) => ({
-      id: `exam-vocab-${item.id}`,
-      prompt: `\"${getVocabularyDisplayName(item)}\" nghĩa là gì?`,
-      options: buildQuizOptions(item.meaning, meaningPool),
-      answer: item.meaning,
-      explanation: `${getVocabularyDisplayName(item)} nghĩa là \"${item.meaning}\". Ví dụ: ${item.example.jp}`,
-      skill: 'Từ vựng',
-    }));
-    return [...fromReview, ...fromVocabulary];
-  }, [reviewQuestions, vocabulary]);
-
-  const activeQuestion = reviewQuestions[questionIndex] ?? reviewQuestions[0];
-  const activeVocabularyQuestion = vocabularyQuizQuestions[vocabularyQuestionIndex] ?? vocabularyQuizQuestions[0];
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? getInitialDocument(documents);
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? getInitialPodcast(podcasts);
-
-  // Đang trong phiên ôn thì ẩn thanh menu dưới để học viên tập trung làm bài.
-  const isReviewSessionActive = activeTab === 'review' && reviewMode !== null;
-  const reviewQuestion = reviewMode === 'questions' ? activeQuestion : activeVocabularyQuestion;
-  const reviewSelectedAnswer = reviewMode === 'questions' ? selectedAnswer : selectedVocabularyAnswer;
-  const reviewQuestionIndex = reviewMode === 'questions' ? questionIndex : vocabularyQuestionIndex;
-  const reviewQuestionsCount = reviewMode === 'questions' ? reviewQuestions.length : vocabularyQuizQuestions.length;
 
   useEffect(() => {
     const storageKey = `gino-course-menu-guide:${course.id}`;
@@ -197,132 +131,64 @@ export default function CourseLearningWorkspace() {
   useEffect(() => {
     setActiveTab('vocabulary');
     setIsMenuOpen(false);
-    setActiveExam(null);
     setVocabularySearchQuery('');
     setVocabularyCategory('all');
     setExpandedVocabularyId(null);
-    setReviewMode(null);
-    setQuestionIndex(0);
-    setSelectedAnswer(null);
-    setVocabularyQuestionIndex(0);
-    setSelectedVocabularyAnswer(null);
-    setReviewStats({ answered: 0, correct: 0 });
-    setIsSessionSummaryOpen(false);
     setSelectedDocumentId(getInitialDocument(documents).id);
-    setActiveGameType('flappy-vocab');
     setIsPodcastOpen(false);
     setActivePodcastId(getInitialPodcast(podcasts).id);
     setIsPodcastPlaying(false);
     setHeardVocabularyId(null);
 
-    if (vocabularyAudioTimerRef.current !== null) {
-      window.clearTimeout(vocabularyAudioTimerRef.current);
-      vocabularyAudioTimerRef.current = null;
-    }
+    vocabularyAudioRef.current?.pause();
+    vocabularyAudioRef.current = null;
+    if (ttsTimerRef.current) window.clearTimeout(ttsTimerRef.current);
+    stopSpeaking();
   }, [course.id, documents, podcasts, vocabulary]);
 
   useEffect(() => {
     return () => {
-      if (vocabularyAudioTimerRef.current !== null) {
-        window.clearTimeout(vocabularyAudioTimerRef.current);
-      }
+      vocabularyAudioRef.current?.pause();
+      if (ttsTimerRef.current) window.clearTimeout(ttsTimerRef.current);
+      stopSpeaking();
     };
   }, []);
 
   const handleStartExam = (examId: string) => {
-    const exam = exams.find((item) => item.id === examId);
-    if (exam) {
-      setActiveExam(exam);
-    }
-  };
-
-  const handleAnswerSelect = (option: string) => {
-    if (reviewMode === 'questions') {
-      if (selectedAnswer) return;
-      setSelectedAnswer(option);
-      setReviewStats((stats) => ({
-        answered: stats.answered + 1,
-        correct: stats.correct + (option === activeQuestion.answer ? 1 : 0),
-      }));
-      return;
-    }
-
-    if (selectedVocabularyAnswer) return;
-    setSelectedVocabularyAnswer(option);
-    setReviewStats((stats) => ({
-      answered: stats.answered + 1,
-      correct: stats.correct + (option === activeVocabularyQuestion.answer ? 1 : 0),
-    }));
-  };
-
-  const handleQuestionNext = () => {
-    if (selectedAnswer) {
-      void saveReviewAttempt(activeQuestion.id, selectedAnswer === activeQuestion.answer).catch((error: unknown) => {
-        if (import.meta.env.DEV) console.error('[course-review] Failed to save attempt', error);
-      });
-    }
-    setSelectedAnswer(null);
-    setQuestionIndex((currentIndex) => (currentIndex + 1) % reviewQuestions.length);
-  };
-
-  const handleVocabularyQuestionNext = () => {
-    if (selectedVocabularyAnswer) {
-      const vocabularyItem = vocabulary[vocabularyQuestionIndex] ?? vocabulary[0];
-      void saveVocabularyReview(vocabularyItem.id, selectedVocabularyAnswer === activeVocabularyQuestion.answer).catch((error: unknown) => {
-        if (import.meta.env.DEV) console.error('[vocabulary-review] Failed to save progress', error);
-      });
-    }
-    setSelectedVocabularyAnswer(null);
-    setVocabularyQuestionIndex((currentIndex) => (currentIndex + 1) % vocabularyQuizQuestions.length);
-  };
-
-  const handleReviewNext = () => {
-    if (reviewMode === 'questions') {
-      handleQuestionNext();
-      return;
-    }
-
-    handleVocabularyQuestionNext();
-  };
-
-  // Bước chọn chế độ: mỗi lần vào chế độ là một phiên ôn mới.
-  const handleSelectReviewMode = (mode: ReviewMode) => {
-    setReviewMode(mode);
-    setSelectedAnswer(null);
-    setSelectedVocabularyAnswer(null);
-    setQuestionIndex(0);
-    setVocabularyQuestionIndex(0);
-    setReviewStats({ answered: 0, correct: 0 });
-    setIsSessionSummaryOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleExitReviewSession = () => {
-    setReviewMode(null);
-    setSelectedAnswer(null);
-    setSelectedVocabularyAnswer(null);
-    setIsSessionSummaryOpen(false);
-  };
-
-  const handleRestartReviewSession = () => {
-    setSelectedAnswer(null);
-    setSelectedVocabularyAnswer(null);
-    setQuestionIndex(0);
-    setVocabularyQuestionIndex(0);
-    setReviewStats({ answered: 0, correct: 0 });
-    setIsSessionSummaryOpen(false);
+    navigate(`/app/exams/${examId}/start`);
   };
 
   const handleVocabularyAudio = (vocabularyId: string) => {
-    if (vocabularyAudioTimerRef.current !== null) {
-      window.clearTimeout(vocabularyAudioTimerRef.current);
+    const item = vocabulary.find((value) => value.id === vocabularyId);
+    vocabularyAudioRef.current?.pause();
+    vocabularyAudioRef.current = null;
+    stopSpeaking();
+    if (ttsTimerRef.current) window.clearTimeout(ttsTimerRef.current);
+    setVocabularyAudioError(null);
+    if (!item) return;
+
+    // Có file upload → phát file; không có → đọc bằng giọng máy (Web Speech API, không cần upload).
+    if (!item.audioUrl) {
+      setHeardVocabularyId(vocabularyId);
+      speakJapanese(item.kanji ?? item.kana ?? item.word);
+      ttsTimerRef.current = window.setTimeout(() => {
+        setHeardVocabularyId((currentId) => currentId === vocabularyId ? null : currentId);
+      }, 4000);
+      return;
     }
 
     setHeardVocabularyId(vocabularyId);
-    vocabularyAudioTimerRef.current = window.setTimeout(() => {
-      setHeardVocabularyId((currentId) => (currentId === vocabularyId ? null : currentId));
-      vocabularyAudioTimerRef.current = null;
-    }, 1200);
+    const audio = new Audio(item.audioUrl);
+    vocabularyAudioRef.current = audio;
+    audio.onended = () => setHeardVocabularyId((currentId) => currentId === vocabularyId ? null : currentId);
+    audio.onerror = () => {
+      setHeardVocabularyId((currentId) => currentId === vocabularyId ? null : currentId);
+      setVocabularyAudioError('Không thể phát bản phát âm này.');
+    };
+    void audio.play().catch((error: unknown) => {
+      setHeardVocabularyId((currentId) => currentId === vocabularyId ? null : currentId);
+      setVocabularyAudioError(error instanceof Error ? error.message : 'Trình duyệt không thể phát bản phát âm này.');
+    });
   };
 
   const handleWorkspaceTabSelect = (tab: CourseWorkspaceSection) => {
@@ -387,10 +253,7 @@ export default function CourseLearningWorkspace() {
   return (
     <div
       data-course-workspace-background
-      className={cn(
-        'course-learning-workspace relative min-h-[calc(100dvh-1.5rem)] space-y-4',
-        isReviewSessionActive ? 'pb-8' : 'pb-[calc(6.25rem+env(safe-area-inset-bottom))]'
-      )}
+      className="course-learning-workspace relative min-h-[calc(100dvh-1.5rem)] space-y-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))]"
     >
       {/* Ultra-Modern Floating Workspace Header */}
       <header className="course-workspace-header sticky top-0 z-40 -mx-3 border-b border-[#eedecf]/80 bg-[#fffaf5]/96 px-3.5 py-2 backdrop-blur-xl shadow-[0_2px_12px_rgba(217,74,19,0.04)]">
@@ -457,46 +320,43 @@ export default function CourseLearningWorkspace() {
             </AnimatePresence>
           </div>
 
-          {/* Middle: Integrated 3D Headphones Audio Player Button */}
-          <div className="flex-1 flex justify-center min-w-0 px-1">
+          {/* Right: Podcast shortcut, streak & level badges */}
+          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
             <button
               type="button"
               onClick={() => setIsPodcastOpen(true)}
-              className="flex items-center gap-2 rounded-full border border-orange-200/90 bg-gradient-to-r from-[#fff7f0] via-[#ffeedd] to-[#ffe5cf] px-3 py-1 text-xs font-black text-[#c2410c] shadow-2xs hover:border-[#d83a00] hover:shadow-xs active:scale-95 transition-all max-w-full"
-              title="Mở trình phát âm thanh bài học Tokutei"
+              aria-haspopup="dialog"
+              aria-expanded={isPodcastOpen}
+              aria-label={isPodcastPlaying ? 'Mở podcast đang phát' : 'Mở podcast bài học'}
+              title="Mở podcast bài học"
+              className={cn(
+                'group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-2xs transition-all hover:-translate-y-0.5 active:scale-95 lg:h-10 lg:w-10',
+                isPodcastPlaying
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200/70'
+                  : 'border-orange-200/90 bg-gradient-to-br from-[#fff7f0] to-[#ffe5cf] text-[#d83a00] hover:border-[#d83a00] hover:bg-orange-50',
+                focusRing
+              )}
             >
-              <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs">
-                <Headphones size={14} strokeWidth={2.2} />
-                {isPodcastPlaying && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                  </span>
-                )}
-              </div>
-              
-              <span className="truncate max-w-[110px] sm:max-w-[200px] text-xs font-black text-[#0f172a]">
-                {isPodcastPlaying ? 'Đang phát podcast' : 'Nghe Podcast bài học'}
-              </span>
-
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#d83a00] bg-white/90 px-2 py-0.5 rounded-full border border-orange-200/60">
-                Audio 🎧
-              </span>
+              <Headphones size={17} strokeWidth={2.2} aria-hidden="true" />
+              {isPodcastPlaying && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                </span>
+              )}
+              <span className="sr-only">{isPodcastPlaying ? 'Đang phát podcast' : 'Podcast bài học'}</span>
             </button>
-          </div>
 
-          {/* Right: Streak & Level Badges (Home Icon Removed) */}
-          <div className="flex shrink-0 items-center gap-1.5">
             <span
-              className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3 py-1 text-xs font-black text-[#c2410c] shadow-2xs"
-              title="Chuỗi ngày học liên tiếp"
+              className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-2.5 py-1 text-xs font-black text-[#c2410c] shadow-2xs sm:px-3"
+              title={statsError ?? 'Chuỗi ngày học liên tiếp'}
             >
               <Flame size={14} className="text-orange-500 fill-orange-400" />
-              <span>{streak}d</span>
+              <span>{streak === null ? '—' : `${streak}d`}</span>
             </span>
 
             <span
-              className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-3 py-1 text-xs font-black text-[#b45309] shadow-2xs"
+              className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-2.5 py-1 text-xs font-black text-[#b45309] shadow-2xs sm:px-3"
               title="Cấp độ hiện tại"
             >
               <Zap size={14} className="text-amber-500 fill-amber-400" />
@@ -505,6 +365,10 @@ export default function CourseLearningWorkspace() {
           </div>
         </div>
       </header>
+
+      <div className="mx-auto w-full max-w-[980px]">
+        <CourseDailyQuest stats={learnerStats} onNavigate={handleSelectSection} />
+      </div>
 
       <nav className="course-workspace-desktop-tabs" role="tablist" aria-label="Chọn khu vực học trong khóa">
         {courseWorkspaceTabs.map((tab) => {
@@ -541,45 +405,45 @@ export default function CourseLearningWorkspace() {
             className="course-workspace-panel"
             key={activeTab}
             id={`course-workspace-panel-${activeTab}`}
-            role={isReviewSessionActive ? undefined : 'tabpanel'}
-            aria-labelledby={isReviewSessionActive ? undefined : activeTabPanelLabelId}
+            role="tabpanel"
+            aria-labelledby={activeTabPanelLabelId}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
             {activeTab === 'vocabulary' && (
-              <VocabularyPanel
-                expandedVocabularyId={expandedVocabularyId}
-                filteredVocabulary={filteredVocabulary}
-                categoryOptions={vocabularyCategories}
-                selectedCategory={vocabularyCategory}
-                heardVocabularyId={heardVocabularyId}
-                searchQuery={vocabularySearchQuery}
-                showFurigana={showFurigana}
-                showRomaji={showRomaji}
-                onAudio={handleVocabularyAudio}
-                onSearchChange={setVocabularySearchQuery}
-                onCategoryChange={(categoryId) => {
-                  setVocabularyCategory(categoryId);
-                  setVocabularySearchQuery('');
-                  setExpandedVocabularyId(null);
-                }}
-                onToggleFurigana={() => setShowFurigana((value) => !value)}
-                onToggleRomaji={() => setShowRomaji((value) => !value)}
-                onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
-              />
+              <div className="space-y-3">
+                {vocabularyAudioError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{vocabularyAudioError}</p>}
+                <VocabularyPanel
+                  expandedVocabularyId={expandedVocabularyId}
+                  filteredVocabulary={filteredVocabulary}
+                  categoryOptions={vocabularyCategories}
+                  selectedCategory={vocabularyCategory}
+                  heardVocabularyId={heardVocabularyId}
+                  searchQuery={vocabularySearchQuery}
+                  showFurigana={showFurigana}
+                  showRomaji={showRomaji}
+                  onAudio={handleVocabularyAudio}
+                  onSearchChange={setVocabularySearchQuery}
+                  onCategoryChange={(categoryId) => {
+                    setVocabularyCategory(categoryId);
+                    setVocabularySearchQuery('');
+                    setExpandedVocabularyId(null);
+                  }}
+                  onToggleFurigana={() => setShowFurigana((value) => !value)}
+                  onToggleRomaji={() => setShowRomaji((value) => !value)}
+                  onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
+                />
+              </div>
             )}
             {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
-            {activeTab === 'practice' && <PracticePage embedded />}
+            {activeTab === 'practice' && <CoursePracticePanel courseTitle={course.title} vocabulary={vocabulary} reviewQuestions={reviewQuestions} />}
             {activeTab === 'games' && (
               <GamesPanel
-                activeGameType={activeGameType}
                 courseId={course.id}
                 courseTitle={course.title}
                 vocabulary={vocabulary}
-                reviewQuestions={reviewQuestions}
-                onSelectGame={setActiveGameType}
               />
             )}
             {activeTab === 'exams' && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
@@ -587,17 +451,15 @@ export default function CourseLearningWorkspace() {
         </AnimatePresence>
       </main>
 
-      {!isReviewSessionActive && (
-        <nav className="course-workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
-          <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
-            {courseWorkspaceTabs.map((tab) => (
-              <div key={tab.id} className="min-w-0" role="presentation">
-                <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
-              </div>
-            ))}
-          </div>
-        </nav>
-      )}
+      <nav className="course-workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-[#e8dccb] bg-[#fffaf3]/97 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
+        <div className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1" role="tablist" aria-label="Chọn khu vực học trong khóa" aria-orientation="horizontal">
+          {courseWorkspaceTabs.map((tab) => (
+            <div key={tab.id} className="min-w-0" role="presentation">
+              <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
+            </div>
+          ))}
+        </div>
+      </nav>
 
       <CourseLearningMenuSheet
         activeSection={activeTab}
@@ -614,29 +476,26 @@ export default function CourseLearningWorkspace() {
       <CourseLearningPodcastPlayer
         activePodcast={activePodcast}
         isOpen={isPodcastOpen}
-        isPlaying={isPodcastPlaying}
         podcasts={podcasts}
         onClose={() => setIsPodcastOpen(false)}
-        onOpen={() => setIsPodcastOpen(true)}
+        onPlayingChange={setIsPodcastPlaying}
         onSelectPodcast={setActivePodcastId}
-        onTogglePlay={() => setIsPodcastPlaying((currentValue) => !currentValue)}
       />
 
-      <AnimatePresence>
-        {activeExam && (
-          <CourseExamRunner
-            exam={activeExam}
-            questions={courseExamQuestions}
-            onExit={() => setActiveExam(null)}
-            onGoToReview={() => {
-              setActiveExam(null);
-              setActiveTab('review');
-              handleSelectReviewMode('questions');
-            }}
-            onCompleted={() => undefined}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
+}
+
+export default function CourseLearningWorkspace() {
+  const { id } = useParams();
+  const workspace = useCourseLearningWorkspace(id);
+
+  if (workspace.isLoading) {
+    return <div className="mx-auto flex min-h-[60vh] items-center justify-center rounded-2xl border border-[#e8dccb] bg-[#fffaf3] px-5 text-sm font-bold text-[#5f6b7c]">Đang tải nội dung khóa học…</div>;
+  }
+  if (workspace.loadError || !workspace.data) {
+    return <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700">{workspace.loadError ?? 'Không tải được workspace khóa học.'}</div>;
+  }
+
+  return <CourseLearningWorkspaceContent workspace={workspace.data} />;
 }
