@@ -3,4 +3,9 @@ export interface Exam {
   title: string;
   type: string;
   skills: string[];
+  /** Chỉ dùng nội bộ để tính prerequisite — courseId + orderIndex. */
+  courseId?: string;
+  orderIndex?: number;
+  locked?: boolean;
+  unlockLabel?: string;
 }

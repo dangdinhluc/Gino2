@@ -1,7 +1,7 @@
 import { type CSSProperties, type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Award, BarChart3, Bird, BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Headphones, Play, Trash2, type LucideIcon } from 'lucide-react';
+import { Award, BarChart3, Bird, BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Headphones, Lock, Play, Trash2, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
@@ -559,6 +559,7 @@ export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
     ready: 'Sẵn sàng',
     in_progress: 'Đang làm dở',
     completed: 'Đã hoàn thành',
+    locked: 'Chưa mở khóa',
   } satisfies Record<CourseExamItem['status'], string>;
   const completedExams = exams.filter((exam) => exam.status === 'completed');
   const inProgressExam = exams.find((exam) => exam.status === 'in_progress');
@@ -610,12 +611,14 @@ export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
         </div>
 
         <div className="course-exam-card-grid">
-          {exams.map((exam, index) => (
+          {exams.map((exam, index) => {
+            const isLocked = exam.status === 'locked';
+            return (
             <article key={exam.id} className={cn('course-exam-card', `is-${exam.status}`)}>
               <div className="course-exam-card-heading">
                 <span className="course-exam-card-number">{String(index + 1).padStart(2, '0')}</span>
                 <span className="course-exam-card-status-icon">
-                  {exam.status === 'completed' ? <CheckCircle2 size={21} aria-hidden="true" focusable="false" /> : exam.status === 'in_progress' ? <Headphones size={21} aria-hidden="true" focusable="false" /> : <ClipboardCheck size={21} aria-hidden="true" focusable="false" />}
+                  {exam.status === 'completed' ? <CheckCircle2 size={21} aria-hidden="true" focusable="false" /> : exam.status === 'in_progress' ? <Headphones size={21} aria-hidden="true" focusable="false" /> : exam.status === 'locked' ? <Lock size={21} aria-hidden="true" focusable="false" /> : <ClipboardCheck size={21} aria-hidden="true" focusable="false" />}
                 </span>
               </div>
               <div className="course-exam-card-content">
@@ -624,20 +627,23 @@ export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
                   <span><Clock3 size={14} /> {exam.duration}</span>
                   {exam.status === 'in_progress' && exam.latestScore !== undefined && <span>Tiến độ <strong>{exam.latestScore}%</strong></span>}
                   {exam.status === 'completed' && exam.latestScore !== undefined && <span>Điểm cao nhất <strong>{exam.latestScore}%</strong></span>}
+                  {isLocked && exam.unlockLabel && <span><Lock size={14} /> {exam.unlockLabel}</span>}
                 </div>
                 <span className="course-exam-status">{statusLabels[exam.status]}</span>
               </div>
               <button
                 type="button"
                 onClick={() => onStartExam(exam.id)}
+                disabled={isLocked}
                 className={cn('course-exam-start', focusRing)}
-                aria-label={exam.status === 'completed' ? `Làm lại đề ${exam.title}` : exam.status === 'in_progress' ? `Tiếp tục đề ${exam.title}` : `Làm đề ${exam.title}`}
+                aria-label={isLocked ? `Đề ${exam.title} chưa mở khóa` : exam.status === 'completed' ? `Làm lại đề ${exam.title}` : exam.status === 'in_progress' ? `Tiếp tục đề ${exam.title}` : `Làm đề ${exam.title}`}
               >
-                <span>{exam.status === 'completed' ? 'Làm lại' : exam.status === 'in_progress' ? 'Tiếp tục' : 'Làm đề ngay'}</span>
-                <Play size={15} fill="currentColor" aria-hidden="true" focusable="false" />
+                <span>{isLocked ? 'Đang khóa' : exam.status === 'completed' ? 'Làm lại' : exam.status === 'in_progress' ? 'Tiếp tục' : 'Làm đề ngay'}</span>
+                {isLocked ? <Lock size={15} aria-hidden="true" focusable="false" /> : <Play size={15} fill="currentColor" aria-hidden="true" focusable="false" />}
               </button>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 

@@ -81,6 +81,7 @@ interface LearnerWorkspaceProgress {
   enrollmentPercent: number;
   vocabulary: Map<string, VocabularyStatus>;
   assessmentScores: Map<string, number>;
+  assessmentPassed: Set<string>;
 }
 
 interface ReviewQuestionRow {
@@ -188,14 +189,28 @@ function mapWorkspace(
 
   const exams = [...(row.assessments ?? [])]
     .sort((a, b) => a.order_index - b.order_index)
-    .map((assessment) => {
+    .map((assessment, index, all) => {
       const latestScore = progress.assessmentScores.get(assessment.id);
+      const hasPassed = progress.assessmentPassed.has(assessment.id);
+      // Đề đầu tiên luôn mở. Đề thứ i+1 chỉ mở khi đề thứ i đã từng đạt điểm pass.
+      const previous = index > 0 ? all[index - 1] : null;
+      const isLocked = index > 0 && previous !== null && !progress.assessmentPassed.has(previous.id);
+      if (isLocked) {
+        return {
+          id: assessment.id,
+          title: assessment.title,
+          skills: [assessment.assessment_type, `Đạt từ ${assessment.passing_score}%`],
+          duration: '—',
+          status: 'locked',
+          unlockLabel: previous ? `Vượt "${previous.title}" để mở` : 'Chưa mở khóa',
+        } satisfies CourseExamItem;
+      }
       return {
         id: assessment.id,
         title: assessment.title,
         skills: [assessment.assessment_type, `Đạt từ ${assessment.passing_score}%`],
         duration: '—',
-        status: latestScore === undefined ? 'ready' : 'completed',
+        status: latestScore === undefined ? 'ready' : (hasPassed ? 'completed' : 'ready'),
         ...(latestScore === undefined ? {} : { latestScore }),
       } satisfies CourseExamItem;
     });
@@ -225,21 +240,24 @@ async function fetchLearnerProgress(courseId: string): Promise<LearnerWorkspaceP
   const [enrollment, vocabulary, attempts] = await Promise.all([
     client.from('enrollments').select('progress_percent').eq('course_id', courseId).eq('user_id', userId).maybeSingle(),
     client.from('vocabulary_progress').select('vocabulary_item_id, status').eq('user_id', userId),
-    client.from('assessment_attempts').select('assessment_id, score, attempted_at').eq('user_id', userId).order('attempted_at', { ascending: false }),
+    client.from('assessment_attempts').select('assessment_id, score, passed, attempted_at').eq('user_id', userId).order('attempted_at', { ascending: false }),
   ]);
 
   const firstError = [enrollment.error, vocabulary.error, attempts.error].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
   const assessmentScores = new Map<string, number>();
+  const assessmentPassed = new Set<string>();
   for (const attempt of attempts.data ?? []) {
     if (!assessmentScores.has(attempt.assessment_id)) assessmentScores.set(attempt.assessment_id, attempt.score);
+    if (attempt.passed) assessmentPassed.add(attempt.assessment_id);
   }
 
   return {
     enrollmentPercent: Math.round(Number(enrollment.data?.progress_percent ?? 0)),
     vocabulary: new Map((vocabulary.data ?? []).map((item) => [item.vocabulary_item_id, mapVocabularyProgress(item.status)])),
     assessmentScores,
+    assessmentPassed,
   };
 }
 

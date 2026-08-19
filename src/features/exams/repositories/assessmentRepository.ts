@@ -1,4 +1,4 @@
-import { requireSupabase } from '@/src/features/supabase/lib/supabaseRepository';
+import { requireSupabase, requireUserId } from '@/src/features/supabase/lib/supabaseRepository';
 import type { Json } from '@/src/features/supabase/lib/database.types';
 import type { Exam } from '@/src/features/exams/types';
 
@@ -39,18 +39,98 @@ export interface AssessmentResultDetail {
 }
 
 export async function fetchPublishedAssessments(): Promise<Exam[]> {
-  const { data, error } = await requireSupabase()
+  const client = requireSupabase();
+  const userId = await requireUserId(client);
+
+  const [{ data, error }, { data: attempts, error: attemptsError }] = await Promise.all([
+    client
+      .from('assessments')
+      .select('id, title, assessment_type, passing_score, course_id, order_index')
+      .eq('status', 'published')
+      .order('order_index'),
+    client.from('assessment_attempts').select('assessment_id, passed').eq('user_id', userId),
+  ]);
+  if (error) throw new Error(error.message);
+  if (attemptsError) throw new Error(attemptsError.message);
+
+  const rows = [...(data ?? [])].sort((a, b) => (a.course_id === b.course_id ? a.order_index - b.order_index : a.course_id.localeCompare(b.course_id)));
+  const passedIds = new Set((attempts ?? []).filter((attempt) => attempt.passed).map((attempt) => attempt.assessment_id));
+
+  // Với mỗi khóa, áp prerequisite: đề i+1 chỉ mở khi đề i đã pass.
+  const byCourse = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const list = byCourse.get(row.course_id) ?? [];
+    list.push(row);
+    byCourse.set(row.course_id, list);
+  }
+
+  const exams: Exam[] = [];
+  for (const list of byCourse.values()) {
+    list.forEach((assessment, index) => {
+      const previous = index > 0 ? list[index - 1] : null;
+      const isLocked = index > 0 && previous !== null && !passedIds.has(previous.id);
+      exams.push({
+        id: assessment.id,
+        title: assessment.title,
+        type: assessment.assessment_type,
+        skills: [`Đạt từ ${assessment.passing_score}%`],
+        courseId: assessment.course_id,
+        orderIndex: assessment.order_index,
+        ...(isLocked
+          ? { locked: true, unlockLabel: previous ? `Vượt "${previous.title}" để mở` : 'Chưa mở khóa' }
+          : { locked: false }),
+      });
+    });
+  }
+
+  return exams;
+}
+
+export interface AssessmentUnlockState {
+  locked: boolean;
+  unlockLabel?: string;
+}
+
+/**
+ * Xác định đề thi có bị khóa bởi prerequisite (điểm pass đề trước) hay không.
+ * Đề đầu tiên trong khóa luôn mở; đề i+1 chỉ mở khi đề i đã từng đạt điểm pass.
+ */
+export async function fetchAssessmentUnlockState(assessmentId: string): Promise<AssessmentUnlockState> {
+  const client = requireSupabase();
+  const userId = await requireUserId(client);
+
+  const [{ data: assessment, error: assessmentError }, { data: attempts, error: attemptsError }] = await Promise.all([
+    client
+      .from('assessments')
+      .select('id, course_id, title, order_index')
+      .eq('id', assessmentId)
+      .eq('status', 'published')
+      .maybeSingle(),
+    client.from('assessment_attempts').select('assessment_id, passed').eq('user_id', userId),
+  ]);
+
+  if (assessmentError) throw new Error(assessmentError.message);
+  if (attemptsError) throw new Error(attemptsError.message);
+  if (!assessment) return { locked: false };
+
+  // Đề đầu tiên trong khóa luôn mở.
+  const { data: siblings, error: siblingsError } = await client
     .from('assessments')
-    .select('id, title, assessment_type, passing_score')
+    .select('id, title, order_index')
+    .eq('course_id', assessment.course_id)
     .eq('status', 'published')
     .order('order_index');
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((assessment) => ({
-    id: assessment.id,
-    title: assessment.title,
-    type: assessment.assessment_type,
-    skills: [`Đạt từ ${assessment.passing_score}%`],
-  }));
+  if (siblingsError) throw new Error(siblingsError.message);
+
+  const ordered = (siblings ?? []).sort((a, b) => a.order_index - b.order_index);
+  const index = ordered.findIndex((item) => item.id === assessmentId);
+  if (index <= 0) return { locked: false };
+
+  const previous = ordered[index - 1];
+  const passedIds = new Set((attempts ?? []).filter((attempt) => attempt.passed).map((attempt) => attempt.assessment_id));
+  if (passedIds.has(previous.id)) return { locked: false };
+
+  return { locked: true, unlockLabel: `Vượt "${previous.title}" để mở khóa đề này` };
 }
 
 function asOptions(value: Json): string[] {

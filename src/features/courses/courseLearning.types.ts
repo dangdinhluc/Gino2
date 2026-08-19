@@ -1,6 +1,6 @@
 export type VocabularyStatus = 'new' | 'learning' | 'due' | 'remembered';
 export type CourseDocumentKind = 'PDF' | 'DOC' | 'Post';
-export type CourseExamStatus = 'ready' | 'in_progress' | 'completed';
+export type CourseExamStatus = 'ready' | 'in_progress' | 'completed' | 'locked';
 
 export interface CourseLearningCourse {
   id: string;
@@ -73,6 +73,8 @@ export interface CourseExamItem {
   duration: string;
   status: CourseExamStatus;
   latestScore?: number;
+  /** Chỉ đặt khi status === 'locked': nhãn mô tả điều kiện mở khóa. */
+  unlockLabel?: string;
 }
 
 export interface CoursePodcastItem {

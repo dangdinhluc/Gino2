@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, FileText, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, FileText, Lock, Send } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { fetchAssessmentPaper, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
+import { fetchAssessmentPaper, fetchAssessmentUnlockState, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
 
 export default function ExamRunner() {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export default function ExamRunner() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
+  const [lockState, setLockState] = useState<{ locked: boolean; label?: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,20 +21,28 @@ export default function ExamRunner() {
     setLoadError(null);
     setActiveIndex(0);
     setSelectedAnswers({});
+    setLockState(null);
 
     if (!assessmentId) {
       setLoadError('Thiếu mã đề thi. Vui lòng chọn đề từ trung tâm luyện thi.');
       return () => { cancelled = true; };
     }
 
-    fetchAssessmentPaper(assessmentId)
-      .then((nextPaper) => {
+    fetchAssessmentUnlockState(assessmentId)
+      .then((unlock) => {
         if (cancelled) return;
-        if (!nextPaper || nextPaper.questions.length === 0) {
-          setLoadError('Không tìm thấy đề thi khả dụng hoặc đề chưa có câu hỏi.');
+        if (unlock.locked) {
+          setLockState({ locked: true, label: unlock.unlockLabel });
           return;
         }
-        setPaper(nextPaper);
+        return fetchAssessmentPaper(assessmentId).then((nextPaper) => {
+          if (cancelled) return;
+          if (!nextPaper || nextPaper.questions.length === 0) {
+            setLoadError('Không tìm thấy đề thi khả dụng hoặc đề chưa có câu hỏi.');
+            return;
+          }
+          setPaper(nextPaper);
+        });
       })
       .catch((error: unknown) => {
         if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Không tải được đề thi.');
@@ -44,6 +53,24 @@ export default function ExamRunner() {
 
   if (loadError) {
     return <PageState tone="error" message={loadError} />;
+  }
+  if (lockState?.locked) {
+    return (
+      <div className="mx-auto flex min-h-[100dvh] max-w-xl items-center justify-center px-5">
+        <div className="w-full space-y-4 rounded-3xl border border-[#e8dccb] bg-[#fffaf3] p-6 text-center shadow-[0_18px_40px_-18px_rgba(111,54,33,0.4)]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <Lock size={30} />
+          </div>
+          <div>
+            <p className="font-[var(--font-heading)] text-lg font-black text-[#172033]">Đề thi chưa mở khóa</p>
+            <p className="mt-2 text-sm font-semibold text-[#5f6b7c]">{lockState.label ?? 'Hãy hoàn thành đề trước để mở đề này.'}</p>
+          </div>
+          <Link to="/app/exams" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-orange-700 px-6 text-sm font-bold text-white transition-colors hover:bg-orange-800">
+            <ArrowLeft size={16} /> Về trung tâm luyện thi
+          </Link>
+        </div>
+      </div>
+    );
   }
   if (!paper) {
     return <PageState message="Đang tải đề thi…" />;

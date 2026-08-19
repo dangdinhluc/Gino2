@@ -16,6 +16,7 @@ import {
   X,
   CheckCircle2,
   ArrowRight,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { assets } from '@/src/shared/lib/assets';
@@ -307,9 +308,15 @@ export default function ExamCenter() {
                       <span className="rounded-md border border-orange-200 bg-orange-50 px-2 py-0.5 text-[11px] font-extrabold text-[#c2410c]">
                         {exam.type}
                       </span>
-                      <span className="flex items-center gap-1 text-[11px] font-extrabold text-[#059669]">
-                        <span className="h-2 w-2 rounded-full bg-[#059669] animate-pulse" /> Sẵn sàng làm bài
-                      </span>
+                      {exam.locked ? (
+                        <span className="flex items-center gap-1 text-[11px] font-extrabold text-[#64748b]">
+                          <Lock size={12} /> Chưa mở khóa
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[11px] font-extrabold text-[#059669]">
+                          <span className="h-2 w-2 rounded-full bg-[#059669] animate-pulse" /> Sẵn sàng làm bài
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="font-[var(--font-heading)] text-base font-black tracking-[-0.01em] text-[#0f172a] transition-colors group-hover:text-[#d83a00] sm:text-lg">
@@ -336,18 +343,35 @@ export default function ExamCenter() {
                         </span>
                       ))}
                     </div>
+
+                    {exam.locked && exam.unlockLabel && (
+                      <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-[#64748b]">
+                        <Lock size={11} /> {exam.unlockLabel}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Right Action Button */}
                 <div className="shrink-0 flex items-center justify-end sm:flex-col sm:items-end sm:justify-center">
-                  <Link
-                    to={`/app/exams/${exam.id}/start`}
-                    className="flex h-11 items-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 text-xs font-extrabold text-white shadow-xs transition-all duration-200 group-hover:shadow-md group-hover:from-[#c23400] group-hover:to-[#d84800] active:scale-95"
-                  >
-                    <span>Làm bài ngay</span>
-                    <ArrowRight size={15} />
-                  </Link>
+                  {exam.locked ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 px-5 text-xs font-extrabold text-slate-400 cursor-not-allowed"
+                    >
+                      <Lock size={15} />
+                      <span>Chưa mở khóa</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to={`/app/exams/${exam.id}/start`}
+                      className="flex h-11 items-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 text-xs font-extrabold text-white shadow-xs transition-all duration-200 group-hover:shadow-md group-hover:from-[#c23400] group-hover:to-[#d84800] active:scale-95"
+                    >
+                      <span>Làm bài ngay</span>
+                      <ArrowRight size={15} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

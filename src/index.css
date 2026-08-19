@@ -1846,8 +1846,11 @@
 .course-exam-card:hover { border-color: rgba(198, 61, 55, 0.38); box-shadow: 0 16px 30px rgba(87, 43, 37, 0.1); transform: translateY(-2px); }
 .course-exam-card.is-in_progress { border-color: rgba(217, 154, 78, 0.38); }
 .course-exam-card.is-completed { border-color: rgba(77, 157, 126, 0.28); }
+.course-exam-card.is-locked { border-color: rgba(148, 163, 184, 0.24); background: rgba(248, 250, 252, 0.72); }
+.course-exam-card.is-locked:hover { transform: none; border-color: rgba(148, 163, 184, 0.24); box-shadow: 0 12px 24px rgba(87, 43, 37, 0.06); }
 .course-exam-card-heading { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
 .course-exam-card-number { color: var(--tokutei-red); font-family: var(--font-heading); font-size: 1.15rem; font-weight: 900; line-height: 1; }
+.course-exam-card.is-locked .course-exam-card-number { color: #94a3b8; }
 .course-exam-status { border-radius: 999px; background: rgba(198, 61, 55, 0.08); padding: 0.28rem 0.45rem; color: var(--tokutei-red); font-size: 0.55rem; font-weight: 900; white-space: nowrap; }
 .course-exam-card.is-in_progress .course-exam-status { background: #fff1d9; color: #b9782f; }
 .course-exam-card.is-completed .course-exam-status { background: #e7f6ee; color: #328566; }
@@ -1946,6 +1949,7 @@
 .course-exam-card-status-icon { display: grid; place-items: center; color: var(--tokutei-red); }
 .course-exam-card.is-in_progress .course-exam-card-status-icon { color: #d98a19; }
 .course-exam-card.is-completed .course-exam-card-status-icon { color: #27966f; }
+.course-exam-card.is-locked .course-exam-card-status-icon { color: #94a3b8; }
 .course-exam-dashboard .course-exam-card h2 { font-size: clamp(0.92rem, 2.3vw, 1.12rem); line-height: 1.25; }
 .course-exam-dashboard .course-exam-card-meta { align-items: center; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.72rem; }
 .course-exam-dashboard .course-exam-card-meta span { gap: 0.28rem; }
@@ -1953,8 +1957,12 @@
 .course-exam-dashboard .course-exam-status { display: inline-flex; margin-top: 0.55rem; background: #fff0eb; color: var(--tokutei-red); }
 .course-exam-dashboard .course-exam-card.is-in_progress .course-exam-status { background: #fff3d9; color: #b9782f; }
 .course-exam-dashboard .course-exam-card.is-completed .course-exam-status { background: #e9f7f1; color: #27966f; }
+.course-exam-dashboard .course-exam-card.is-locked .course-exam-status { background: #eef2f7; color: #64748b; }
+.course-exam-dashboard .course-exam-card.is-locked h2 { color: #64748b; }
 .course-exam-dashboard .course-exam-start { min-height: 2.8rem; min-width: 7.8rem; border-radius: 0.9rem; padding-inline: 0.9rem; font-size: 0.75rem; }
 .course-exam-dashboard .course-exam-card.is-completed .course-exam-start { border: 1px solid #8dcfb9; background: transparent; color: #27966f; box-shadow: none; }
+.course-exam-dashboard .course-exam-card.is-locked .course-exam-start { border: 1px solid #e2e8f0; background: #f1f5f9; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
+.course-exam-dashboard .course-exam-card.is-locked .course-exam-start:hover { filter: none; transform: none; }
 .course-exam-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.65rem; }
 .course-exam-stats > div { display: grid; min-height: 5.2rem; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-content: center; column-gap: 0.55rem; border: 1px solid rgba(198, 61, 55, 0.11); border-radius: 1.15rem; background: rgba(255, 255, 255, 0.84); padding: 0.8rem; box-shadow: 0 8px 18px rgba(87, 43, 37, 0.04); }
 .course-exam-stats .review-summary-icon { grid-row: 1 / 3; }
