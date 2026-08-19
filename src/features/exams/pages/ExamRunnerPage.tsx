@@ -1,133 +1,74 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, Clock3, Send } from 'lucide-react';
-import { examShell } from '@/src/data/phaseOneMock';
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, FileText, Send } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-
-type TheoryQuestion = {
-  id: string;
-  topic: string;
-  prompt: string;
-  options: string[];
-  answer: string;
-};
-
-const theoryQuestions: TheoryQuestion[] = [
-  {
-    id: 'q1',
-    topic: 'Hồ sơ',
-    prompt: 'Trước buổi phỏng vấn, mục nào nên kiểm tra đầu tiên?',
-    options: ['Hộ chiếu / thẻ cư trú', 'Tai nghe', 'Hộp cơm', 'Đồng hồ thông minh'],
-    answer: 'Hộ chiếu / thẻ cư trú',
-  },
-  {
-    id: 'q2',
-    topic: 'Vào ca',
-    prompt: 'Khi bắt đầu ca, hành động nào đúng nhất?',
-    options: ['Chào đội và xác nhận vị trí', 'Tự vào làm ngay', 'Đổi vị trí với bạn cho nhanh', 'Để checklist cuối ca làm luôn'],
-    answer: 'Chào đội và xác nhận vị trí',
-  },
-  {
-    id: 'q3',
-    topic: 'Giao tiếp',
-    prompt: '“houkoku” gần nghĩa nhất với điều gì?',
-    options: ['báo cáo', 'nghỉ ngơi', 'phỏng vấn', 'chuyển ca'],
-    answer: 'báo cáo',
-  },
-  {
-    id: 'q4',
-    topic: 'Phỏng vấn',
-    prompt: 'Khi HR hỏi mục tiêu sang Nhật, câu nào an toàn nhất?',
-    options: ['Em muốn học và làm việc ổn định lâu dài.', 'Em sang trước rồi tính tiếp.', 'Bạn em bảo đi nên em đi.', 'Em chưa rõ công việc là gì.'],
-    answer: 'Em muốn học và làm việc ổn định lâu dài.',
-  },
-  {
-    id: 'q5',
-    topic: 'An toàn',
-    prompt: 'Khi thấy khu vực nguy hiểm, phản ứng nào đúng?',
-    options: ['Báo quản lý và chặn khu vực', 'Làm nhanh rồi tính', 'Đợi người khác nhắc', 'Im lặng cho xong ca'],
-    answer: 'Báo quản lý và chặn khu vực',
-  },
-  {
-    id: 'q6',
-    topic: 'Tác phong',
-    prompt: 'Khi chưa hiểu hướng dẫn, câu nào phù hợp nhất?',
-    options: ['Xin nhắc lại cho em một lần nữa.', 'Em đoán chắc đúng rồi.', 'Để em làm đại trước.', 'Em hỏi lại sau ca.'],
-    answer: 'Xin nhắc lại cho em một lần nữa.',
-  },
-  {
-    id: 'q7',
-    topic: 'Lịch làm',
-    prompt: '“kyukei” nghĩa là gì?',
-    options: ['giờ nghỉ', 'quản lý', 'đồng phục', 'hồ sơ'],
-    answer: 'giờ nghỉ',
-  },
-  {
-    id: 'q8',
-    topic: 'Hồ sơ',
-    prompt: 'Mục nào không nên thiếu trong checklist trước phỏng vấn?',
-    options: ['Ảnh hồ sơ và bản scan giấy tờ', 'Bảng điểm game', 'Ảnh món ăn yêu thích', 'Bộ sticker điện thoại'],
-    answer: 'Ảnh hồ sơ và bản scan giấy tờ',
-  },
-  {
-    id: 'q9',
-    topic: 'Nhà hàng',
-    prompt: 'Trong ca đầu, ưu tiên nào đúng hơn?',
-    options: ['Đúng quy trình trước, nhanh sau', 'Nhanh trước, sai sửa sau', 'Làm theo bạn bên cạnh', 'Chỉ tập trung phần dễ'],
-    answer: 'Đúng quy trình trước, nhanh sau',
-  },
-  {
-    id: 'q10',
-    topic: 'Nghe hiểu',
-    prompt: 'Khi quản lý nói lại hướng dẫn, anh nên làm gì để chắc ý?',
-    options: ['Nhắc lại ý chính để xác nhận', 'Gật đầu cho qua', 'Đợi đồng nghiệp làm mẫu', 'Bỏ qua vì ngại hỏi'],
-    answer: 'Nhắc lại ý chính để xác nhận',
-  },
-  {
-    id: 'q11',
-    topic: 'Phỏng vấn',
-    prompt: 'Câu nào nên tránh khi được hỏi điểm mạnh?',
-    options: ['Em học nhanh và chịu khó.', 'Em cái gì cũng giỏi hết.', 'Em quen làm theo quy trình.', 'Em chủ động hỏi khi chưa hiểu.'],
-    answer: 'Em cái gì cũng giỏi hết.',
-  },
-  {
-    id: 'q12',
-    topic: 'Tổng ôn',
-    prompt: 'Phiên ôn cuối ngày nào hiệu quả nhất?',
-    options: ['10 phút ôn flashcards + 1 câu tự giới thiệu', 'Chơi game bất kỳ 1 giờ', 'Mở nhiều tab rồi để đó', 'Chỉ xem video, không ôn lại'],
-    answer: '10 phút ôn flashcards + 1 câu tự giới thiệu',
-  },
-];
+import { fetchAssessmentPaper, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
 
 export default function ExamRunner() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: assessmentId } = useParams();
+  const [paper, setPaper] = useState<AssessmentPaper | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
 
-  const activeQuestion = theoryQuestions[activeIndex];
+  useEffect(() => {
+    let cancelled = false;
+    setPaper(null);
+    setLoadError(null);
+    setActiveIndex(0);
+    setSelectedAnswers({});
+
+    if (!assessmentId) {
+      setLoadError('Thiếu mã đề thi. Vui lòng chọn đề từ trung tâm luyện thi.');
+      return () => { cancelled = true; };
+    }
+
+    fetchAssessmentPaper(assessmentId)
+      .then((nextPaper) => {
+        if (cancelled) return;
+        if (!nextPaper || nextPaper.questions.length === 0) {
+          setLoadError('Không tìm thấy đề thi khả dụng hoặc đề chưa có câu hỏi.');
+          return;
+        }
+        setPaper(nextPaper);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Không tải được đề thi.');
+      });
+
+    return () => { cancelled = true; };
+  }, [assessmentId]);
+
+  if (loadError) {
+    return <PageState tone="error" message={loadError} />;
+  }
+  if (!paper) {
+    return <PageState message="Đang tải đề thi…" />;
+  }
+
+  const activeQuestion = paper.questions[activeIndex];
   const selectedAnswer = selectedAnswers[activeQuestion.id];
   const answeredCount = Object.keys(selectedAnswers).length;
-  const progress = Math.round((answeredCount / theoryQuestions.length) * 100);
+  const progress = Math.round((answeredCount / paper.questions.length) * 100);
 
   const handleAnswer = (option: string) => {
-    setSelectedAnswers((currentAnswers) => ({
-      ...currentAnswers,
-      [activeQuestion.id]: option,
-    }));
+    setSelectedAnswers((currentAnswers) => ({ ...currentAnswers, [activeQuestion.id]: option }));
   };
 
-  const handleSubmit = () => {
-    navigate(`/app/exams/${id ?? examShell.id}/result`);
-  };
-
-  const goToPreviousQuestion = () => {
-    setActiveIndex((currentIndex) => Math.max(0, currentIndex - 1));
-  };
-
-  const goToNextQuestion = () => {
-    setActiveIndex((currentIndex) => Math.min(theoryQuestions.length - 1, currentIndex + 1));
+  const handleSubmit = async () => {
+    if (isSubmitting || !assessmentId) return;
+    setIsSubmitting(true);
+    try {
+      const result = await submitAssessment(assessmentId, selectedAnswers);
+      navigate(`/app/exams/${assessmentId}/result`, { state: { result } });
+    } catch (error: unknown) {
+      setLoadError(error instanceof Error ? error.message : 'Không thể nộp bài.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -144,20 +85,20 @@ export default function ExamRunner() {
             aria-controls="exam-question-list"
             className="flex h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-2 text-sm font-bold text-[#172033] transition-colors hover:bg-[#fffaf3]"
           >
-            Câu {activeIndex + 1}/{theoryQuestions.length}
+            Câu {activeIndex + 1}/{paper.questions.length}
             <ChevronDown className={cn('transition-transform', isQuestionListOpen && 'rotate-180')} size={16} />
           </button>
-          <span className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-[#fffaf3] px-2.5 text-sm font-bold tabular-nums text-[#5f6b7c]">
-            <Clock3 size={15} /> {examShell.duration}
+          <span className="inline-flex h-10 max-w-[10rem] shrink-0 items-center gap-1.5 truncate rounded-xl bg-[#fffaf3] px-2.5 text-xs font-bold text-[#5f6b7c]" title={paper.title}>
+            <FileText size={15} /> <span className="truncate">{paper.type}</span>
           </span>
-          <button type="button" onClick={handleSubmit} className="flex h-10 shrink-0 items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800 transition-colors hover:border-orange-700 hover:bg-orange-700 hover:text-white">
-            Nộp <Send size={14} />
+          <button type="button" onClick={() => void handleSubmit()} disabled={isSubmitting} className="flex h-10 shrink-0 items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800 transition-colors hover:border-orange-700 hover:bg-orange-700 hover:text-white disabled:opacity-50">
+            {isSubmitting ? 'Đang chấm…' : 'Nộp'} <Send size={14} />
           </button>
         </div>
 
         {isQuestionListOpen && (
           <div id="exam-question-list" className="mx-auto grid w-full max-w-[820px] grid-cols-5 gap-2 border-t border-[#e8dccb] pt-3 sm:grid-cols-8">
-            {theoryQuestions.map((question, index) => {
+            {paper.questions.map((question, index) => {
               const isActive = activeIndex === index;
               const isAnswered = Boolean(selectedAnswers[question.id]);
               return (
@@ -185,8 +126,8 @@ export default function ExamRunner() {
 
       <main className="mx-auto w-full max-w-[680px] px-5 pb-28 pt-7 sm:px-7">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-700">{activeQuestion.topic}</p>
-          <span className="text-xs font-bold text-[#95a0af]">{answeredCount}/{theoryQuestions.length} đã làm</span>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-700">{paper.type}</p>
+          <span className="text-xs font-bold text-[#95a0af]">{answeredCount}/{paper.questions.length} đã làm</span>
         </div>
         <h1 className="mt-3 font-[var(--font-heading)] text-[clamp(1.5rem,5vw,2rem)] font-bold leading-[1.25] tracking-[-0.03em] text-[#172033]">{activeQuestion.prompt}</h1>
 
@@ -216,15 +157,15 @@ export default function ExamRunner() {
 
       <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[680px] items-center justify-between gap-3">
-          <button type="button" onClick={goToPreviousQuestion} disabled={activeIndex === 0} className="flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 text-sm font-semibold text-[#5f6b7c] transition-colors hover:text-[#172033] disabled:opacity-45">
+          <button type="button" onClick={() => setActiveIndex((currentIndex) => Math.max(0, currentIndex - 1))} disabled={activeIndex === 0} className="flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 text-sm font-semibold text-[#5f6b7c] transition-colors hover:text-[#172033] disabled:opacity-45">
             <ChevronLeft size={17} /> Câu trước
           </button>
-          {activeIndex === theoryQuestions.length - 1 ? (
-            <button type="button" onClick={handleSubmit} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800">
-              Xem lại & nộp <Send size={16} />
+          {activeIndex === paper.questions.length - 1 ? (
+            <button type="button" onClick={() => void handleSubmit()} disabled={isSubmitting} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800 disabled:opacity-50">
+              Nộp bài <Send size={16} />
             </button>
           ) : (
-            <button type="button" onClick={goToNextQuestion} className="flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800">
+            <button type="button" onClick={() => setActiveIndex((currentIndex) => Math.min(paper.questions.length - 1, currentIndex + 1))} className="flex h-12 min-w-29 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800">
               Câu tiếp <ArrowRight size={17} />
             </button>
           )}
@@ -232,4 +173,8 @@ export default function ExamRunner() {
       </footer>
     </div>
   );
+}
+
+function PageState({ message, tone }: { message: string; tone?: 'error' }) {
+  return <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-5"><div className={cn('w-full rounded-2xl border p-5 text-sm font-semibold', tone === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-[#e8dccb] bg-[#fffaf3] text-[#5f6b7c]')}>{message}</div></div>;
 }

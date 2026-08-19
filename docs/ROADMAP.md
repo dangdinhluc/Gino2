@@ -65,12 +65,8 @@ Nền tảng học tiếng Đức/Nhật Tokutei Ginou cho học viên:
 
 #### 4. Progress dashboard cá nhân
 
-- **Hiện tại:** `StatsAchievementsPage` là shell rỗng.
-- **Cần làm:**
-  - Streak ngày học, heatmap
-  - Từ đã học, % hoàn thành khóa
-  - Điểm yếu cần ôn (dựa trên SRS/review attempts)
-  - Achievement badges
+- **Hiện tại:** Thống kê học tập được hiển thị trong Hồ sơ/Cài đặt; không duy trì màn riêng.
+- **Hướng mở rộng:** nếu cần thêm chỉ số, bổ sung trực tiếp trong Hồ sơ/Cài đặt thay vì tạo route thống kê mới.
 
 #### 5. AI Tutor thật (không mock)
 

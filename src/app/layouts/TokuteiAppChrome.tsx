@@ -1,128 +1,149 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import {
-  BookOpen,
-  ClipboardCheck,
   Flame,
-  Home,
-  Smartphone,
+  Search,
+  Settings,
   Sparkles,
-  UserRound,
-  X,
 } from 'lucide-react';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
-import { useReviewStore } from '@/src/features/review/store/reviewStore';
+import { LearningSearchPopover } from '@/src/features/search/components/LearningSearchPopover';
 import { assets } from '@/src/shared/lib/assets';
 
-const bottomItems = [
-  { label: 'Trang chủ', path: '/app/dashboard', icon: Home, imageIcon: assets.shared.navigation.home },
-  { label: 'Khóa học', path: '/app/courses', icon: BookOpen, imageIcon: assets.shared.navigation.courses },
-  { label: 'Ôn tập', path: '/app/practice', icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary },
-  { label: 'Luyện thi', path: '/app/exams', icon: ClipboardCheck, imageIcon: assets.shared.navigation.exams },
-  { label: 'Cá nhân', path: '/app/profile', icon: UserRound, imageIcon: assets.shared.navigation.profile },
+const desktopNavItems = [
+  { label: 'Trang chủ', path: '/app/dashboard', imageIcon: assets.shared.navigation.home },
+  { label: 'Khóa học', path: '/app/courses', imageIcon: assets.shared.navigation.courses },
+  { label: 'Ôn tập', path: '/app/practice', imageIcon: assets.shared.navigation.vocabulary },
+  { label: 'Luyện thi', path: '/app/exams', imageIcon: assets.shared.navigation.exams },
+  { label: 'Cá nhân', path: '/app/profile', imageIcon: assets.shared.navigation.profile },
 ];
 
 export function TokuteiAppChrome() {
-  const [showInstallModal, setShowInstallModal] = useState(false);
   const streak = useProgressStore((state) => state.streak);
   const weeklyXp = useProgressStore((state) => state.weeklyXp);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
 
   return (
     <>
-      <header className="dashboard-topbar tokutei-mobile-chrome">
-        <Link to="/app/dashboard" className="dashboard-brand" aria-label="TOKUTEI GINO - Trang chủ">
-          <img src={assets.shared.mascots.meow} alt="Meow" />
-          <span>
-            <strong>TOKUTEI GINO</strong>
-            <small>TIẾNG NHẬT ĐI LÀM</small>
-          </span>
-        </Link>
+      <header className="sticky top-0 z-40 w-full border-b border-[#f5ece1] bg-[#fffaf5]/96 shadow-2xs backdrop-blur-md transition-colors">
+        {/* DESKTOP HEADER (MD & UP) */}
+        <div className="hidden md:flex mx-auto h-16 w-full max-w-[1440px] items-center justify-between px-6 md:px-8">
+          {/* Left: Brand Logo */}
+          <Link to="/app/dashboard" className="flex items-center gap-2.5 min-w-0 group" aria-label="TOKUTEI GINO - Trang chủ">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] p-1 shadow-2xs group-hover:scale-105 transition-transform">
+              <img src={assets.shared.mascots.brand} alt="Tokutei Gino" className="h-full w-full object-contain" />
+            </div>
+            <div className="space-y-0 min-w-0">
+              <h1 className="font-[var(--font-heading)] text-sm font-black tracking-tight text-[#0f172a] truncate leading-tight group-hover:text-[#d83a00] transition-colors">
+                TOKUTEI GINO
+              </h1>
+              <p className="text-[8.5px] font-black uppercase tracking-wider text-[#d83a00] leading-none">
+                TIẾNG NHẬT ĐI LÀM
+              </p>
+            </div>
+          </Link>
 
-        <nav className="dashboard-desktop-nav" aria-label="Điều hướng chính">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
-            return <NavLink key={item.path} to={item.path}>{() => <><Icon size={17} /><span>{item.label}</span></>}</NavLink>;
-          })}
-        </nav>
+          {/* Center: Desktop 3D Navigation Menu */}
+          <nav className="flex items-center gap-1.5 rounded-full border border-orange-200/60 bg-white/90 p-1.5 shadow-2xs backdrop-blur-xs" aria-label="Điều hướng chính">
+            {desktopNavItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#d83a00] to-[#f26522] text-white shadow-xs scale-102'
+                      : 'text-[#5f6b7c] hover:bg-orange-50/80 hover:text-[#d83a00]'
+                  }`
+                }
+              >
+                <img src={item.imageIcon} alt={item.label} className="h-5 w-5 object-contain shrink-0 drop-shadow-2xs" />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
 
-        <div className="dashboard-top-actions">
-          <span className="dashboard-counter"><Flame size={15} /><strong>{streak}</strong><small>d</small></span>
-          <span className="dashboard-counter"><Sparkles size={15} /><strong>{weeklyXp}</strong><small>XP</small></span>
-          
-          <button
-            type="button"
-            onClick={() => setShowInstallModal(true)}
-            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522] px-3 py-1.5 text-xs font-black text-white shadow-2xs transition-all duration-200 hover:shadow-md hover:brightness-110 active:scale-95 shrink-0"
-            title="Cài ứng dụng Tokutei Gino về điện thoại"
-          >
-            <Smartphone size={14} />
-            <span>Cài App</span>
-          </button>
+          {/* Right: Actions & Stats */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3 py-1.5 text-xs font-black text-[#c2410c] shadow-2xs">
+              <Flame size={14} className="text-[#d83a00] fill-[#d83a00]" />
+              <span>{streak}d</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-3 py-1.5 text-xs font-black text-[#b45309] shadow-2xs">
+              <Sparkles size={14} className="text-amber-500 fill-amber-400" />
+              <span>{weeklyXp} XP</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#f5ece1] bg-white text-[#5f6b7c] hover:border-orange-200 hover:text-[#d83a00] hover:shadow-2xs transition-all"
+              title="Tìm nội dung học"
+              aria-label="Tìm nội dung học"
+              aria-haspopup="dialog"
+              aria-expanded={isSearchOpen}
+            >
+              <Search size={16} />
+            </button>
+
+            <Link
+              to="/app/settings"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#f5ece1] bg-white text-[#5f6b7c] hover:border-orange-200 hover:text-[#d83a00] hover:shadow-2xs transition-all"
+              title="Cài đặt ứng dụng"
+            >
+              <Settings size={16} />
+            </Link>
+          </div>
+        </div>
+
+        {/* MOBILE HEADER (SMALL SCREENS BELOW MD) */}
+        <div className="flex md:hidden h-13 w-full items-center justify-between px-3">
+          {/* Left: Brand Logo (Fits perfectly without truncation) */}
+          <Link to="/app/dashboard" className="flex items-center gap-2 shrink-0" aria-label="TOKUTEI GINO - Trang chủ">
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] p-0.5 shadow-2xs">
+              <img src={assets.shared.mascots.brand} alt="Tokutei Gino" className="h-full w-full object-contain" />
+            </div>
+            <div className="space-y-0">
+              <h1 className="font-[var(--font-heading)] text-xs font-black tracking-tight text-[#0f172a] leading-tight">
+                TOKUTEI GINO
+              </h1>
+              <p className="text-[7.5px] font-black uppercase tracking-wider text-[#d83a00] leading-none">
+                TIẾNG NHẬT ĐI LÀM
+              </p>
+            </div>
+          </Link>
+
+          {/* Right: Mobile stat chips and search */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="flex items-center gap-0.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-2 py-0.5 text-[10px] font-black text-[#c2410c]">
+              <Flame size={11} className="text-[#d83a00] fill-[#d83a00]" />
+              <span>{streak}d</span>
+            </span>
+
+            <span className="flex items-center gap-0.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-2 py-0.5 text-[10px] font-black text-[#b45309]">
+              <Sparkles size={11} className="text-amber-500 fill-amber-400" />
+              <span>{weeklyXp} XP</span>
+            </span>
+
+            <button type="button" onClick={() => setIsSearchOpen(true)} aria-label="Tìm nội dung học" aria-haspopup="dialog" aria-expanded={isSearchOpen} className="flex h-7 w-7 items-center justify-center rounded-full border border-orange-200 bg-white text-[#d83a00]">
+              <Search size={14} />
+            </button>
+          </div>
         </div>
       </header>
-
-      {/* Install App Modal */}
-      <AnimatePresence>
-        {showInstallModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
-            onClick={() => setShowInstallModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm rounded-[28px] border border-[#fde6d2] bg-white p-6 shadow-2xl text-center space-y-4"
-            >
-              <button
-                type="button"
-                onClick={() => setShowInstallModal(false)}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
-              >
-                <X size={18} />
-              </button>
-
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] shadow-md">
-                <img src={assets.shared.mascots.meow} alt="Tokutei Gino" className="h-12 w-12 object-contain" />
-              </div>
-
-              <div>
-                <h3 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
-                  Cài đặt Tokutei Gino App 📱
-                </h3>
-                <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">
-                  Trải nghiệm ứng dụng mượt mà, học offline & nhận thông báo ôn từ vựng hàng ngày.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-orange-200/80 bg-orange-50/60 p-3.5 text-left text-xs font-bold text-[#c2410c] space-y-2.5">
-                <div className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d83a00] text-[10px] text-white font-extrabold mt-0.5">1</span>
-                  <span><strong>iOS (Safari):</strong> Bấm nút <strong>Chia sẻ (Share)</strong> ➔ chọn <strong>"Thêm vào Màn hình chính"</strong> (Add to Home Screen).</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d83a00] text-[10px] text-white font-extrabold mt-0.5">2</span>
-                  <span><strong>Android (Chrome):</strong> Bấm menu <strong>3 chấm (⋮)</strong> ➔ chọn <strong>"Cài đặt ứng dụng"</strong> (Install App).</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowInstallModal(false)}
-                className="flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-sm font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-98"
-              >
-                Đã hiểu 🚀
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <LearningSearchPopover open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

@@ -13,7 +13,7 @@ export function VocabularyModeSegment({ mode, onModeChange, compact = false }: V
   return (
     <div
       className={`inline-flex shrink-0 items-center gap-0.5 rounded-xl border border-[#e4d8c8] bg-[#f8f3ec] p-0.5 ${
-        compact ? 'h-9' : 'h-10 w-full'
+        compact ? 'h-9 lg:h-10' : 'h-10 w-full'
       }`}
       role="tablist"
       aria-label="Chọn chế độ xem từ vựng"

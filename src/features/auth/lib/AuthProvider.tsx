@@ -5,12 +5,16 @@ import { supabase, supabaseConfig } from '@/src/features/supabase/lib/supabaseCl
 interface AuthActionResult {
   ok: boolean;
   error?: string;
+  requiresEmailConfirmation?: boolean;
 }
+
+export type StaffRole = 'owner' | 'content_editor' | 'instructor_support' | 'analyst';
 
 interface AuthState {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
+  staffRole: StaffRole | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -20,6 +24,9 @@ interface AuthContextValue extends AuthState {
   isSupabaseConfigured: boolean;
   isLocalSupabase: boolean;
   signIn: (email: string, password: string) => Promise<AuthActionResult>;
+  signUp: (email: string, password: string, displayName: string) => Promise<AuthActionResult>;
+  requestPasswordReset: (email: string) => Promise<AuthActionResult>;
+  updatePassword: (password: string) => Promise<AuthActionResult>;
   signOut: () => Promise<AuthActionResult>;
   refreshSession: () => Promise<void>;
 }
@@ -28,6 +35,7 @@ const initialState: AuthState = {
   session: null,
   user: null,
   isAdmin: false,
+  staffRole: null,
   isLoading: true,
   error: null,
 };
@@ -82,9 +90,15 @@ function withAuthTimeout<T>(promise: PromiseLike<T>, label: string): Promise<T> 
   });
 }
 
-async function loadAdminStatus(user: User | null): Promise<boolean> {
+function appRedirectUrl(path = ''): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+  return new URL(`${base}${path.replace(/^\//, '')}`, window.location.origin).toString();
+}
+
+async function loadStaffRole(user: User | null): Promise<StaffRole | null> {
   if (!supabase || !user) {
-    return false;
+    return null;
   }
 
   const { data, error } = await withAuthTimeout(
@@ -96,7 +110,11 @@ async function loadAdminStatus(user: User | null): Promise<boolean> {
     throw new Error(error.message);
   }
 
-  return data?.role === 'admin';
+  const role = data?.role as string | undefined;
+  if (role === 'admin') return 'owner';
+  return role === 'owner' || role === 'content_editor' || role === 'instructor_support' || role === 'analyst'
+    ? role
+    : null;
 }
 
 interface AuthProviderProps {
@@ -122,7 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     sessionRequestIdRef.current = requestId;
 
     try {
-      const isAdmin = await loadAdminStatus(session?.user ?? null);
+      const staffRole = await loadStaffRole(session?.user ?? null);
 
       if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) {
         return;
@@ -131,7 +149,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setState({
         session,
         user: session?.user ?? null,
-        isAdmin,
+        isAdmin: staffRole !== null,
+        staffRole,
         isLoading: false,
         error: null,
       });
@@ -249,6 +268,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [refreshSession],
   );
 
+  const signUp = useCallback(async (email: string, password: string, displayName: string): Promise<AuthActionResult> => {
+    if (!supabase) return { ok: false, error: 'Supabase chưa được cấu hình.' };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { display_name: displayName },
+          emailRedirectTo: appRedirectUrl('onboarding'),
+        },
+      });
+      if (error) return { ok: false, error: error.message };
+      if (data.session) await refreshSession();
+      return { ok: true, requiresEmailConfirmation: !data.session };
+    } catch (error: unknown) {
+      return { ok: false, error: getAuthErrorMessage(error) };
+    }
+  }, [refreshSession]);
+
+  const requestPasswordReset = useCallback(async (email: string): Promise<AuthActionResult> => {
+    if (!supabase) return { ok: false, error: 'Supabase chưa được cấu hình.' };
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: appRedirectUrl('reset-password') });
+      return error ? { ok: false, error: error.message } : { ok: true };
+    } catch (error: unknown) {
+      return { ok: false, error: getAuthErrorMessage(error) };
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (password: string): Promise<AuthActionResult> => {
+    if (!supabase) return { ok: false, error: 'Supabase chưa được cấu hình.' };
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      return error ? { ok: false, error: error.message } : { ok: true };
+    } catch (error: unknown) {
+      return { ok: false, error: getAuthErrorMessage(error) };
+    }
+  }, []);
+
   const signOut = useCallback(async (): Promise<AuthActionResult> => {
     if (!supabase) {
       return { ok: true };
@@ -279,10 +337,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isSupabaseConfigured: supabaseConfig.isConfigured,
       isLocalSupabase: supabaseConfig.isLocal,
       signIn,
+      signUp,
+      requestPasswordReset,
+      updatePassword,
       signOut,
       refreshSession,
     }),
-    [refreshSession, signIn, signOut, state],
+    [refreshSession, requestPasswordReset, signIn, signOut, signUp, state, updatePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

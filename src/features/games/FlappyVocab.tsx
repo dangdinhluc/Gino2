@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Trophy, RotateCcw, Star } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { VOCAB_ROUNDS, type VocabRound } from '@/src/features/games/data/vocabData';
+import { recordGameCompletion, type GameCompletionAward } from '@/src/features/games/repositories/gamesRepository';
+import { type VocabRound } from '@/src/features/games/data/vocabData';
 
 interface Pipe {
   id: number;
@@ -19,6 +19,7 @@ interface Pipe {
 }
 
 interface FlappyVocabProps {
+  courseId?: string;
   rounds?: VocabRound[];
   returnTo?: string;
   courseTitle?: string;
@@ -48,7 +49,7 @@ function setHighScore(s: number) {
   try { localStorage.setItem('flappy-vocab-best', String(s)); } catch { /* */ }
 }
 
-export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: FlappyVocabProps) {
+export function FlappyVocab({ courseId, rounds, returnTo = '/app/hub', courseTitle }: FlappyVocabProps) {
   const [state, setState] = useState<'ready' | 'flying' | 'question' | 'over'>('ready');
   const [birdY, setBirdY] = useState(GAME_H / 2 - 40);
   const [vel, setVel] = useState(0);
@@ -64,13 +65,14 @@ export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: Flap
   const pipeId = useRef(0);
   const speedRef = useRef(PIPE_SPEED);
   const graceRef = useRef(false);
-  const { recordGameComplete, addToSrs } = useProgressStore();
-  const wrongRef = useRef<string[]>([]);
-  const roundPool = useMemo(() => (rounds && rounds.length > 0 ? rounds : VOCAB_ROUNDS), [rounds]);
+  const completionRecorded = useRef(false);
+  const [completionAward, setCompletionAward] = useState<GameCompletionAward | null>(null);
+  const [completionError, setCompletionError] = useState<string | null>(null);
+  const roundPool = useMemo(() => rounds ?? [], [rounds]);
   const showCourseReturn = returnTo !== '/app/hub';
 
   const spawnPipe = useCallback((): Pipe => {
-    const item = roundPool[Math.floor(Math.random() * roundPool.length)];
+    const item = roundPool[Math.floor(Math.random() * roundPool.length)]!;
     pipeId.current += 1;
     const gapY = 100 + Math.random() * (GAME_H - GROUND_H - GAP_SIZE - 200);
     return {
@@ -109,7 +111,6 @@ export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: Flap
     } else {
       setCombo(0);
       setFlash('wrong');
-      wrongRef.current.push(currentQ.sourceId);
       // Wrong answer = die
       setPipes((ps) => ps.map((p) => p.id === currentQ.id ? { ...p, scored: true } : p));
       setCurrentQ(null);
@@ -125,11 +126,11 @@ export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: Flap
   const die = useCallback(() => {
     setState('over');
     if (score > best) { setBest(score); setHighScore(score); }
-    recordGameComplete(score);
-    if (wrongRef.current.length > 0) {
-      addToSrs(wrongRef.current.map((id) => ({ id, gameId: 'flappy-vocab' as const })));
+    if (!completionRecorded.current && courseId) {
+      completionRecorded.current = true;
+      recordGameCompletion(courseId, 'flappy-vocab').then(setCompletionAward).catch((error: unknown) => setCompletionError(error instanceof Error ? error.message : 'Không xác nhận được điểm thưởng.'));
     }
-  }, [score, best, recordGameComplete, addToSrs]);
+  }, [score, best, courseId]);
 
   // Main loop
   useEffect(() => {
@@ -199,12 +200,18 @@ export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: Flap
     setCombo(0);
     setCurrentQ(null);
     setFlash(null);
-    wrongRef.current = [];
+    completionRecorded.current = false;
+    setCompletionAward(null);
+    setCompletionError(null);
     speedRef.current = PIPE_SPEED;
     setState('ready');
   };
 
   const birdRotation = Math.max(-20, Math.min(vel * 4, 60));
+
+  if (!roundPool.length) {
+    return <div className="fixed inset-0 grid place-items-center bg-[#0a0e13] p-6 text-center text-sm font-semibold text-white/70">Khóa học chưa có đủ từ vựng để mở game này.</div>;
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-[#0a0e13]">
@@ -348,6 +355,7 @@ export function FlappyVocab({ rounds, returnTo = '/app/hub', courseTitle }: Flap
                   <p className="text-base font-black text-amber-300">{Math.max(best, score)}</p>
                 </div>
               </div>
+              {courseId && <p role="status" className={completionError ? 'mt-4 text-xs font-semibold text-red-300' : 'mt-4 text-xs font-semibold text-white/60'}>{completionError ?? (completionAward ? (completionAward.awarded ? `Đã cộng ${completionAward.xpAwarded} XP qua máy chủ.` : 'Điểm thưởng hôm nay của game này đã được ghi nhận.') : 'Đang xác nhận điểm thưởng qua máy chủ…')}</p>}
               <div className="mt-5 flex flex-col gap-2">
                 <button onClick={(e) => { e.stopPropagation(); restart(); }} className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-amber-500/20 transition-transform hover:scale-[1.02]">
                   <RotateCcw size={14} /> Chơi lại

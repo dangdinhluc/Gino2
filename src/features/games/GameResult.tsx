@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Trophy, RotateCcw, ArrowLeft } from 'lucide-react';
-import { useEffect, useRef } from 'react';
-import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import type { GameId } from '@/src/features/games/types';
+import { useEffect, useRef, useState } from 'react';
+import { isAwardableGameType, recordGameCompletion, type GameCompletionAward } from '@/src/features/games/repositories/gamesRepository';
+import type { CourseGameType } from '@/src/features/games/types';
+import { Confetti } from '@/src/shared/components/Confetti';
 
 interface GameResultProps {
   title: string;
@@ -14,29 +15,29 @@ interface GameResultProps {
   maxCombo: number;
   correct: number;
   total: number;
-  gameId?: GameId;
-  wrongIds?: string[];
+  courseId?: string;
+  gameId?: CourseGameType;
   onRestart: () => void;
 }
 
-export function GameResult({ title, accent, returnTo, returnLabel = 'Về khóa học', score, maxCombo, correct, total, gameId, wrongIds, onRestart }: GameResultProps) {
+export function GameResult({ title, accent, returnTo, returnLabel = 'Về khóa học', score, maxCombo, correct, total, courseId, gameId, onRestart }: GameResultProps) {
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-  const { addToSrs, recordGameComplete } = useProgressStore();
   const recorded = useRef(false);
   const showCourseReturn = Boolean(returnTo && returnTo !== '/app/hub');
+  const [award, setAward] = useState<GameCompletionAward | null>(null);
+  const [awardError, setAwardError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (recorded.current) return;
+    if (recorded.current || !courseId || !isAwardableGameType(gameId)) return;
     recorded.current = true;
-    const xp = Math.round(score * 0.1) + correct * 5;
-    recordGameComplete(xp);
-    if (gameId && wrongIds && wrongIds.length > 0) {
-      addToSrs(wrongIds.map((id) => ({ id, gameId })));
-    }
-  }, []);
+    recordGameCompletion(courseId, gameId)
+      .then(setAward)
+      .catch((error: unknown) => setAwardError(error instanceof Error ? error.message : 'Không xác nhận được điểm thưởng.'));
+  }, [courseId, gameId]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#0F1419] p-4">
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-[#0F1419] p-4">
+      {accuracy >= 80 && <Confetti />}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -68,6 +69,8 @@ export function GameResult({ title, accent, returnTo, returnLabel = 'Về khóa 
             <div className="mt-1 font-[var(--font-heading)] text-xl font-bold text-[#172033]">{accuracy}%</div>
           </div>
         </div>
+
+        {courseId && <p role="status" className={awardError ? 'mt-4 text-xs font-semibold text-red-700' : 'mt-4 text-xs font-semibold text-[#5f6b7c]'}>{awardError ?? (award ? (award.awarded ? `Đã cộng ${award.xpAwarded} XP qua máy chủ.` : 'Điểm thưởng hôm nay của game này đã được ghi nhận.') : 'Đang xác nhận điểm thưởng qua máy chủ…')}</p>}
 
         <div className="mt-6 flex flex-col gap-2">
           <button

@@ -1,4 +1,5 @@
-import { supabase } from '@/src/features/supabase/lib/supabaseClient';
+import { requireSupabase, requireUserId } from '@/src/features/supabase/lib/supabaseRepository';
+import { TOKUTEI_VOCAB } from '@/src/data/tokutei/vocabDeck';
 import type {
   CourseDocumentItem,
   CourseExamItem,
@@ -6,9 +7,18 @@ import type {
   CoursePodcastItem,
   CourseReviewQuestion,
   CourseVocabularyItem,
-  NonEmptyArray,
   VocabularyStatus,
-} from '@/src/features/courses/mock/courseLearningMock';
+} from '@/src/features/courses/courseLearning.types';
+
+/** Tra từ trong deck Tokutei chuẩn (kanji + kana) theo romaji — DB chỉ lưu romaji. */
+const deckByRomaji = new Map(
+  TOKUTEI_VOCAB.map((card) => [card.romaji.toLowerCase().replace(/[\s-]/g, ''), card]),
+);
+
+function enrichJapaneseFromDeck(term: string): { kanji?: string; kana?: string } {
+  const card = deckByRomaji.get(term.toLowerCase().replace(/[\s-]/g, ''));
+  return card ? { kanji: card.word, kana: card.reading } : {};
+}
 
 interface CourseWorkspaceRow {
   id: string;
@@ -31,6 +41,7 @@ interface CourseWorkspaceRow {
           translation: string;
           example_sentence: string | null;
           pronunciation: string | null;
+          audio_url: string | null;
           tags: string[];
         } | null;
       }>;
@@ -41,8 +52,11 @@ interface CourseWorkspaceRow {
     title: string;
     document_type: string;
     external_url: string | null;
+    content_markdown: string;
+    read_time_minutes: number;
     summary: string;
     metadata: Record<string, unknown> | null;
+    storage_path: string | null;
     created_at: string;
   }>;
   podcast_episodes?: Array<{
@@ -50,6 +64,8 @@ interface CourseWorkspaceRow {
     title: string;
     summary: string;
     duration_minutes: number;
+    external_url: string | null;
+    storage_path: string | null;
     created_at: string;
   }>;
   assessments?: Array<{
@@ -68,28 +84,17 @@ interface LearnerWorkspaceProgress {
 }
 
 interface ReviewQuestionRow {
-  id: string;
+  question_id: string;
   prompt: string;
-  explanation: string | null;
+  explanation: string;
   source: string;
-  options: string[];
-  answer: string;
+  options: unknown;
 }
-
-const EMPTY_PROGRESS: LearnerWorkspaceProgress = {
-  enrollmentPercent: 0,
-  vocabulary: new Map(),
-  assessmentScores: new Map(),
-};
 
 export function mapVocabularyProgress(status: string | undefined): VocabularyStatus {
   if (status === 'mastered') return 'remembered';
   if (status === 'learning') return 'learning';
   return 'new';
-}
-
-function asNonEmpty<T>(items: T[], fallback: NonEmptyArray<T>): NonEmptyArray<T> {
-  return items.length > 0 ? (items as NonEmptyArray<T>) : fallback;
 }
 
 function minutesLabel(minutes: number): string {
@@ -99,7 +104,6 @@ function minutesLabel(minutes: number): string {
 function mapWorkspace(
   row: CourseWorkspaceRow,
   progress: LearnerWorkspaceProgress,
-  fallback: CourseLearningWorkspaceData,
   reviewRows: ReviewQuestionRow[],
 ): CourseLearningWorkspaceData {
   const modules = [...(row.course_modules ?? [])].sort((a, b) => a.order_index - b.order_index);
@@ -126,19 +130,33 @@ function mapWorkspace(
           module: lesson.moduleTitle,
           strength: status === 'remembered' ? 100 : status === 'learning' ? 55 : 0,
           tags: item.tags ?? [],
+          audioUrl: item.audio_url,
+          ...enrichJapaneseFromDeck(item.term),
         } satisfies CourseVocabularyItem];
       }),
   );
 
-  const reviewQuestions = reviewRows.map((question) => ({
-    id: question.id,
-    type: 'meaning',
-    prompt: question.prompt,
-    options: question.options,
-    answer: question.answer,
-    explanation: question.explanation ?? `Đáp án đúng: ${question.answer}`,
-    source: question.source,
-  } satisfies CourseReviewQuestion));
+  const reviewQuestions = reviewRows.flatMap((question) => {
+    if (!Array.isArray(question.options)) return [];
+    const optionIds: Record<string, string> = {};
+    const options = question.options.flatMap((option) => {
+      if (!option || typeof option !== 'object' || Array.isArray(option)) return [];
+      const { id, label } = option as { id?: unknown; label?: unknown };
+      if (typeof id !== 'string' || typeof label !== 'string') return [];
+      optionIds[label] = id;
+      return [label];
+    });
+    if (options.length < 2) return [];
+    return [{
+      id: question.question_id,
+      type: 'meaning' as const,
+      prompt: question.prompt,
+      options,
+      optionIds,
+      explanation: question.explanation,
+      source: question.source,
+    } satisfies CourseReviewQuestion];
+  });
 
   const documents = (row.documents ?? []).map((document) => ({
     id: document.id,
@@ -146,11 +164,15 @@ function mapWorkspace(
     kind: document.document_type.toLowerCase() === 'pdf' ? 'PDF' : 'Post',
     size: typeof document.metadata?.pages === 'number' ? `${document.metadata.pages} trang` : 'Tài liệu',
     publishedAt: document.created_at.slice(0, 10),
-    readTime: '5 phút',
+    readTime: minutesLabel(document.read_time_minutes),
     module: modules[0]?.title ?? row.title,
     summary: document.summary,
-    preview: document.external_url ?? document.summary,
+    preview: document.content_markdown || document.summary,
     tags: [document.document_type.toUpperCase()],
+    contentMarkdown: document.content_markdown,
+    externalUrl: document.external_url,
+    readTimeMinutes: document.read_time_minutes,
+    storagePath: document.storage_path,
   } satisfies CourseDocumentItem));
 
   const podcasts = (row.podcast_episodes ?? []).map((podcast, index) => ({
@@ -160,6 +182,8 @@ function mapWorkspace(
     duration: minutesLabel(podcast.duration_minutes),
     summary: podcast.summary,
     isNew: Date.now() - Date.parse(podcast.created_at) < 7 * 86_400_000,
+    externalUrl: podcast.external_url,
+    storagePath: podcast.storage_path,
   } satisfies CoursePodcastItem));
 
   const exams = [...(row.assessments ?? [])]
@@ -170,7 +194,7 @@ function mapWorkspace(
         id: assessment.id,
         title: assessment.title,
         skills: [assessment.assessment_type, `Đạt từ ${assessment.passing_score}%`],
-        duration: '20 phút',
+        duration: '—',
         status: latestScore === undefined ? 'ready' : 'completed',
         ...(latestScore === undefined ? {} : { latestScore }),
       } satisfies CourseExamItem;
@@ -184,30 +208,24 @@ function mapWorkspace(
       description: row.description,
       currentModule: modules[0]?.title ?? 'Nội dung khóa học',
       progress: progress.enrollmentPercent,
-      streakDays: fallback.course.streakDays,
-      dailyGoal: fallback.course.dailyGoal,
-      vocabularyTarget: vocabulary.length,
     },
-    vocabulary: asNonEmpty(vocabulary, fallback.vocabulary),
-    reviewQuestions: asNonEmpty(reviewQuestions, fallback.reviewQuestions),
-    documents: asNonEmpty(documents, fallback.documents),
-    games: fallback.games,
-    exams: asNonEmpty(exams, fallback.exams),
-    podcasts: asNonEmpty(podcasts, fallback.podcasts),
+    vocabulary,
+    reviewQuestions,
+    documents,
+    games: [],
+    exams,
+    podcasts,
   };
 }
 
 async function fetchLearnerProgress(courseId: string): Promise<LearnerWorkspaceProgress> {
-  if (!supabase) return EMPTY_PROGRESS;
-
-  const { data: authData } = await supabase.auth.getUser();
-  const userId = authData.user?.id;
-  if (!userId) return EMPTY_PROGRESS;
+  const client = requireSupabase();
+  const userId = await requireUserId(client);
 
   const [enrollment, vocabulary, attempts] = await Promise.all([
-    supabase.from('enrollments').select('progress_percent').eq('course_id', courseId).eq('user_id', userId).maybeSingle(),
-    supabase.from('vocabulary_progress').select('vocabulary_item_id, status').eq('user_id', userId),
-    supabase.from('assessment_attempts').select('assessment_id, score, attempted_at').eq('user_id', userId).order('attempted_at', { ascending: false }),
+    client.from('enrollments').select('progress_percent').eq('course_id', courseId).eq('user_id', userId).maybeSingle(),
+    client.from('vocabulary_progress').select('vocabulary_item_id, status').eq('user_id', userId),
+    client.from('assessment_attempts').select('assessment_id, score, attempted_at').eq('user_id', userId).order('attempted_at', { ascending: false }),
   ]);
 
   const firstError = [enrollment.error, vocabulary.error, attempts.error].find(Boolean);
@@ -227,38 +245,52 @@ async function fetchLearnerProgress(courseId: string): Promise<LearnerWorkspaceP
 
 export async function fetchCourseLearningWorkspace(
   courseId: string,
-  fallback: CourseLearningWorkspaceData,
 ): Promise<CourseLearningWorkspaceData | null> {
-  if (!supabase) return null;
+  const client = requireSupabase();
 
   const [courseResult, progress, reviewResult] = await Promise.all([
-    supabase
+    client
       .from('courses')
       .select(`
         id, title, level, description,
         course_modules(id, title, order_index, lessons(
           id, title, order_index,
-          lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, tags))
+          lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, audio_url, tags))
         )),
-        documents(id, title, document_type, external_url, summary, metadata, created_at),
-        podcast_episodes(id, title, summary, duration_minutes, created_at),
+        documents(id, title, document_type, content_markdown, external_url, read_time_minutes, storage_path, summary, metadata, created_at),
+        podcast_episodes(id, title, summary, duration_minutes, external_url, storage_path, created_at),
         assessments(id, title, assessment_type, passing_score, order_index)
       `)
       .eq('id', courseId)
       .eq('status', 'published')
       .maybeSingle(),
     fetchLearnerProgress(courseId),
-    supabase.rpc('get_course_review_questions', { target_course_id: courseId }),
+    client.rpc('get_course_review_questions', { target_course_id: courseId }),
   ]);
 
   if (courseResult.error) throw new Error(courseResult.error.message);
   if (reviewResult.error) throw new Error(reviewResult.error.message);
   if (!courseResult.data) return null;
+  const row = courseResult.data as unknown as CourseWorkspaceRow;
+  if (!row.course_modules?.some((module) => (module.lessons?.length ?? 0) > 0) || !row.documents?.length || !row.podcast_episodes?.length || !row.assessments?.length) {
+    throw new Error('Nội dung khóa học chưa hoàn thiện để có thể học an toàn.');
+  }
 
-  return mapWorkspace(
-    courseResult.data as unknown as CourseWorkspaceRow,
+  const workspace = mapWorkspace(
+    row,
     progress,
-    fallback,
-    (reviewResult.data ?? []) as ReviewQuestionRow[],
+    (reviewResult.data ?? []) as unknown as ReviewQuestionRow[],
   );
+  if (!workspace.vocabulary.length || !workspace.reviewQuestions.length) {
+    throw new Error('Nội dung ôn tập khóa học chưa hoàn thiện.');
+  }
+  return workspace;
+}
+
+export async function createSignedCourseAssetUrl(path: string, expiresInSeconds = 300): Promise<string> {
+  const client = requireSupabase();
+  await requireUserId(client);
+  const { data, error } = await client.storage.from('course-assets').createSignedUrl(path, expiresInSeconds);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
 }

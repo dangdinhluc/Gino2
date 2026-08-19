@@ -5,10 +5,10 @@ import { cn } from '@/src/lib/utils';
 import { GameShell } from '@/src/features/games/GameShell';
 import { GameResult } from '@/src/features/games/GameResult';
 import { useGameStore } from '@/src/features/games/gameStore';
-import { getShuffledBuilderRounds } from '@/src/features/games/data/builderData';
 import type { BuilderRound, LetterChip } from '@/src/features/games/types';
 
 interface WordBuilderProps {
+  courseId?: string;
   rounds?: BuilderRound[];
   returnTo?: string;
   courseTitle?: string;
@@ -42,11 +42,8 @@ function makeEmptySlots(length: number): SlotEntry[] {
   return Array.from({ length }, () => ({ chip: null, revealed: false }));
 }
 
-export function WordBuilder({ rounds, returnTo, courseTitle }: WordBuilderProps) {
-  const sessionRounds = useMemo(
-    () => (rounds && rounds.length > 0 ? rounds : getShuffledBuilderRounds(8)),
-    [rounds],
-  );
+export function WordBuilder({ courseId, rounds, returnTo, courseTitle }: WordBuilderProps) {
+  const sessionRounds = useMemo(() => rounds ?? [], [rounds]);
 
   const store = useGameStore();
   const [ready, setReady] = useState(false);
@@ -91,8 +88,8 @@ export function WordBuilder({ rounds, returnTo, courseTitle }: WordBuilderProps)
         maxCombo={store.maxCombo}
         correct={store.correct}
         total={Math.max(store.totalRounds, 1)}
+        courseId={courseId}
         gameId="word-builder"
-        wrongIds={store.wrongIds}
         returnTo={returnTo}
         returnLabel={returnTo && returnTo !== '/app/hub' ? 'Về khóa học' : 'Về Hub'}
         onRestart={() => {

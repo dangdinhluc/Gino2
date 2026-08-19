@@ -1,8 +1,8 @@
-import type { ReactNode, CSSProperties } from 'react';
+import { useEffect, useRef, type ReactNode, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Flame, CheckCircle2, XCircle } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn, vibrate } from '@/src/lib/utils';
 import type { FeedbackState } from '@/src/features/games/types';
 
 interface GameShellProps {
@@ -20,42 +20,82 @@ interface GameShellProps {
 }
 
 export function GameShell({ title, accent, returnTo = '/app/hub', returnLabel = 'Hub', score, combo, progress, roundLabel, feedback, onFeedbackDismiss, children }: GameShellProps) {
+  const prevScoreRef = useRef(score);
+  const prevComboRef = useRef(combo);
+
+  useEffect(() => {
+    if (score > prevScoreRef.current) vibrate([20, 40, 60]);
+    prevScoreRef.current = score;
+  }, [score]);
+
+  useEffect(() => {
+    if (combo === 0 && prevComboRef.current > 0) vibrate([60, 30, 60]);
+    prevComboRef.current = combo;
+  }, [combo]);
+
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#0F1419]" style={{ '--game-accent': accent } as CSSProperties}>
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#0F1419]" style={{ '--game-accent': accent } as CSSProperties}>
+      {/* Glow nền theo màu từng game */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{ background: `radial-gradient(70% 100% at 50% 0%, ${accent}2e, transparent 75%)` }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-48"
+        style={{ background: `radial-gradient(60% 100% at 50% 100%, ${accent}1f, transparent 70%)` }}
+      />
+
       {/* Top bar */}
-      <header className="flex items-center justify-between px-4 py-3 sm:px-6">
+      <header className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6">
         <Link to={returnTo} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white">
           <ArrowLeft size={16} />
           <span className="hidden sm:inline">{returnLabel}</span>
         </Link>
         <span className="text-sm font-bold text-white/60">{title}</span>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-white">⚡ {score}</span>
+        <div className="flex items-center gap-2.5">
+          <motion.span
+            key={score}
+            initial={{ scale: 1.35 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+            className="flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-sm font-black text-white tabular-nums"
+            style={{ backgroundColor: `${accent}26`, borderColor: `${accent}55` }}
+          >
+            ⚡ {score}
+          </motion.span>
           {combo > 1 && (
-            <span className="flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-400">
+            <motion.span
+              key={combo}
+              initial={{ scale: 1.4 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 16 }}
+              className="flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-400"
+            >
               <Flame size={12} className="fill-amber-400" /> x{combo}
-            </span>
+            </motion.span>
           )}
         </div>
       </header>
 
       {/* Progress bar */}
-      <div className="px-4 sm:px-6">
+      <div className="relative z-10 px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
             <motion.div
               className="h-full rounded-full"
-              style={{ backgroundColor: accent }}
+              style={{ backgroundColor: accent, boxShadow: `0 0 12px ${accent}80` }}
               animate={{ width: `${progress}%` }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             />
           </div>
-          <span className="text-[11px] font-bold text-white/40">{roundLabel}</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-black text-white/60">{roundLabel}</span>
         </div>
       </div>
 
       {/* Gameplay area */}
-      <main className="flex flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
+      <main className="relative z-10 flex flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
         <div className="w-full max-w-[640px]">
           {children}
         </div>

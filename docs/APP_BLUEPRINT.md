@@ -69,7 +69,7 @@ Ngày: 2026-07-27
 | Grid công cụ nhanh (7 tools) | ⚠️ Có nhưng rối | Quá nhiều icon, cần đơn giản hóa |
 | Daily tasks (4 tasks) | ⚠️ Có | Mock data, chưa liên kết Supabase |
 | Tìm kiếm nội dung | ✅ Done | Search landing page |
-| Stats & Achievements | ⚠️ Shell | Trang có nhưng mock data tĩnh |
+| Stats & Achievements | ✅ Gộp vào Hồ sơ/Cài đặt | Không duy trì trang thống kê riêng |
 
 ### 4. Khóa học (Courses) ✅
 

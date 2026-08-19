@@ -1,11 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-const SUPABASE_ANON_PLACEHOLDER = 'YOUR_LOCAL_SUPABASE_ANON_KEY';
 const LOCAL_HOSTNAMES = new Set(['127.0.0.1', 'localhost']);
 
 export interface SupabaseEnvSource {
   VITE_SUPABASE_URL?: string;
   VITE_SUPABASE_ANON_KEY?: string;
+  VITE_DATA_MODE?: string;
 }
 
 export type SupabaseConfig =
@@ -65,7 +66,7 @@ export function resolveSupabaseConfig(
   const rawUrl = env.VITE_SUPABASE_URL?.trim() ?? '';
   const anonKey = env.VITE_SUPABASE_ANON_KEY?.trim() ?? '';
 
-  if (!rawUrl || !anonKey || anonKey === SUPABASE_ANON_PLACEHOLDER) {
+  if (!rawUrl || !anonKey || anonKey.startsWith('YOUR_')) {
     return { isConfigured: false, isLocal: false, url: null, anonKey: null };
   }
 
@@ -77,6 +78,9 @@ const browserHostname = typeof window !== 'undefined' ? window.location.hostname
 
 export const supabaseConfig = resolveSupabaseConfig(import.meta.env as SupabaseEnvSource | undefined, browserHostname);
 
-export const supabase: SupabaseClient | null = supabaseConfig.isConfigured
-  ? createClient(supabaseConfig.url, supabaseConfig.anonKey)
+const runtimeEnv = (import.meta as ImportMeta & { env?: SupabaseEnvSource & { PROD?: boolean } }).env;
+export const isRealDataRequired = Boolean(runtimeEnv?.PROD) || runtimeEnv?.VITE_DATA_MODE === 'real';
+
+export const supabase: SupabaseClient<Database> | null = supabaseConfig.isConfigured
+  ? createClient<Database>(supabaseConfig.url, supabaseConfig.anonKey)
   : null;

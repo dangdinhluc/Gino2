@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { EXAMS } from '@/src/features/exams/mock/exams';
+import type { Exam } from '@/src/features/exams/types';
+import { fetchPublishedAssessments } from '@/src/features/exams/repositories/assessmentRepository';
 import {
   Award,
   BriefcaseBusiness,
@@ -20,15 +21,25 @@ import { cn } from '@/src/lib/utils';
 import { assets } from '@/src/shared/lib/assets';
 
 export default function ExamCenter() {
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [providerFilter, setProviderFilter] = useState('Tất cả');
   const [skillFilter, setSkillFilter] = useState('Tất cả');
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
-  const providerOptions = ['Tất cả', ...Array.from(new Set(EXAMS.map((exam) => exam.type)))];
-  const skillOptions = ['Tất cả', ...Array.from(new Set(EXAMS.flatMap((exam) => exam.skills)))];
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublishedAssessments()
+      .then((items) => { if (!cancelled) setExams(items); })
+      .catch((error: unknown) => { if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Không tải được đề thi.'); });
+    return () => { cancelled = true; };
+  }, []);
 
-  const filteredExams = EXAMS.filter((exam) => {
+  const providerOptions = ['Tất cả', ...Array.from(new Set(exams.map((exam) => exam.type)))];
+  const skillOptions = ['Tất cả', ...Array.from(new Set(exams.flatMap((exam) => exam.skills)))];
+
+  const filteredExams = exams.filter((exam) => {
     const normalizedQuery = query.trim().toLowerCase();
     const matchesQuery =
       normalizedQuery.length === 0 ||
@@ -47,7 +58,7 @@ export default function ExamCenter() {
       .join(' · ') || 'Tất cả';
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
+    <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 md:px-8 py-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
       {/* 1. Hero Header Banner */}
       <section className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] px-4 py-4.5 shadow-2xs sm:px-6 sm:py-6">
         {/* Watermark Kanji */}
@@ -90,6 +101,8 @@ export default function ExamCenter() {
           </div>
         </div>
       </section>
+
+      {loadError && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{loadError}</p>}
 
       {/* 2. Search & Filter Bar */}
       <section className="sticky top-[68px] z-30 rounded-[22px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">

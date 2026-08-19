@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
 import {
-  BarChart3,
   BookOpen,
   ChevronRight,
   FileText,
@@ -25,11 +24,9 @@ import {
 // Các đường dẫn đi ra ngoài khóa học với link chuẩn xác 100%.
 const navigationItems = [
   { path: '/app/dashboard', label: 'Trang chủ', hint: 'Bảng điều khiển học tập', icon: Home },
-  { path: '/app/ai-chat', label: 'Trợ lý AI Chat', hint: 'Hỏi đáp từ vựng, ngữ pháp & tác phong', icon: Sparkles },
   { path: '/app/courses', label: 'Khóa học Tokutei', hint: 'Tất cả lộ trình & bài học', icon: BookOpen },
   { path: '/app/practice', label: 'Trung tâm Ôn tập SRS', hint: 'Lịch ôn thẻ nhớ tự động', icon: Target },
   { path: '/app/exams', label: 'Trung tâm Luyện thi', hint: 'Đề thi mô phỏng & đáp án', icon: GraduationCap },
-  { path: '/app/stats', label: 'Thống kê & Thành tích', hint: 'Tiến độ, chuỗi ngày & huy hiệu', icon: BarChart3 },
   { path: '/app/profile', label: 'Trang cá nhân', hint: 'Hồ sơ học viên & điểm thưởng', icon: User },
   { path: '/app/settings', label: 'Cài đặt ứng dụng', hint: 'Tùy chọn hiển thị & âm thanh', icon: Settings },
 ];
@@ -38,9 +35,9 @@ interface CourseLearningMenuSheetProps {
   activeSection: CourseWorkspaceSection;
   courseTitle: string;
   isOpen: boolean;
-  level: number;
+  level: number | null;
   progress: number;
-  streak: number;
+  streak: number | null;
   onClose: () => void;
   onNavigate: (path: string) => void;
   onSelectSection: (section: CourseWorkspaceSection) => void;
@@ -120,11 +117,11 @@ export function CourseLearningMenuSheet({
               <div className="flex items-center gap-2 pt-1">
                 <span className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3 py-1 text-xs font-black text-[#c2410c] shadow-2xs">
                   <Flame size={14} className="text-orange-500 fill-orange-400" />
-                  <span>{streak} ngày</span>
+                  <span>{streak === null ? 'Đang đồng bộ' : `${streak} ngày`}</span>
                 </span>
                 <span className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-3 py-1 text-xs font-black text-[#b45309] shadow-2xs">
                   <Zap size={14} className="text-amber-500 fill-amber-400" />
-                  <span>Lv.{level}</span>
+                  <span>{level === null ? 'Đang đồng bộ' : `Lv.${level}`}</span>
                 </span>
               </div>
             </div>

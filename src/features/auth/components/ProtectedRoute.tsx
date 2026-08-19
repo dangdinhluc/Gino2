@@ -36,8 +36,8 @@ export function ProtectedRoute({ area, children }: ProtectedRouteProps) {
   if (decision.status === 'setup-required') {
     return (
       <AuthShell
-        title="Cần cấu hình Supabase local"
-        body="Chạy Supabase local, copy anon key vào VITE_SUPABASE_ANON_KEY, rồi restart Vite để kiểm tra auth gate."
+        title="Cần cấu hình Supabase Cloud"
+        body="Copy URL Cloud và anon key vào VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, rồi restart Vite để kiểm tra auth gate."
       />
     );
   }

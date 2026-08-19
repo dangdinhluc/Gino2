@@ -10,7 +10,7 @@ interface VocabularySearchBarProps {
 export function VocabularySearchBar({ query, onQueryChange, compact = true }: VocabularySearchBarProps) {
   return (
     <label className={`flex w-full items-center gap-2 rounded-xl border border-[#e4d8c8] bg-[#fffaf5] px-3 text-xs text-[#5f6b7c] shadow-2xs transition-colors focus-within:border-orange-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-500/20 ${
-      compact ? 'h-9' : 'h-11'
+      compact ? 'h-9 lg:h-10' : 'h-11'
     }`}>
       <Search size={16} className="shrink-0 text-[#8c98a8]" aria-hidden="true" />
       <span className="sr-only">Tìm từ vựng</span>

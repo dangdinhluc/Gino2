@@ -1,4 +1,4 @@
-project_id = "gino-german-local"
+project_id = "gino2-production"
 
 [api]
 enabled = true
@@ -10,7 +10,7 @@ max_rows = 1000
 [db]
 port = 54332
 shadow_port = 54330
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
@@ -29,7 +29,8 @@ port = 54337
 enabled = false
 
 [storage]
-enabled = false
+enabled = true
+file_size_limit = "50MiB"
 
 [auth]
 enabled = true
@@ -42,3 +43,6 @@ enable_anonymous_sign_ins = false
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+[functions.notification-dispatch]
+verify_jwt = false

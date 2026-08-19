@@ -1,1 +1,1 @@
-export { cn } from '@/src/shared/lib/utils';
+export { cn, vibrate } from '@/src/shared/lib/utils';

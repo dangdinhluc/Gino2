@@ -15,11 +15,6 @@ export interface AuthRouteDecisionInput {
 
 export function decideAuthRouteAccess({ area, isAuthenticated, isAdmin, isSupabaseConfigured }: AuthRouteDecisionInput): AuthRouteDecision {
   if (!isSupabaseConfigured) {
-    // Demo mode: không có Supabase thì khu vực học mở tự do (dữ liệu lưu local trên máy người dùng),
-    // riêng khu admin vẫn yêu cầu cấu hình backend thật.
-    if (area === 'learner') {
-      return { status: 'allowed' };
-    }
     return { status: 'setup-required', reason: 'missing-supabase-config' };
   }
 

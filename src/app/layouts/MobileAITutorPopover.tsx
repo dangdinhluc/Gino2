@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AITutorChatPanel } from '@/src/features/ai/components/AITutorChatPanel';
-import { useMockTutorChat } from '@/src/features/ai/hooks/useMockTutorChat';
+import { useAiTutorChat } from '@/src/features/ai/hooks/useAiTutorChat';
 import { assets } from '@/src/shared/lib/assets';
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 
 export function MobileAITutorPopover() {
   const [isOpen, setIsOpen] = useState(false);
-  const { draft, handleSubmit, messages, sendMessage, setDraft } = useMockTutorChat();
+  const { draft, error, handleSubmit, isSending, messages, sendMessage, setDraft } = useAiTutorChat();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -112,6 +112,8 @@ export function MobileAITutorPopover() {
               className="h-[70dvh] min-h-[26rem] max-h-[36rem] rounded-[2rem] shadow-[0_30px_80px_-34px_rgba(17,24,39,0.34)] lg:h-[38rem] lg:max-h-[calc(100dvh-8rem)]"
               compactHeader
               draft={draft}
+              error={error}
+              isSending={isSending}
               messages={messages}
               onClose={() => setIsOpen(false)}
               onDraftChange={setDraft}

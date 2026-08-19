@@ -1,14 +1,18 @@
 import { type FormEvent } from 'react';
 import { motion } from 'motion/react';
 import { Send, X } from 'lucide-react';
-import { aiPromptChips, type ChatMessage } from '@/src/data/phaseOneMock';
+import type { AiChatMessage } from '@/src/features/ai/repositories/aiRepository';
 import { cn } from '@/src/lib/utils';
+
+const AI_PROMPT_CHIPS = ['Sửa câu', 'Giải thích ngữ pháp', 'Luyện hội thoại'];
 
 interface AITutorChatPanelProps {
   className?: string;
   compactHeader?: boolean;
   draft: string;
-  messages: ChatMessage[];
+  messages: AiChatMessage[];
+  error?: string | null;
+  isSending?: boolean;
   onClose?: () => void;
   onDraftChange: (value: string) => void;
   onSendMessage: (text: string) => void;
@@ -20,6 +24,8 @@ export function AITutorChatPanel({
   className,
   compactHeader = false,
   draft,
+  error,
+  isSending = false,
   messages,
   onClose,
   onDraftChange,
@@ -37,7 +43,7 @@ export function AITutorChatPanel({
           </div>
 
           <div className="flex items-center gap-2">
-            {!compactHeader && <div className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700">Mock online</div>}
+            {!compactHeader && <div className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700">Edge Function</div>}
             {showCloseButton && onClose && (
               <button
                 type="button"
@@ -56,7 +62,7 @@ export function AITutorChatPanel({
 
         {!compactHeader && (
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {aiPromptChips.map((chip) => (
+            {AI_PROMPT_CHIPS.map((chip) => (
               <button
                 key={chip}
                 type="button"
@@ -71,6 +77,7 @@ export function AITutorChatPanel({
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-5 md:px-6">
+        {messages.length === 0 && <p className="rounded-xl border border-dashed border-[#e8dccb] px-4 py-6 text-center text-sm text-[#5f6b7c]">Chưa có hội thoại. Hãy gửi câu hỏi về việc học Tokutei.</p>}
         {messages.map((message, index) => {
           const isUser = message.role === 'user';
 
@@ -94,7 +101,8 @@ export function AITutorChatPanel({
               </div>
             </motion.div>
           );
-        })}
+          })}
+        {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>}
       </div>
 
       <form onSubmit={onSubmit} className="border-t border-[#e8dccb] bg-[#fffaf3] p-4 md:p-5">
@@ -107,7 +115,7 @@ export function AITutorChatPanel({
           />
           <button
             type="submit"
-            disabled={draft.trim().length === 0}
+            disabled={draft.trim().length === 0 || isSending}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-700 text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Send size={18} />

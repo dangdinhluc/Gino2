@@ -5,10 +5,10 @@ import { cn } from '@/src/lib/utils';
 import { GameShell } from '@/src/features/games/GameShell';
 import { GameResult } from '@/src/features/games/GameResult';
 import { useGameStore } from '@/src/features/games/gameStore';
-import { getShuffledMemoryRounds } from '@/src/features/games/data/memoryData';
 import type { MemoryPair, MemoryRound } from '@/src/features/games/types';
 
 interface MemoryMatchProps {
+  courseId?: string;
   rounds?: MemoryRound[];
   returnTo?: string;
   courseTitle?: string;
@@ -54,11 +54,8 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export function MemoryMatch({ rounds, returnTo, courseTitle }: MemoryMatchProps) {
-  const sessionRounds = useMemo(
-    () => (rounds && rounds.length > 0 ? rounds : getShuffledMemoryRounds(3)),
-    [rounds],
-  );
+export function MemoryMatch({ courseId, rounds, returnTo, courseTitle }: MemoryMatchProps) {
+  const sessionRounds = useMemo(() => rounds ?? [], [rounds]);
   const totalTimeSec = sessionRounds[0]?.data.timeLimitSec ?? DEFAULT_TIME_LIMIT;
 
   const store = useGameStore();
@@ -125,8 +122,8 @@ export function MemoryMatch({ rounds, returnTo, courseTitle }: MemoryMatchProps)
         maxCombo={store.maxCombo}
         correct={store.correct}
         total={Math.max(store.totalRounds, 1)}
+        courseId={courseId}
         gameId="memory-match"
-        wrongIds={store.wrongIds}
         returnTo={returnTo}
         returnLabel={returnTo && returnTo !== '/app/hub' ? 'Về khóa học' : 'Về Hub'}
         onRestart={() => {

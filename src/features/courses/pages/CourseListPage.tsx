@@ -62,7 +62,7 @@ export default function CourseList() {
   const isFiltering = hasActiveLevelFilter || searchQuery.trim() !== '';
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
+    <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 md:px-8 py-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
       {/* 1. Hero Header Banner */}
       <section className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] px-4 py-4.5 shadow-2xs sm:px-6 sm:py-6">
         {/* Watermark Kanji */}
@@ -84,6 +84,9 @@ export default function CourseList() {
             <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5f6b7c] sm:text-sm">
               Luyện tiếng Nhật sống còn, phản xạ ca làm & đề thi mô phỏng Tokutei chuẩn hóa.
             </p>
+            <Link to="/app/enrollments" className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#d83a00] px-3.5 py-2 text-xs font-black text-white">
+              Xem gói & đăng ký <ArrowRight size={14} />
+            </Link>
           </div>
 
           {/* Right 3D Illustration */}
@@ -267,7 +270,7 @@ export default function CourseList() {
                 transition={{ duration: 0.2 }}
               >
                 <Link
-                  to={`/app/courses/${course.id}/learn`}
+                  to={course.isEnrolled === false ? '/app/enrollments' : `/app/courses/${course.id}/learn`}
                   className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-[#f5ece1] bg-white shadow-[0_6px_20px_rgba(217,74,19,0.05)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)]"
                 >
                   {/* Top Stylized Banner with 3D Badge */}
@@ -323,12 +326,12 @@ export default function CourseList() {
                           <BookOpen size={14} className="text-[#d83a00]" />
                           <span>{course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang phát triển'}</span>
                         </span>
-                        <span className="font-extrabold text-[#d83a00]">46% Hoàn thành</span>
+                        <span className="font-extrabold text-[#d83a00]">{course.isEnrolled === false ? 'Chưa đăng ký' : `${course.progress}% Hoàn thành`}</span>
                       </div>
 
                       {/* Progress Line */}
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eee5da]">
-                        <div className="h-full bg-gradient-to-r from-[#d83a00] to-[#f27427] w-[46%]" />
+                        <div className="h-full bg-gradient-to-r from-[#d83a00] to-[#f27427]" style={{ width: `${course.isEnrolled === false ? 0 : course.progress}%` }} />
                       </div>
 
                       {/* Primary CTA Button */}
@@ -336,7 +339,7 @@ export default function CourseList() {
                         type="button"
                         className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-xs font-extrabold text-white shadow-xs transition-all duration-200 group-hover:shadow-md group-hover:from-[#c23400] group-hover:to-[#d84800] active:scale-98"
                       >
-                        <span>Học tiếp ngay</span>
+                        <span>{course.isEnrolled === false ? 'Đăng ký khóa học' : 'Học tiếp ngay'}</span>
                         <ArrowRight size={15} />
                       </button>
                     </div>
@@ -381,7 +384,7 @@ function CourseListErrorNotice({ result }: CourseListErrorNoticeProps) {
   return (
     <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800">
       <AlertTriangle size={15} className="shrink-0 text-amber-600" />
-      <span>Không tải được dữ liệu mới · Đang hiển thị danh sách tạm thời</span>
+      <span>{result.error || 'Không tải được danh sách khóa học. Vui lòng thử lại.'}</span>
     </div>
   );
 }

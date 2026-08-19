@@ -1,7 +1,5 @@
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
-import { VOCAB_ROUNDS, type VocabRound } from '@/src/features/games/data/vocabData';
-
-const fallbackMeanings = VOCAB_ROUNDS.map((round) => round.data.meaning);
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
+import { type VocabRound } from '@/src/features/games/data/vocabData';
 
 function shuffle<T>(items: T[]): T[] {
   return [...items].sort(() => Math.random() - 0.5);
@@ -17,8 +15,7 @@ function getVocabularyLabel(item: CourseVocabularyItem): string {
 
 function buildOptions(answer: string, pool: string[]): string[] {
   const courseDistractors = uniqueValues(pool).filter((option) => option !== answer);
-  const fallbackDistractors = uniqueValues(fallbackMeanings).filter((option) => option !== answer && !courseDistractors.includes(option));
-  const distractors = [...shuffle(courseDistractors), ...shuffle(fallbackDistractors)].slice(0, 3);
+  const distractors = shuffle(courseDistractors).slice(0, 3);
   return shuffle([answer, ...distractors]);
 }
 

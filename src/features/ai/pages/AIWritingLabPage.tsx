@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AlertCircle, CheckCircle2, Clock3, FileText, Gauge, PenTool, Send, Sparkles } from 'lucide-react';
+import { submitAiWriting, type AiWritingResult } from '@/src/features/ai/repositories/aiRepository';
 
 const panelClass = 'rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6';
 const focusRing =
@@ -22,36 +23,28 @@ const scoringItems = [
 export default function AIWritingLab() {
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
-  const analysisTimerRef = useRef<number | null>(null);
+  const [result, setResult] = useState<AiWritingResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const wordCount = text.split(/\s+/).filter(Boolean).length;
 
-  const clearAnalysisTimer = () => {
-    if (analysisTimerRef.current !== null) {
-      window.clearTimeout(analysisTimerRef.current);
-      analysisTimerRef.current = null;
-    }
-  };
-
   const updateDraftText = (nextText: string) => {
-    clearAnalysisTimer();
     setText(nextText);
-    setIsAnalyzing(false);
-    setHasAnalyzed(false);
+    setResult(null);
+    setError(null);
   };
 
-  useEffect(() => clearAnalysisTimer, []);
-
-  const handleAnalyze = () => {
-    clearAnalysisTimer();
+  const handleAnalyze = async () => {
     setIsAnalyzing(true);
-    setHasAnalyzed(false);
-    analysisTimerRef.current = window.setTimeout(() => {
+    setResult(null);
+    setError(null);
+    try {
+      setResult(await submitAiWriting({ text }));
+    } catch (nextError: unknown) {
+      setError(nextError instanceof Error ? nextError.message : 'AI không chấm được bài viết.');
+    } finally {
       setIsAnalyzing(false);
-      setHasAnalyzed(true);
-      analysisTimerRef.current = null;
-    }, 2000);
+    }
   };
 
   const heroStats = [
@@ -140,23 +133,25 @@ export default function AIWritingLab() {
               </motion.div>
             )}
 
-            {!isAnalyzing && hasAnalyzed && (
+            {error && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</p>}
+
+            {!isAnalyzing && result && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-4">
                 <div className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-5">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="mt-0.5 shrink-0 text-orange-700" size={20} strokeWidth={1.8} />
                     <div className="space-y-1">
                       <h3 className="font-bold text-[#172033]">AI nhận xét nhanh</h3>
-                      <p className="text-sm leading-relaxed text-[#5f6b7c]">Bài viết ổn về ý nhưng đoạn mục tiêu sang Nhật còn hơi dài và thiếu một câu chốt thái độ làm việc. Nếu rút còn 3 ý chính và thêm một câu kết lịch sự, bài sẽ chắc hơn rõ rệt.</p>
+                      <p className="text-sm leading-relaxed text-[#5f6b7c]">{result.summary}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
                   {[
-                    { label: 'Điểm dự kiến', value: '8.5/10' },
-                    { label: 'Lỗi cần sửa', value: '3' },
-                    { label: 'Độ mạch lạc', value: 'Tốt' },
+                    { label: 'Điểm', value: `${(result.score / 10).toFixed(1)}/10` },
+                    { label: 'Lỗi cần sửa', value: String(result.corrections.length) },
+                    { label: 'Điểm mạnh', value: String(result.strengths.length) },
                   ].map((item) => (
                     <div key={item.label} className="rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-4">
                       <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8796]">{item.label}</div>
@@ -171,8 +166,13 @@ export default function AIWritingLab() {
                       <PenTool size={14} /> Gợi ý sửa nổi bật
                     </div>
                     <div className="mt-4 space-y-3 text-sm text-[#5f6b7c]">
-                      <div className="rounded-lg bg-orange-50 px-4 py-3"><span className="font-bold text-[#172033]">Mục tiêu:</span> nói rõ anh muốn làm việc ổn định, học nhanh và tuân thủ quy trình.</div>
-                      <div className="rounded-lg bg-[#f6efe6] px-4 py-3"><span className="font-bold text-[#172033]">Câu chốt:</span> thêm một câu lịch sự như <span className="font-semibold text-[#172033]">Em sẽ cố gắng bắt nhịp sớm và làm việc nghiêm túc.</span></div>
+                      {result.corrections.length > 0 ? result.corrections.map((correction) => (
+                        <div key={`${correction.original}-${correction.corrected}`} className="rounded-lg bg-orange-50 px-4 py-3">
+                          <span className="font-bold text-[#172033]">{correction.original}</span> → <span className="font-bold text-[#172033]">{correction.corrected}</span>
+                          <p className="mt-1 text-xs">{correction.explanation}</p>
+                        </div>
+                      )) : <div className="rounded-lg bg-orange-50 px-4 py-3">Không có lỗi nổi bật cần sửa.</div>}
+                      {result.rewritten && <div className="rounded-lg bg-[#f6efe6] px-4 py-3"><span className="font-bold text-[#172033]">Bản gợi ý:</span> {result.rewritten}</div>}
                     </div>
                   </div>
 
@@ -181,8 +181,7 @@ export default function AIWritingLab() {
                       <CheckCircle2 size={14} /> Điều anh đang làm tốt
                     </div>
                     <div className="mt-4 space-y-3 text-sm text-[#5f6b7c]">
-                      <div className="rounded-lg bg-emerald-50 px-4 py-3">Ý chính rõ và bám đúng chủ đề đề bài.</div>
-                      <div className="rounded-lg bg-[#f0f2f5] px-4 py-3">Độ dài phù hợp, chưa lan man.</div>
+                      {result.strengths.length > 0 ? result.strengths.map((strength) => <div key={strength} className="rounded-lg bg-emerald-50 px-4 py-3">{strength}</div>) : <div className="rounded-lg bg-[#f0f2f5] px-4 py-3">AI chưa ghi nhận điểm mạnh nổi bật.</div>}
                     </div>
                   </div>
                 </div>

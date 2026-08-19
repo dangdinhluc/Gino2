@@ -313,19 +313,22 @@ on conflict (id) do update set
   event_label = excluded.event_label,
   metadata = excluded.metadata;
 
-insert into public.packages (id, name, description, price_cents, currency, status)
+insert into public.packages (id, name, description, price_cents, currency, status, ai_monthly_quota)
 values
-  ('package-a1-core', 'A1 Core Bundle', 'Tokutei A1 lessons, vocabulary, review, and checkpoint exam.', 990000, 'VND', 'active'),
-  ('package-tokutei-prep', 'Tokutei Prep Bundle', 'Workplace Japanese prep with grammar and question practice.', 1490000, 'VND', 'active')
+  ('package-free', 'Free Starter', 'Free starter lessons for local integration tests.', 0, 'VND', 'active', 5),
+  ('package-a1-core', 'A1 Core Bundle', 'Tokutei A1 lessons, vocabulary, review, and checkpoint exam.', 990000, 'VND', 'active', 20),
+  ('package-tokutei-prep', 'Tokutei Prep Bundle', 'Workplace Japanese prep with grammar and question practice.', 1490000, 'VND', 'active', 40)
 on conflict (id) do update set
   name = excluded.name,
   description = excluded.description,
   price_cents = excluded.price_cents,
   currency = excluded.currency,
-  status = excluded.status;
+  status = excluded.status,
+  ai_monthly_quota = excluded.ai_monthly_quota;
 
 insert into public.package_courses (package_id, course_id)
 values
+  ('package-free', 'course-a1'),
   ('package-a1-core', 'course-a1'),
   ('package-tokutei-prep', 'course-tokutei')
 on conflict (package_id, course_id) do nothing;

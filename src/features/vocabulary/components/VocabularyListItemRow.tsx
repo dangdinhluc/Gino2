@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, Volume2 } from 'lucide-react';
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 import { VocabularyHeadword } from '@/src/features/courses/components/CourseVocabularyPanel';
 
 interface VocabularyListItemRowProps {
@@ -26,7 +26,7 @@ export function VocabularyListItemRow({
     : item.meaning;
 
   return (
-    <li className="group relative flex items-center justify-between gap-3 py-3.5 px-3 transition-colors hover:bg-orange-50/40 rounded-xl">
+    <li className="group relative flex items-center justify-between gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-orange-50/40 lg:rounded-2xl lg:border lg:border-[#efe5d7] lg:bg-[#fffaf5] lg:px-4 lg:py-4 lg:shadow-2xs">
       {/* Left Main Content Clickable */}
       <button
         type="button"

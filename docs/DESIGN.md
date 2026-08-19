@@ -74,7 +74,7 @@ Gợi ý tổ chức mockdata sau này:
 
 | Nhóm dữ liệu | File gợi ý | Dùng cho màn |
 |---|---|---|
-| Hồ sơ học | `src/data/mockProfile.ts` | Dashboard, Profile, Stats |
+| Hồ sơ học | `src/data/mockProfile.ts` | Dashboard, Profile |
 | Khóa học | `src/data/mockCourses.ts` | Course list/detail, Lesson player |
 | Câu hỏi bài học | `src/data/mockExercises.ts` | Lesson player, game shell |
 | Đề thi | `src/data/mockExams.ts` | Exam runner, result |
@@ -96,8 +96,6 @@ Gợi ý tổ chức mockdata sau này:
 | 3 | Exam Result | `/app/exams/:id/result` | Xem điểm và lỗi sau thi | Làm xong cần feedback |
 | 4 | Flashcard SRS Session | `/app/review/flashcards` | Ôn thẻ nhớ tới hạn | Landing quảng cáo SRS nhưng chưa có màn |
 | 5 | Game Detail Shell | `/app/hub/:gameId` | Chơi game từ LearningHub | Hub hiện toàn card tĩnh |
-| 6 | AI Tutor Chat | `/app/ai-chat` | Chat học gino với AI mock | Dashboard có “Chat gino”, mascot AI chưa mở được |
-| 7 | Stats + Achievements | `/app/stats` | Xem tiến độ, huy hiệu, streak | Nút “Xem chi tiết” đang chưa có đích |
 
 ### Phase 2: Màn mở rộng
 
@@ -267,13 +265,13 @@ Mock behavior:
 - App trả một trong vài câu feedback mock theo intent.
 - Có nút “Lưu vào thư viện” nhưng phase đầu chỉ toast/mock.
 
-### 3.7. Stats + Achievements
+### 3.7. Thống kê trong Hồ sơ/Cài đặt
 
-Mục đích: biến XP/streak/huy hiệu thành động lực rõ ràng.
+Mục đích: biến XP/streak/huy hiệu thành động lực rõ ràng ngay trong khu vực cá nhân.
 
 Bố cục:
 
-- Hero: streak, XP, level progress.
+- Tổng quan: streak, XP, level progress.
 - Calendar heatmap 30 ngày.
 - Skill radar hoặc 4 thanh kỹ năng: vocab, grammar, listening, speaking.
 - Achievements grid: locked/unlocked badges.
@@ -374,13 +372,12 @@ Bố cục:
 - [ ] Có prompt chips.
 - [ ] Layout không vỡ trên mobile.
 
-### Stats + Achievements
+### Thống kê học tập
 
-- [ ] Nút “Xem chi tiết” mở `/app/stats`.
+- [ ] Thống kê được hiển thị trong Hồ sơ/Cài đặt.
 - [ ] Có streak calendar.
 - [ ] Có XP/level progress.
 - [ ] Có badge locked/unlocked.
-- [ ] Có weekly summary mock.
 
 ---
 
@@ -446,13 +443,7 @@ Given: User đang ở AI Tutor Chat.
 When: User gửi “Giải thích weil cho em”.
 Then: App thêm bubble user và bubble AI mock trả lời về câu phụ với `weil`.
 
-### TC-11: Mở Stats detail
-
-Given: User đang ở Dashboard hoặc RightSidebar.
-When: User bấm “Xem chi tiết”.
-Then: App mở `/app/stats` với streak, XP, achievements.
-
-### TC-12: Mobile layout
+### TC-11: Mobile layout
 
 Given: User dùng màn hình nhỏ.
 When: User mở Lesson Player, Exam Runner, Flashcard Session.
@@ -467,7 +458,7 @@ Mảnh ghép giao diện nghĩa là một phần nhỏ của UI dùng lại nhi�
 | Mảnh ghép | Dùng ở đâu | Vai trò |
 |---|---|---|
 | PageHero | Các trang list/detail | Tiêu đề, mô tả, stats |
-| StatCard | Dashboard, Stats, Profile | Hiển thị chỉ số |
+| StatCard | Dashboard, Profile | Hiển thị chỉ số |
 | SessionShell | Lesson, Flashcard, Game | Khung phiên học |
 | ProgressHeader | Lesson, Exam, Game | Back, title, progress, timer |
 | ChoiceCard | Lesson, Exam, Game | Đáp án chọn |
@@ -499,11 +490,10 @@ Mảnh ghép giao diện nghĩa là một phần nhỏ của UI dùng lại nhi�
 2. Exam Result.
 3. Link từ Exam Center.
 
-### Phase 1D: Hub + AI + Stats
+### Phase 1D: Hub + AI
 
 1. Game Detail Shell.
 2. AI Tutor Chat.
-3. Stats + Achievements.
 
 ### Phase 2
 

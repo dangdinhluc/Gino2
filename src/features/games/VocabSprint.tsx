@@ -4,16 +4,17 @@ import { cn } from '@/src/lib/utils';
 import { GameShell } from '@/src/features/games/GameShell';
 import { useGameStore } from '@/src/features/games/gameStore';
 import { GameResult } from '@/src/features/games/GameResult';
-import { getShuffledVocabRounds, type VocabRound } from '@/src/features/games/data/vocabData';
+import { type VocabRound } from '@/src/features/games/data/vocabData';
 
 interface VocabSprintProps {
+  courseId?: string;
   rounds?: VocabRound[];
   returnTo?: string;
   courseTitle?: string;
 }
 
-export function VocabSprint({ rounds, returnTo, courseTitle }: VocabSprintProps) {
-  const sessionRounds = useMemo(() => (rounds && rounds.length > 0 ? rounds : getShuffledVocabRounds(15)), [rounds]);
+export function VocabSprint({ courseId, rounds, returnTo, courseTitle }: VocabSprintProps) {
+  const sessionRounds = useMemo(() => rounds ?? [], [rounds]);
   const store = useGameStore();
   const [ready, setReady] = useState(false);
 
@@ -36,8 +37,8 @@ export function VocabSprint({ rounds, returnTo, courseTitle }: VocabSprintProps)
         maxCombo={store.maxCombo}
         correct={store.correct}
         total={store.totalRounds}
+        courseId={courseId}
         gameId="vocab-sprint"
-        wrongIds={store.wrongIds}
         returnTo={returnTo}
         returnLabel="Về khóa học"
         onRestart={() => { store.reset(); setReady(false); setTimeout(() => { store.startGame('vocab-sprint', sessionRounds.length); setReady(true); }, 0); }}

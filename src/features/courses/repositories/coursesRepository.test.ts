@@ -30,4 +30,4 @@ const mappedWithEmptyLessons = mapCourseRowToEntry({ ...baseRow, lessons: [] });
 assert.equal(mappedWithEmptyLessons.totalLessons, 0, 'empty lessons aggregate should default to 0');
 
 assert.equal(typeof mappedWithLessons.image, 'string');
-assert.ok(mappedWithLessons.image.length > 0, 'image fallback must be set so cards do not break');
+assert.equal(mappedWithLessons.image, '', 'course cards must not fabricate an image when Cloud has none');

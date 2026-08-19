@@ -1,30 +1,32 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route } from 'react-router-dom';
 import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
-import DashboardPage from '@/src/features/dashboard/pages/DashboardPage';
-import StatsAchievementsPage from '@/src/features/dashboard/pages/StatsAchievementsPage';
-import CourseListPage from '@/src/features/courses/pages/CourseListPage';
-import CourseLearningPage from '@/src/features/courses/pages/CourseLearningPage';
-import ExamCenterPage from '@/src/features/exams/pages/ExamCenterPage';
-import ExamRunnerPage from '@/src/features/exams/pages/ExamRunnerPage';
-import ExamResultPage from '@/src/features/exams/pages/ExamResultPage';
-import GrammarLibraryPage from '@/src/features/grammar/pages/GrammarLibraryPage';
-import GrammarTopicDetailPage from '@/src/features/grammar/pages/GrammarTopicDetailPage';
-import VocabularyDetailPage from '@/src/features/grammar/pages/VocabularyDetailPage';
-import ReviewCenterPage from '@/src/features/review/pages/ReviewCenterPage';
-import PracticePage from '@/src/features/review/pages/PracticePage';
-import FlashcardSessionPage from '@/src/features/review/pages/FlashcardSessionPage';
-import AIWritingLabPage from '@/src/features/ai/pages/AIWritingLabPage';
-import WritingHistoryPage from '@/src/features/ai/pages/WritingHistoryPage';
-import AISprechenLabPage from '@/src/features/ai/pages/AISprechenLabPage';
-import SpeakingHistoryPage from '@/src/features/ai/pages/SpeakingHistoryPage';
-import AITutorChatPage from '@/src/features/ai/pages/AITutorChatPage';
-import LearningHubPage from '@/src/features/hub/pages/LearningHubPage';
-import ProfilePage from '@/src/features/profile/pages/ProfilePage';
-import SettingsPage from '@/src/features/profile/pages/SettingsPage';
-import FriendsPage from '@/src/features/social/pages/FriendsPage';
-import MessagesPage from '@/src/features/social/pages/MessagesPage';
-import JournalPage from '@/src/features/social/pages/JournalPage';
+
+const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
+const CourseListPage = lazy(() => import('@/src/features/courses/pages/CourseListPage'));
+const CourseLearningPage = lazy(() => import('@/src/features/courses/pages/CourseLearningPage'));
+const PackageCatalogPage = lazy(() => import('@/src/features/enrollments/pages/PackageCatalogPage'));
+const ExamCenterPage = lazy(() => import('@/src/features/exams/pages/ExamCenterPage'));
+const ExamRunnerPage = lazy(() => import('@/src/features/exams/pages/ExamRunnerPage'));
+const ExamResultPage = lazy(() => import('@/src/features/exams/pages/ExamResultPage'));
+const GrammarLibraryPage = lazy(() => import('@/src/features/grammar/pages/GrammarLibraryPage'));
+const GrammarTopicDetailPage = lazy(() => import('@/src/features/grammar/pages/GrammarTopicDetailPage'));
+const VocabularyDetailPage = lazy(() => import('@/src/features/grammar/pages/VocabularyDetailPage'));
+const ReviewCenterPage = lazy(() => import('@/src/features/review/pages/ReviewCenterPage'));
+const FlashcardSessionPage = lazy(() => import('@/src/features/review/pages/FlashcardSessionPage'));
+const AIWritingLabPage = lazy(() => import('@/src/features/ai/pages/AIWritingLabPage'));
+const WritingHistoryPage = lazy(() => import('@/src/features/ai/pages/WritingHistoryPage'));
+const AISprechenLabPage = lazy(() => import('@/src/features/ai/pages/AISprechenLabPage'));
+const SpeakingHistoryPage = lazy(() => import('@/src/features/ai/pages/SpeakingHistoryPage'));
+const LearningHubPage = lazy(() => import('@/src/features/hub/pages/LearningHubPage'));
+const ProfilePage = lazy(() => import('@/src/features/profile/pages/ProfilePage'));
+const SettingsPage = lazy(() => import('@/src/features/profile/pages/SettingsPage'));
+const JournalPage = lazy(() => import('@/src/features/social/pages/JournalPage'));
+const NotificationCenterPage = lazy(() => import('@/src/features/notifications/pages/NotificationCenterPage'));
+
+const routeLoading = <main className="grid min-h-[45vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở màn hình…</main>;
+const screen = (content: ReactNode) => <Suspense fallback={routeLoading}>{content}</Suspense>;
 
 export function AppRoutes() {
   return (
@@ -37,32 +39,33 @@ export function AppRoutes() {
       }
     >
       <Route index element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="courses" element={<CourseListPage />} />
+      <Route path="dashboard" element={screen(<DashboardPage />)} />
+      <Route path="courses" element={screen(<CourseListPage />)} />
+      <Route path="enrollments" element={screen(<PackageCatalogPage />)} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
-      <Route path="courses/:id/learn" element={<CourseLearningPage />} />
-      <Route path="exams" element={<ExamCenterPage />} />
-      <Route path="exams/:id/start" element={<ExamRunnerPage />} />
-      <Route path="exams/:id/result" element={<ExamResultPage />} />
-      <Route path="grammar" element={<GrammarLibraryPage />} />
-      <Route path="grammar/:id" element={<GrammarTopicDetailPage />} />
-      <Route path="vocabulary/:wordId" element={<VocabularyDetailPage />} />
-      <Route path="ai-lab" element={<AIWritingLabPage />} />
-      <Route path="ai-lab/history" element={<WritingHistoryPage />} />
-      <Route path="ai-speak" element={<AISprechenLabPage />} />
-      <Route path="ai-speak/history" element={<SpeakingHistoryPage />} />
-      <Route path="ai-chat" element={<AITutorChatPage />} />
-      <Route path="journal" element={<JournalPage />} />
-      <Route path="friends" element={<FriendsPage />} />
-      <Route path="messages" element={<MessagesPage />} />
-      <Route path="settings" element={<SettingsPage />} />
+      <Route path="courses/:id/learn" element={screen(<CourseLearningPage />)} />
+      <Route path="exams" element={screen(<ExamCenterPage />)} />
+      <Route path="exams/:id/start" element={screen(<ExamRunnerPage />)} />
+      <Route path="exams/:id/result" element={screen(<ExamResultPage />)} />
+      <Route path="grammar" element={screen(<GrammarLibraryPage />)} />
+      <Route path="grammar/:id" element={screen(<GrammarTopicDetailPage />)} />
+      <Route path="vocabulary/:wordId" element={screen(<VocabularyDetailPage />)} />
+      <Route path="ai-lab" element={screen(<AIWritingLabPage />)} />
+      <Route path="ai-lab/history" element={screen(<WritingHistoryPage />)} />
+      <Route path="ai-speak" element={screen(<AISprechenLabPage />)} />
+      <Route path="ai-speak/history" element={screen(<SpeakingHistoryPage />)} />
+      <Route path="journal" element={screen(<JournalPage />)} />
+      <Route path="notifications" element={screen(<NotificationCenterPage />)} />
+      <Route path="search" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path="friends" element={<Navigate to="/app/notifications" replace />} />
+      <Route path="messages" element={<Navigate to="/app/notifications" replace />} />
+      <Route path="settings" element={screen(<SettingsPage />)} />
       <Route path="review" element={<Navigate to="/app/practice" replace />} />
-      <Route path="review/flashcards" element={<FlashcardSessionPage />} />
-      <Route path="practice" element={<ReviewCenterPage />} />
-      <Route path="practice/custom" element={<PracticePage />} />
-      <Route path="hub" element={<LearningHubPage />} />
-      <Route path="stats" element={<StatsAchievementsPage />} />
-      <Route path="profile" element={<ProfilePage />} />
+      <Route path="review/flashcards" element={screen(<FlashcardSessionPage />)} />
+      <Route path="practice" element={screen(<ReviewCenterPage />)} />
+      <Route path="practice/custom" element={<Navigate to="/app/practice" replace />} />
+      <Route path="hub" element={screen(<LearningHubPage />)} />
+      <Route path="profile" element={screen(<ProfilePage />)} />
     </Route>
   );
 }

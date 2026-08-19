@@ -16,19 +16,9 @@ import { decideAuthRouteAccess, type ProtectedRouteArea } from '@/src/features/a
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 import { assets } from '@/src/shared/lib/assets';
 
-const LOCAL_ACCOUNT_EMAILS: Record<ProtectedRouteArea, string> = {
-  admin: 'admin@example.test',
-  learner: 'learner@example.test',
-};
-
-const LOCAL_ACCOUNT_PASSWORDS: Record<ProtectedRouteArea, string> = {
-  admin: 'LocalAdmin123!',
-  learner: 'LocalLearner123!',
-};
-
 const TRUST_SIGNALS = [
   { icon: Sparkles, label: 'AI tutor + writing/speaking lab' },
-  { icon: Trophy, label: 'Mock exam theo từng track' },
+  { icon: Trophy, label: 'Đề luyện thi theo từng track' },
   { icon: Target, label: '4 trục Tokutei trong 1 dashboard' },
 ] as const;
 
@@ -50,8 +40,6 @@ export default function LoginPage({ area }: LoginPageProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMountedRef = useRef(true);
-  const localAccountEmail = LOCAL_ACCOUNT_EMAILS[area];
-  const localAccountPassword = LOCAL_ACCOUNT_PASSWORDS[area];
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -102,11 +90,6 @@ export default function LoginPage({ area }: LoginPageProps) {
     navigate(redirectTo, { replace: true });
   }
 
-  function fillLocalAccount() {
-    setEmail(localAccountEmail);
-    setPassword(localAccountPassword);
-  }
-
   if (auth.isLoading) {
     return (
       <AuthShellBackground>
@@ -134,12 +117,12 @@ export default function LoginPage({ area }: LoginPageProps) {
           className="relative z-10 w-full max-w-xl overflow-hidden rounded-[2rem] border border-[#E4D8C9] bg-[#FFFCF7]/95 p-8 shadow-[0_40px_90px_-50px_rgba(180,138,91,0.5)] backdrop-blur"
         >
           <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-orange-200/40 blur-3xl" />
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#E4D8C9] bg-[#F0E8DC] px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-[#315C73]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#E4D8C9] bg-[#F0E8DC] px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-[#315C73]">
             <Sparkles size={12} /> Supabase setup
           </span>
-          <h1 className="relative mt-4 text-3xl font-black tracking-tight text-[#172033]">Cần cấu hình Supabase local</h1>
+          <h1 className="relative mt-4 text-3xl font-black tracking-tight text-[#172033]">Cần cấu hình Supabase Cloud</h1>
           <p className="relative mt-4 text-sm leading-7 text-[#5F6B7C]">
-            Chạy <code className="rounded-md bg-[#F0E8DC] px-1.5 py-0.5 font-mono text-[#172033]">supabase start</code>, copy local API URL và anon key vào <code className="rounded-md bg-[#F0E8DC] px-1.5 py-0.5 font-mono text-[#172033]">.env</code>, rồi restart Vite. <code className="rounded-md bg-[#F0E8DC] px-1.5 py-0.5 font-mono text-[#172033]">.env.example</code> đã có placeholder cần thiết.
+            Kiểm tra URL Cloud và anon key trong <code className="rounded-md bg-[#F0E8DC] px-1.5 py-0.5 font-mono text-[#172033]">.env</code>, rồi restart Vite. <code className="rounded-md bg-[#F0E8DC] px-1.5 py-0.5 font-mono text-[#172033]">.env.example</code> đã có placeholder cần thiết.
           </p>
         </motion.section>
       </AuthShellBackground>
@@ -174,7 +157,7 @@ export default function LoginPage({ area }: LoginPageProps) {
                 <span className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-orange-300/40 to-amber-300/40 blur-md transition-opacity group-hover:opacity-100" />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#C96A1B]">Tokutei prep</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.22em] text-[#C96A1B]">Tokutei prep</span>
                 <span className="mt-1 text-base font-black tracking-tight text-[#172033]">TOKUTEI GINO</span>
               </span>
             </Link>
@@ -204,7 +187,7 @@ export default function LoginPage({ area }: LoginPageProps) {
                   <>
                     Lộ trình Tokutei rõ từ
                     <span className="bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 bg-clip-text text-transparent"> JFT Basic </span>
-                    tới mock phỏng vấn.
+                    tới luyện phỏng vấn.
                   </>
                 )}
               </h1>
@@ -241,7 +224,7 @@ export default function LoginPage({ area }: LoginPageProps) {
                 transition={{ duration: 4, ease: 'easeInOut', repeat: Infinity }}
               />
               <div className="rounded-2xl border border-[#E4D8C9] bg-[#FFFCF7]/90 p-3 shadow-sm backdrop-blur">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#C96A1B]">Gino tip</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#C96A1B]">Gino tip</p>
                 <p className="mt-1 text-sm font-semibold text-[#172033]">{isAdminArea ? 'Admin role chỉ phát qua admin_roles.' : 'Đăng nhập để giữ nhịp học mỗi ngày.'}</p>
               </div>
             </motion.div>
@@ -271,7 +254,7 @@ export default function LoginPage({ area }: LoginPageProps) {
                   <span className="absolute -inset-1 rounded-2xl bg-orange-300/40 blur-lg" />
                 </span>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#5F6B7C]">Đăng nhập</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#5F6B7C]">Đăng nhập</p>
                   <h2 className="text-lg font-black tracking-tight text-[#172033]">{title}</h2>
                 </div>
                 <span className="ml-auto hidden items-center gap-1 rounded-full border border-[#E4D8C9] bg-[#F0E8DC] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.22em] text-[#315C73] sm:inline-flex">
@@ -342,47 +325,16 @@ export default function LoginPage({ area }: LoginPageProps) {
                 </span>
               </button>
 
-              {auth.isLocalSupabase && import.meta.env.DEV && (
-                <div className="mt-6 rounded-2xl border border-dashed border-[#C96A1B]/40 bg-[#FFF4E6] p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#C96A1B]">
-                      <Sparkles size={12} /> Tài khoản seed local
-                    </p>
-                    <button
-                      type="button"
-                      onClick={fillLocalAccount}
-                      className="inline-flex items-center gap-1 rounded-full bg-[#C96A1B] px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white shadow-sm transition hover:bg-[#A85613]"
-                    >
-                      Tự điền <ArrowRight size={12} />
-                    </button>
-                  </div>
-                  <dl className="mt-3 grid gap-1.5 text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <dt className="text-[#5F6B7C]">Email</dt>
-                      <dd className="font-mono text-xs font-bold text-[#172033]">{localAccountEmail}</dd>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <dt className="text-[#5F6B7C]">Password</dt>
-                      <dd className="font-mono text-xs font-bold text-[#172033]">{localAccountPassword}</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-3 text-[11px] text-[#8A6C44]">Chỉ phát hành ở môi trường dev local; không commit ra ngoài.</p>
-                </div>
-              )}
-
               <p className="mt-5 text-center text-xs text-[#5F6B7C]">
                 {isAdminArea ? (
                   <>
-                    Quên mật khẩu admin? Liên hệ owner để cấp lại role trong{' '}
-                    <code className="rounded bg-[#F0E8DC] px-1 py-0.5 font-mono">admin_roles</code>.
+                    <Link to="/forgot-password" className="inline-block px-1 py-2.5 font-black text-[#C96A1B] hover:underline">Quên mật khẩu?</Link>{' '}
+                    Owner sẽ cấp lại quyền quản trị sau khi xác thực tài khoản.
                   </>
                 ) : (
                   <>
-                    Chưa có tài khoản? Hỏi admin để được tạo learner profile, hoặc{' '}
-                    <Link to="/" className="font-black text-[#C96A1B] hover:underline">
-                      về trang chủ
-                    </Link>
-                    .
+                    Chưa có tài khoản? <Link to="/signup" className="inline-block px-1 py-2.5 font-black text-[#C96A1B] hover:underline">Tạo tài khoản miễn phí</Link>
+                    {' · '}<Link to="/forgot-password" className="inline-block px-1 py-2.5 font-black text-[#C96A1B] hover:underline">Quên mật khẩu?</Link>
                   </>
                 )}
               </p>

@@ -1,32 +1,34 @@
 import {
   Home,
-  BarChart3,
   Bookmark,
   Layout,
   GraduationCap,
   RotateCcw,
   Settings,
-  Users,
-  MessageCircle,
+  Bell,
+  FileText,
   Flame,
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Gamepad2,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useReviewStore } from '@/src/features/review/store/reviewStore';
-import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
-import { startOfDay, xpForRating } from '@/src/features/review/lib/srs';
+import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
+import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { assetPath, assets } from '@/src/shared/lib/assets';
+
+const XP_PER_LEVEL = 500;
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [railHint, setRailHint] = useState<{ label: string; top: number; left: number; tone: string } | null>(null);
+  const [stats, setStats] = useState<LearnerStatsSnapshot | null>(null);
+  const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,6 +46,18 @@ export function Sidebar() {
     setIsProfileOpen(false);
     setRailHint(null);
   }, [isCollapsed]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchLearnerStats(), fetchLearnerProfile()])
+      .then(([nextStats, nextProfile]) => {
+        if (cancelled) return;
+        setStats(nextStats);
+        setProfile(nextProfile);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
 
   const toneStyles = {
     orange: {
@@ -90,19 +104,14 @@ export function Sidebar() {
     },
   } as const;
 
-  const reviewStates = useReviewStore((state) => state.states);
-  const reviewLog = useReviewStore((state) => state.log);
-  const totalReviewXp = useReviewStore((state) => state.totalReviewXp);
-  const streak = useProgressStore((state) => state.streak);
-  const weeklyXp = useProgressStore((state) => state.weeklyXp);
-
-  const dueCount = useMemo(() => collectDueCards(reviewStates, Date.now()).length, [reviewStates]);
-  const xpToday = useMemo(() => {
-    const dayStart = startOfDay(Date.now());
-    return reviewLog.filter((entry) => entry.at >= dayStart).reduce((sum, entry) => sum + xpForRating(entry.rating), 0);
-  }, [reviewLog]);
-  const totalXp = totalReviewXp + weeklyXp;
-  const level = Math.floor(totalXp / 300) + 1;
+  const dueCount = stats?.dueVocabulary ?? 0;
+  const xpToday = stats?.dailyXp ?? 0;
+  const totalXp = stats?.totalXp ?? 0;
+  const streak = stats?.currentStreak ?? 0;
+  const level = Math.floor(totalXp / XP_PER_LEVEL) + 1;
+  const displayName = profile?.displayName || 'Học viên';
+  const profileInitial = displayName.trim().charAt(0).toLocaleUpperCase('vi-VN') || 'T';
+  const targetLevel = profile?.targetLevel || 'Tokutei Gino';
 
   const menuItems: { icon: typeof Home; imageIcon?: string; label: string; path: string; tone: string; badge?: string }[] = [
     { icon: Home, imageIcon: assets.shared.navigation.home, label: 'Trang chủ', path: '/app/dashboard', tone: 'orange' },
@@ -110,13 +119,13 @@ export function Sidebar() {
     { icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary, label: 'Ôn tập SRS', path: '/app/practice', tone: 'emerald', badge: dueCount > 0 ? `${dueCount}` : undefined },
     { icon: GraduationCap, imageIcon: assets.shared.navigation.exams, label: 'Trung tâm Luyện thi', path: '/app/exams', tone: 'amber' },
     { icon: Bookmark, imageIcon: assets.courses.workspace.vocabulary, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
-    { icon: BarChart3, imageIcon: assets.games.icons.chart, label: 'Thống kê & Thành tích', path: '/app/stats', tone: 'blue' },
+    { icon: Gamepad2, label: 'Game Zone', path: '/app/hub', tone: 'pink' },
     { icon: Settings, label: 'Cài đặt', path: '/app/settings', tone: 'sky' },
   ];
 
   const communityItems = [
-    { icon: Users, label: 'Bạn bè', path: '/app/friends', tone: 'orange' },
-    { icon: MessageCircle, label: 'Tin nhắn', path: '/app/messages', tone: 'pink' },
+    { icon: Bell, label: 'Thông báo', path: '/app/notifications', tone: 'orange' },
+    { icon: FileText, label: 'Nhật ký', path: '/app/journal', tone: 'pink' },
   ];
 
   const showRailHint = (target: HTMLElement, label: string, tone: string) => {
@@ -288,7 +297,7 @@ export function Sidebar() {
         >
           {!isCollapsed && (
             <p className="mb-2 hidden whitespace-nowrap px-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400 lg:block">
-              Cộng đồng
+              Cá nhân
             </p>
           )}
           <div className={cn('space-y-1.5', isCollapsed && 'space-y-2')}>
@@ -362,7 +371,7 @@ export function Sidebar() {
             <div className="flex items-center gap-3">
               <div className="relative h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 p-0.5 shadow-md">
                 <div className="flex h-full w-full items-center justify-center rounded-[1rem] bg-white">
-                  <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-base font-black text-transparent">T</span>
+                  <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-base font-black text-transparent">{profileInitial}</span>
                 </div>
                 <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[8px] font-black text-white shadow-sm">
                   1
@@ -370,9 +379,9 @@ export function Sidebar() {
               </div>
               {!isCollapsed && (
                 <div className="hidden text-left lg:block">
-                  <div className="text-sm font-black uppercase text-gray-800">Anh</div>
+                  <div className="text-sm font-black uppercase text-gray-800">{displayName}</div>
                   <div className="mt-0.5 flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                    <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">Tokutei Track</span>
+                    <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">{targetLevel}</span>
                     <span>Lv.{level}</span>
                   </div>
                 </div>
@@ -404,13 +413,13 @@ export function Sidebar() {
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 p-0.5 shadow-md">
                     <div className="flex h-full w-full items-center justify-center rounded-[1rem] bg-white">
-                      <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-lg font-black text-transparent">T</span>
+                      <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-lg font-black text-transparent">{profileInitial}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-black uppercase text-gray-900">Anh</div>
+                    <div className="text-sm font-black uppercase text-gray-900">{displayName}</div>
                     <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">Tokutei Track</span>
+                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-orange-500">{targetLevel}</span>
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-500">Lv.{level}</span>
                     </div>
                   </div>
@@ -419,7 +428,7 @@ export function Sidebar() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-2xl border border-[#e6ddd1] bg-[#f8f1e6] px-3 py-3 text-center">
                     <div className="text-[9px] font-bold uppercase tracking-wide text-gray-400">XP</div>
-                    <div className="mt-1 text-sm font-black text-gray-900">{totalXp % 300}/300</div>
+                    <div className="mt-1 text-sm font-black text-gray-900">{totalXp % XP_PER_LEVEL}/{XP_PER_LEVEL}</div>
                   </div>
                   <div className="rounded-2xl border border-[#e6ddd1] bg-[#fffaf3] px-3 py-3 text-center">
                     <div className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Streak</div>

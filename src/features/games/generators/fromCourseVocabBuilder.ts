@@ -1,4 +1,4 @@
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 import type { BuilderRound, LetterChip } from '@/src/features/games/types';
 
 /**

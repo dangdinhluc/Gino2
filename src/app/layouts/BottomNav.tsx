@@ -1,20 +1,27 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { motion } from 'motion/react';
-import { useMemo } from 'react';
-import { useReviewStore } from '@/src/features/review/store/reviewStore';
-import { collectDueCards } from '@/src/features/review/lib/reviewSelectors';
+import { useEffect, useState } from 'react';
+import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
 import { assets } from '@/src/shared/lib/assets';
 
 export function BottomNav() {
-  const reviewStates = useReviewStore((state) => state.states);
-  const dueCount = useMemo(() => collectDueCards(reviewStates, Date.now()).length, [reviewStates]);
+  const [dueCount, setDueCount] = useState(0);
+  const location = useLocation();
+
+  useEffect(() => {
+    let cancelled = false;
+    getDueVocabularyCards(100)
+      .then((cards) => { if (!cancelled) setDueCount(cards.filter((card) => card.status !== 'new').length); })
+      .catch(() => { if (!cancelled) setDueCount(0); });
+    return () => { cancelled = true; };
+  }, [location.pathname]);
 
   const navItems = [
     { label: 'Trang chủ', path: '/app/dashboard', icon: assets.shared.navigation.home },
     { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
-    { label: 'Ôn tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary },
-    { label: 'Luyện thi', path: '/app/exams', icon: assets.shared.navigation.exams, badge: dueCount },
+    { label: 'Ôn tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary, badge: dueCount },
+    { label: 'Luyện thi', path: '/app/exams', icon: assets.shared.navigation.exams },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 

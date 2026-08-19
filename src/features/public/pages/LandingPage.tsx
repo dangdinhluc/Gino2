@@ -11,11 +11,12 @@ import {
   Target,
 } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
+import { SparkleField } from '@/src/shared/components/SparkleField';
 
 const heroStats = [
-  { value: '1000+', label: 'TỪ VỰNG' },
-  { value: 'N5–N1', label: 'LỘ TRÌNH' },
   { value: 'JFT', label: 'BASIC' },
+  { value: 'SRS', label: 'ÔN TẬP' },
+  { value: 'AI', label: 'COACH' },
 ];
 
 const methods = [
@@ -24,7 +25,7 @@ const methods = [
   { icon: Headphones, title: 'Luyện JFT-Basic', desc: 'Nghe, đọc và phản xạ theo dạng bài thực tế.' },
   { icon: Mic, title: 'Giao tiếp hiện trường', desc: 'Hourensou, anzen và cách nói lịch sự nơi làm việc.' },
   { icon: PenLine, title: 'Phỏng vấn Tokutei', desc: 'Tập trả lời ngắn, đúng ý, có romaji và dịch Việt.' },
-  { icon: Library, title: 'Mock test', desc: 'Theo dõi điểm, lỗi sai và nhịp ôn mỗi ngày.' },
+  { icon: Library, title: 'Đề luyện thi', desc: 'Theo dõi điểm, lỗi sai và nhịp ôn mỗi ngày.' },
 ];
 
 const sakuraPetals = [
@@ -65,6 +66,7 @@ export default function LandingPage() {
             />
           ))}
         </div>
+        <SparkleField className="landing-sparkle-layer" />
 
         <header className="landing-header">
           <Link className="landing-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
@@ -114,12 +116,12 @@ export default function LandingPage() {
             alt="Mascot Gino đang học tiếng Nhật"
           />
           <div className="landing-floating-badge landing-streak-badge">
-            <small>STREAK</small>
-            <strong>🔥 12 ngày</strong>
+            <small>NHỊP HỌC</small>
+            <strong>☀️ Mỗi ngày</strong>
           </div>
           <div className="landing-floating-badge landing-xp-badge">
-            <small>XP</small>
-            <strong>✨ +320</strong>
+            <small>TIẾN ĐỘ</small>
+            <strong>🔒 Riêng tư</strong>
           </div>
         </div>
       </section>
@@ -135,7 +137,7 @@ export default function LandingPage() {
 
             <div className="landing-method-grid">
               {methods.map(({ icon: Icon, title, desc }, index) => (
-                <article className="landing-method" key={title}>
+                <article className="landing-method gino-hover-lift" key={title}>
                   <div className="landing-method-topline">
                     <span className="landing-method-icon">
                       <Icon size={19} aria-hidden="true" focusable="false" />

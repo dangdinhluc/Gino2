@@ -1,1 +1,5 @@
-export { PrivacyPage as default } from '@/src/features/legacy/pages/PhaseTwoPages';
+import SitePage from './SitePage';
+
+export default function PrivacyPage() {
+  return <SitePage slug="privacy" fallbackTitle="Chính sách bảo mật" />;
+}

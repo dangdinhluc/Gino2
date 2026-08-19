@@ -1,4 +1,4 @@
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 import type { MemoryPair, MemoryRound } from '@/src/features/games/types';
 
 /**
@@ -8,7 +8,7 @@ import type { MemoryPair, MemoryRound } from '@/src/features/games/types';
  * - Filter vocab có word + meaning hợp lệ
  * - Chunk theo `PAIRS_PER_ROUND`, tối đa `MAX_ROUNDS` round
  * - Mỗi pair giữ `sourceVocabId` để push SRS khi miss
- * - `< 2` cặp khả dụng → return [] (game sẽ fallback mock)
+ * - `< 2` cặp khả dụng → return [] để GameScreen hiển thị trạng thái thiếu nội dung
  *
  * Spec: docs/design/new-games-mvp.md §2.4 + §2.6
  */

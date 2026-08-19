@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { generateMemoryRounds } from '@/src/features/games/generators/fromCourseVocabMemory';
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 
 function makeVocab(overrides: Partial<CourseVocabularyItem> & { id: string; word: string; meaning: string }): CourseVocabularyItem {
   return {

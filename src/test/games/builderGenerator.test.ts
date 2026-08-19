@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { generateBuilderRounds } from '@/src/features/games/generators/fromCourseVocabBuilder';
-import type { CourseVocabularyItem } from '@/src/features/courses/mock/courseLearningMock';
+import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 
 function makeVocab(overrides: Partial<CourseVocabularyItem> & { id: string; word: string; meaning: string }): CourseVocabularyItem {
   return {

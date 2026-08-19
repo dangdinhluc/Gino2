@@ -3,7 +3,6 @@ import type { LucideIcon } from 'lucide-react';
 export type CourseGameType =
   | 'vocab-sprint'
   | 'flappy-vocab'
-  | 'situation-game'
   | 'memory-match'
   | 'word-builder';
 
