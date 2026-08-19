@@ -94,14 +94,19 @@ import {
   updateDocumentAnnotation,
   type DocumentAnnotation,
 } from '@/src/features/documents/repositories/documentAnnotationRepository';
+import {
+  fetchReadDocumentIds,
+  recordDocumentOpened,
+} from '@/src/features/documents/repositories/documentProgressRepository';
 
 interface DocumentsPanelProps {
+  courseId: string;
   documents: CourseDocumentItem[];
   selectedDocument: CourseDocumentItem;
   onSelectDocument: (documentId: string) => void;
 }
 
-export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }: DocumentsPanelProps) {
+export function DocumentsPanel({ courseId, documents, selectedDocument, onSelectDocument }: DocumentsPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [annotations, setAnnotations] = useState<DocumentAnnotation[]>([]);
@@ -116,7 +121,26 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
   const [editingAnnotation, setEditingAnnotation] = useState<DocumentAnnotation | null>(null);
   const [deletingAnnotation, setDeletingAnnotation] = useState<DocumentAnnotation | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const [readDocumentIds, setReadDocumentIds] = useState<Set<string>>(new Set());
   const documentContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchReadDocumentIds(courseId)
+      .then((ids) => { if (!cancelled) setReadDocumentIds(ids); })
+      .catch(() => { /* tiến độ đọc là phụ trợ — thất bại không chặn tài liệu */ });
+    return () => { cancelled = true; };
+  }, [courseId]);
+
+  useEffect(() => {
+    recordDocumentOpened({
+      courseId,
+      documentId: selectedDocument.id,
+      documentTitle: selectedDocument.title,
+    })
+      .then(() => setReadDocumentIds((prev) => { const next = new Set(prev); next.add(selectedDocument.id); return next; }))
+      .catch(() => { /* ghi tiến độ thất bại không ảnh hưởng xem tài liệu */ });
+  }, [courseId, selectedDocument.id, selectedDocument.title]);
 
   useEffect(() => {
     let cancelled = false;
@@ -260,12 +284,14 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
   const stats = useMemo(() => {
     const totalDocs = documents.length;
     const totalMinutes = documents.reduce((acc, doc) => acc + (doc.readTimeMinutes ?? 0), 0);
+    const readCount = documents.reduce((acc, doc) => acc + (readDocumentIds.has(doc.id) ? 1 : 0), 0);
 
     return {
       totalDocs,
       totalMinutes,
+      readCount,
     };
-  }, [documents]);
+  }, [documents, readDocumentIds]);
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32 lg:max-w-none">
@@ -294,6 +320,7 @@ export function DocumentsPanel({ documents, selectedDocument, onSelectDocument }
                 key={doc.id}
                 document={doc}
                 isSelected={selectedDocument.id === doc.id}
+                isRead={readDocumentIds.has(doc.id)}
                 onSelect={onSelectDocument}
               />
             ))

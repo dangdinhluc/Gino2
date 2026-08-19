@@ -1,19 +1,20 @@
 import React from 'react';
-import { Bookmark, ChevronRight, Clock3, MoreVertical } from 'lucide-react';
-import type { CourseDocumentItem } from '@/src/features/courses/mock/courseLearningMock';
+import { CheckCircle2, ChevronRight, Clock3, MoreVertical } from 'lucide-react';
+import type { CourseDocumentItem } from '@/src/features/courses/courseLearning.types';
 
 interface DocumentCardItemProps {
   key?: React.Key;
   document: CourseDocumentItem;
   isSelected?: boolean;
+  isRead?: boolean;
   onSelect: (id: string) => void;
-  onDownload?: (id: string) => void;
   onMenu?: (id: string) => void;
 }
 
 export function DocumentCardItem({
   document,
   isSelected = false,
+  isRead = false,
   onSelect,
   onMenu,
 }: DocumentCardItemProps) {
@@ -35,6 +36,11 @@ export function DocumentCardItem({
         {/* Header Row: Kind, Module, ReadTime & 3-dots Menu */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {isRead && (
+              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700">
+                <CheckCircle2 size={11} /> Đã đọc
+              </span>
+            )}
             <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-black text-[#c2410c]">
               {document.kind === 'PDF' ? 'PDF' : 'Bài đọc'}
             </span>
@@ -70,11 +76,7 @@ export function DocumentCardItem({
           {document.summary}
         </p>
 
-        {/* Bottom Footer: Status & Single View Button (No Download Button) */}
-        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#f5ece1]">
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-extrabold text-[#059669]">
-            <Bookmark size={11} fill="currentColor" /> Đã xem 100%
-          </span>
+        <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#f5ece1]">
 
           <button
             type="button"
@@ -90,17 +92,6 @@ export function DocumentCardItem({
         </div>
       </div>
 
-      {/* Expanded Preview if Selected */}
-      {isSelected && (
-        <div className="mt-3 pt-3 border-t border-orange-200/60 bg-[#fffcf9] -mx-4 -mb-4 p-4 rounded-b-[24px] space-y-1">
-          <p className="text-[11px] font-black uppercase tracking-wider text-[#d83a00]">
-            Nội dung xem trước:
-          </p>
-          <p className="text-xs font-semibold leading-relaxed text-[#334155]">
-            {document.preview}
-          </p>
-        </div>
-      )}
     </article>
   );
 }

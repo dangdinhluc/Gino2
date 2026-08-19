@@ -437,7 +437,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
                 />
               </div>
             )}
-            {activeTab === 'documents' && <DocumentsPanel documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
+            {activeTab === 'documents' && <DocumentsPanel courseId={course.id} documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
             {activeTab === 'practice' && <CoursePracticePanel courseTitle={course.title} vocabulary={vocabulary} reviewQuestions={reviewQuestions} />}
             {activeTab === 'games' && (
               <GamesPanel
