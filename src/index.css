@@ -2335,7 +2335,7 @@
   }
 }
 
-/* ── Anime backdrop: ambient nền trôi + đom đóm + sparkle ─────────────── */
+/* ── Anime backdrop: ambient nền trôi + đom đóm ─────────────────────── */
 .anime-backdrop {
   position: fixed;
   z-index: 0;
@@ -2419,36 +2419,6 @@
   }
 }
 
-.anime-sparkle-layer {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.anime-sparkle {
-  position: absolute;
-  display: block;
-  color: var(--sparkle-color, #f6a05a);
-  opacity: 0;
-  background: currentColor;
-  box-shadow: 0 0 8px 1px currentColor;
-  transform: rotate(45deg) scale(0.4);
-  animation: anime-sparkle-twinkle ease-in-out infinite;
-  will-change: transform, opacity;
-}
-
-@keyframes anime-sparkle-twinkle {
-  0%, 100% {
-    opacity: 0;
-    transform: rotate(45deg) scale(0.25);
-  }
-  50% {
-    opacity: 0.95;
-    transform: rotate(45deg) scale(1);
-  }
-}
-
 /* ── Micro-interaction chung: nổi nhẹ theo con trỏ ─────────────────── */
 @media (hover: hover) and (pointer: fine) {
   .gino-hover-lift {
@@ -2461,8 +2431,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .anime-backdrop,
-  .anime-sparkle-layer {
+  .anime-backdrop {
     display: none;
   }
 

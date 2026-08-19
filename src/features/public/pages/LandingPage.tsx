@@ -11,7 +11,6 @@ import {
   Target,
 } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
-import { SparkleField } from '@/src/shared/components/SparkleField';
 
 const heroStats = [
   { value: 'JFT', label: 'BASIC' },
@@ -66,7 +65,6 @@ export default function LandingPage() {
             />
           ))}
         </div>
-        <SparkleField className="landing-sparkle-layer" />
 
         <header className="landing-header">
           <Link className="landing-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
