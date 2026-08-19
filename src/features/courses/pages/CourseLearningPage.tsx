@@ -320,8 +320,10 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
             </AnimatePresence>
           </div>
 
-          {/* Right: Podcast shortcut, streak & level badges */}
+          {/* Right: Nhiệm vụ hôm nay, Podcast shortcut, streak & level badges */}
           <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+            <CourseDailyQuest stats={learnerStats} onNavigate={handleSelectSection} variant="header" />
+
             <button
               type="button"
               onClick={() => setIsPodcastOpen(true)}
@@ -365,10 +367,6 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
           </div>
         </div>
       </header>
-
-      <div className="mx-auto w-full max-w-[980px]">
-        <CourseDailyQuest stats={learnerStats} onNavigate={handleSelectSection} />
-      </div>
 
       <nav className="course-workspace-desktop-tabs" role="tablist" aria-label="Chọn khu vực học trong khóa">
         {courseWorkspaceTabs.map((tab) => {

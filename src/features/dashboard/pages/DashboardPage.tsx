@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   BookOpen,
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
   Sparkles,
   Sprout,
   Target,
+  X,
   Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -22,7 +23,6 @@ import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features
 import { listLearnerNotifications, type LearnerNotification } from '@/src/features/notifications/repositories/notificationRepository';
 import { pickRandomDashboardAnnouncement, resolveDashboardHeroAsset, selectDashboardHeroSlot } from '@/src/features/dashboard/lib/dashboardHero';
 import { assets } from '@/src/shared/lib/assets';
-import { SparkleField } from '@/src/shared/components/SparkleField';
 import { Reveal } from '@/src/shared/components/Reveal';
 
 const XP_PER_LEVEL = 500;
@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [now, setNow] = useState(() => new Date());
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isQuestsOpen, setIsQuestsOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +96,15 @@ export default function Dashboard() {
     const timer = window.setInterval(() => setNow(new Date()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isQuestsOpen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsQuestsOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isQuestsOpen]);
 
   const displayName = profile?.displayName || 'Học viên';
   const displayStreak = stats?.currentStreak ?? dashboard?.streakDays ?? 0;
@@ -151,7 +161,6 @@ export default function Dashboard() {
             />
           ))}
         </div>
-        <SparkleField />
 
         <div className="relative z-10 grid gap-6 md:grid-cols-[1.25fr_0.75fr] items-center">
           <div className="space-y-3.5">
@@ -219,58 +228,44 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
-      {/* 2. Nhiệm Vụ Hôm Nay (Daily RPG Quests) — ngay dưới hero để thấy việc cần làm trước */}
+      {/* 2. Nhiệm Vụ Hôm Nay — nút bấm mở popup, không chiếm chỗ màn hình */}
       <Reveal delay={0.04}>
-      <section className="rounded-[28px] border border-[#f5ece1] bg-white p-5 sm:p-6 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3.5">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#d83a00]">
-              GIỮ NHỊP MỖI NGÀY
+      <button
+        type="button"
+        onClick={() => setIsQuestsOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={isQuestsOpen}
+        className="group flex w-full items-center gap-3.5 rounded-[28px] border border-orange-200/80 bg-gradient-to-r from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-4 text-left shadow-[0_8px_20px_rgba(217,74,19,0.07)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)] gino-hover-lift sm:p-5"
+      >
+        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs group-hover:scale-105 transition-transform">
+          <Target size={22} />
+          {taskItems.length > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#d83a00] px-1 text-[10px] font-black text-white shadow-2xs">
+              {taskItems.length}
             </span>
-            <h2 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
-              Nhiệm vụ Tokutei hôm nay ⚔️
-            </h2>
-          </div>
+          )}
+        </span>
 
-          <Link
-            to="/app/courses"
-            className="flex items-center gap-1 text-xs font-extrabold text-[#d83a00] hover:underline"
-          >
-            <span>Tất cả khóa học</span>
-            <ChevronRight size={15} />
-          </Link>
-        </div>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10px] font-black uppercase tracking-wider text-[#d83a00]">
+            GIỮ NHỊP MỖI NGÀY
+          </span>
+          <span className="block font-[var(--font-heading)] text-base font-black text-[#0f172a] sm:text-lg">
+            Nhiệm vụ Tokutei hôm nay ⚔️
+          </span>
+          <span className="mt-0.5 block truncate text-xs font-semibold text-[#717d8f]">
+            {taskItems.length > 0
+              ? `${taskItems.length} nhiệm vụ đang chờ — nhấn để xem chi tiết`
+              : 'Xem kế hoạch học hôm nay'}
+          </span>
+        </span>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {taskItems.map((task, index) => {
-            const Icon = task.icon;
-            return (
-              <Link
-                key={task.title}
-                to={task.path}
-                className="group flex items-center justify-between gap-3 rounded-2xl border border-[#f5ece1] bg-[#fffcf9] p-3.5 transition-all duration-200 hover:border-orange-200 hover:bg-[#fff7f0] hover:shadow-2xs gino-hover-lift"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#d83a00] border border-orange-200/60 group-hover:scale-105 transition-transform">
-                    <Icon size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="block truncate font-black text-sm text-[#0f172a] group-hover:text-[#d83a00] transition-colors">
-                      {task.title}
-                    </span>
-                    <span className="block truncate text-xs font-semibold text-[#717d8f]">{task.status}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="rounded-full bg-amber-50 border border-amber-200/70 px-2.5 py-0.5 text-xs font-black text-[#b45309]">{task.action}</span>
-                  <ChevronRight size={16} className="text-[#95a0af] group-hover:text-[#d83a00] transition-colors" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-orange-200/80 bg-white/85 px-3.5 py-2 text-xs font-black text-[#c2410c] shadow-2xs">
+          <Bell size={14} className="text-[#d83a00]" />
+          <span className="hidden sm:inline">Xem nhiệm vụ</span>
+          <ChevronRight size={15} className="text-[#95a0af] transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </button>
       </Reveal>
 
       {/* 3. 3 Stat Cards — hàng ngang trên mobile, đầy đủ trên desktop */}
@@ -546,6 +541,86 @@ export default function Dashboard() {
         </div>
       </section>
       </Reveal>
+
+      {/* Popup Nhiệm vụ hôm nay — chỉ hiện khi người dùng bấm nút */}
+      <AnimatePresence>
+        {isQuestsOpen && (
+          <motion.div
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsQuestsOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Nhiệm vụ Tokutei hôm nay"
+          >
+            <motion.section
+              initial={{ y: 24, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 16, opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(event) => event.stopPropagation()}
+              className="relative flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-[#fde6d2] bg-[#fffaf5] shadow-2xl"
+            >
+              {/* Header */}
+              <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#f5ece1] bg-gradient-to-r from-[#fff7f0] to-[#ffeedd] px-5 py-4 sm:px-6">
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#d83a00] shadow-2xs">
+                    <Bell size={11} className="text-[#d83a00]" /> GIỮ NHỊP MỖI NGÀY
+                  </span>
+                  <h2 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
+                    Nhiệm vụ Tokutei hôm nay ⚔️
+                  </h2>
+                  <p className="text-xs font-semibold text-[#717d8f]">
+                    Hoàn thành để giữ chuỗi và tích điểm XP.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsQuestsOpen(false)}
+                  aria-label="Đóng nhiệm vụ"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-[#5f6b7c] transition-colors hover:bg-white hover:text-[#d83a00]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Danh sách nhiệm vụ */}
+              <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 py-4 sm:px-6">
+                {taskItems.map((task) => {
+                  const Icon = task.icon;
+                  return (
+                    <Link
+                      key={task.title}
+                      to={task.path}
+                      onClick={() => setIsQuestsOpen(false)}
+                      className="group flex items-center justify-between gap-3 rounded-2xl border border-[#f5ece1] bg-white p-3.5 transition-all duration-200 hover:border-orange-200 hover:bg-[#fff7f0] hover:shadow-2xs"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#d83a00] border border-orange-200/60 transition-transform group-hover:scale-105">
+                          <Icon size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate font-black text-sm text-[#0f172a] transition-colors group-hover:text-[#d83a00]">
+                            {task.title}
+                          </span>
+                          <span className="block truncate text-xs font-semibold text-[#717d8f]">{task.status}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="rounded-full bg-amber-50 border border-amber-200/70 px-2.5 py-0.5 text-xs font-black text-[#b45309]">{task.action}</span>
+                        <ChevronRight size={16} className="text-[#95a0af] transition-colors group-hover:text-[#d83a00]" />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

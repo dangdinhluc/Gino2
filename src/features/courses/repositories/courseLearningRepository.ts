@@ -15,9 +15,36 @@ const deckByRomaji = new Map(
   TOKUTEI_VOCAB.map((card) => [card.romaji.toLowerCase().replace(/[\s-]/g, ''), card]),
 );
 
-function enrichJapaneseFromDeck(term: string): { kanji?: string; kana?: string } {
-  const card = deckByRomaji.get(term.toLowerCase().replace(/[\s-]/g, ''));
-  return card ? { kanji: card.word, kana: card.reading } : {};
+const JAPANESE_RE = /[\u3040-\u30ff\u4e00-\u9fff]/;
+const KANA_RE = /[\u3040-\u30ff]/;
+
+/**
+ * Suy ra mặt chữ (kanji) và cách đọc (kana) cho một từ vựng, ưu tiên theo thứ tự:
+ * 1. Tra deck Tokutei chuẩn theo romaji (có đủ kanji + kana).
+ * 2. Nếu `term` đã là tiếng Nhật thì dùng `term` làm mặt chữ và `reading` làm cách đọc.
+ */
+function enrichJapaneseFromDeck(
+  term: string,
+  pronunciation?: string | null,
+  reading?: string | null,
+): { kanji?: string; kana?: string } {
+  const candidates = [term, pronunciation, reading]
+    .filter((value): value is string => Boolean(value && value.trim()));
+
+  for (const candidate of candidates) {
+    const card = deckByRomaji.get(candidate.toLowerCase().replace(/[\s-]/g, ''));
+    if (card) return { kanji: card.word, kana: card.reading };
+  }
+
+  if (JAPANESE_RE.test(term)) {
+    const cleanReading = reading?.trim();
+    const kana = cleanReading && KANA_RE.test(cleanReading) && !/[a-z]/i.test(cleanReading) && cleanReading !== term
+      ? cleanReading
+      : undefined;
+    return { kanji: term, kana };
+  }
+
+  return {};
 }
 
 interface CourseWorkspaceRow {
@@ -41,6 +68,7 @@ interface CourseWorkspaceRow {
           translation: string;
           example_sentence: string | null;
           pronunciation: string | null;
+          reading: string | null;
           audio_url: string | null;
           tags: string[];
         } | null;
@@ -132,7 +160,7 @@ function mapWorkspace(
           strength: status === 'remembered' ? 100 : status === 'learning' ? 55 : 0,
           tags: item.tags ?? [],
           audioUrl: item.audio_url,
-          ...enrichJapaneseFromDeck(item.term),
+          ...enrichJapaneseFromDeck(item.term, item.pronunciation, item.reading),
         } satisfies CourseVocabularyItem];
       }),
   );
@@ -273,7 +301,7 @@ export async function fetchCourseLearningWorkspace(
         id, title, level, description,
         course_modules(id, title, order_index, lessons(
           id, title, order_index,
-          lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, audio_url, tags))
+          lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, reading, audio_url, tags))
         )),
         documents(id, title, document_type, content_markdown, external_url, read_time_minutes, storage_path, summary, metadata, created_at),
         podcast_episodes(id, title, summary, duration_minutes, external_url, storage_path, created_at),

@@ -1,13 +1,15 @@
 import { type CSSProperties, type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Award, BarChart3, Bird, BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Headphones, Lock, Play, Trash2, type LucideIcon } from 'lucide-react';
+import { Award, BarChart3, Bird, BrainCircuit, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Gamepad2, Headphones, Lock, Play, Sparkles, Trash2, Zap, type LucideIcon } from 'lucide-react';
 import {
   type CourseDocumentItem,
   type CourseExamItem,
   type CourseVocabularyItem,
 } from '@/src/features/courses/courseLearning.types';
 import type { CourseGameType } from '@/src/features/games/types';
+import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
 
 /*
@@ -404,63 +406,67 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
       </section>
 
       {/* Bottom sheet sửa / xóa ghi chú */}
-      <AnimatePresence>
-        {(editingAnnotation || deletingAnnotation) && (
-          <motion.div
-            className="fixed inset-0 z-[96] flex items-end bg-slate-900/40 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeAnnotationSheet}
-          >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="annotation-sheet-title"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 400, damping: 36 }}
-              onClick={(event) => event.stopPropagation()}
-              className="w-full rounded-t-[28px] border-t border-orange-200/90 bg-[#fffaf5] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-24px_60px_rgba(15,23,42,0.25)]"
-            >
-              <span aria-hidden="true" className="mx-auto block h-1.5 w-10 rounded-full bg-[#e8dccb]" />
-              {editingAnnotation ? (
-                <>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Sửa ghi chú</p>
-                      <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#172033]">{selectedDocument.title}</h4>
-                    </div>
-                    <button type="button" onClick={closeAnnotationSheet} aria-label="Đóng" className="flex h-9 w-9 items-center justify-center rounded-xl border border-orange-200 bg-white text-[#7b8796] hover:text-[#d83a00]">✕</button>
-                  </div>
-                  {editingAnnotation.selectedText && <p className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">“{editingAnnotation.selectedText}”</p>}
-                  <textarea value={editDraft} onChange={(event) => setEditDraft(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="mt-3 min-h-24 w-full rounded-xl border border-[#e8dccb] bg-white px-3 py-2 text-sm text-[#172033] outline-none focus:border-orange-400" />
-                  <div className="mt-4 flex gap-2">
-                    <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
-                    <button type="button" disabled={!editDraft.trim() || isSavingNote} onClick={() => void handleSaveEditedNote()} className="min-h-11 flex-1 rounded-xl bg-orange-700 px-4 text-sm font-bold text-white disabled:opacity-50">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
-                  </div>
-                </>
-              ) : deletingAnnotation ? (
-                <>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-red-600">Xóa ghi chú</p>
-                      <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#172033]">Xóa ghi chú này?</h4>
-                    </div>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600"><Trash2 size={18} /></span>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[#5f6b7c]">Hành động này không thể hoàn tác. Ghi chú sẽ bị xóa vĩnh viễn.</p>
-                  <div className="mt-4 flex gap-2">
-                    <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
-                    <button type="button" onClick={() => void handleConfirmDelete()} className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white hover:bg-red-700">Xóa</button>
-                  </div>
-                </>
-              ) : null}
-            </motion.div>
-          </motion.div>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {(editingAnnotation || deletingAnnotation) && (
+              <motion.div
+                className="fixed inset-0 z-[96] flex items-end bg-slate-900/40 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closeAnnotationSheet}
+              >
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="annotation-sheet-title"
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 36 }}
+                  onClick={(event) => event.stopPropagation()}
+                  className="w-full rounded-t-[28px] border-t border-orange-200/90 bg-[#fffaf5] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-24px_60px_rgba(15,23,42,0.25)]"
+                >
+                  <span aria-hidden="true" className="mx-auto block h-1.5 w-10 rounded-full bg-[#e8dccb]" />
+                  {editingAnnotation ? (
+                    <>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Sửa ghi chú</p>
+                          <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#172033]">{selectedDocument.title}</h4>
+                        </div>
+                        <button type="button" onClick={closeAnnotationSheet} aria-label="Đóng" className="flex h-9 w-9 items-center justify-center rounded-xl border border-orange-200 bg-white text-[#7b8796] hover:text-[#d83a00]">✕</button>
+                      </div>
+                      {editingAnnotation.selectedText && <p className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">“{editingAnnotation.selectedText}”</p>}
+                      <textarea value={editDraft} onChange={(event) => setEditDraft(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="mt-3 min-h-24 w-full rounded-xl border border-[#e8dccb] bg-white px-3 py-2 text-sm text-[#172033] outline-none focus:border-orange-400" />
+                      <div className="mt-4 flex gap-2">
+                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
+                        <button type="button" disabled={!editDraft.trim() || isSavingNote} onClick={() => void handleSaveEditedNote()} className="min-h-11 flex-1 rounded-xl bg-orange-700 px-4 text-sm font-bold text-white disabled:opacity-50">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
+                      </div>
+                    </>
+                  ) : deletingAnnotation ? (
+                    <>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-red-600">Xóa ghi chú</p>
+                          <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#172033]">Xóa ghi chú này?</h4>
+                        </div>
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600"><Trash2 size={18} /></span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-[#5f6b7c]">Hành động này không thể hoàn tác. Ghi chú sẽ bị xóa vĩnh viễn.</p>
+                      <div className="mt-4 flex gap-2">
+                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
+                        <button type="button" onClick={() => void handleConfirmDelete()} className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white hover:bg-red-700">Xóa</button>
+                      </div>
+                    </>
+                  ) : null}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -508,37 +514,95 @@ export function GamesPanel({ courseId, courseTitle, vocabulary }: GamesPanelProp
   };
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32">
-      <header className="relative overflow-hidden rounded-2xl border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] p-5">
-        <div className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full border-[1.1rem] border-orange-200/35" aria-hidden="true" />
-        <p className="relative text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Game từ nội dung khóa học</p>
-        <h2 className="relative mt-1 font-[var(--font-heading)] text-xl font-black text-[#172033]">Luyện phản xạ: {courseTitle}</h2>
-        <p className="relative mt-2 text-sm text-[#5f6b7c]">Mỗi game chỉ dùng {vocabulary.length} từ vựng đã xuất bản. XP được máy chủ xác nhận, không lấy điểm từ trình duyệt.</p>
+    <div className="mx-auto w-full max-w-3xl space-y-4 pb-28 sm:pb-32">
+      {/* Header Banner */}
+      <header className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] p-5 shadow-2xs sm:p-6">
+        {/* Japanese Watermark Kanji */}
+        <div
+          className="pointer-events-none absolute left-4 top-1 select-none text-4xl font-extrabold text-[#f7c297]/15 sm:text-5xl"
+          aria-hidden="true"
+        >
+          遊
+        </div>
+
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="max-w-md space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white/90 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#d83a00] shadow-2xs">
+                <Gamepad2 size={12} /> Minigame khóa học
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/90 px-2 py-0.5 text-[10px] font-black text-amber-800">
+                <Zap size={11} className="fill-amber-400 text-amber-500" /> Tích lũy XP
+              </span>
+            </div>
+            <h2 className="font-[var(--font-heading)] text-xl font-black tracking-[-0.02em] text-[#172033] sm:text-2xl">
+              Luyện phản xạ: {courseTitle}
+            </h2>
+            <p className="text-xs font-medium leading-relaxed text-[#5f6b7c]">
+              Mỗi minigame sử dụng {vocabulary.length} từ vựng đã xuất bản của khóa học. XP được máy chủ tự động xác nhận sau mỗi ván.
+            </p>
+          </div>
+
+          <div className="relative shrink-0 hidden sm:block -my-3 -mr-2">
+            <img
+              src={assets.games.mascot}
+              alt="Tokutei Game Tanuki Mascot"
+              className="h-20 w-auto object-contain drop-shadow-xs md:h-24"
+            />
+          </div>
+        </div>
       </header>
+
       {games.length === 0 ? (
-        <p className={emptyStateClass}>Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game.</p>
+        <div className="rounded-[22px] border border-[#f5ece1] bg-white p-8 text-center shadow-2xs">
+          <Gamepad2 size={28} className="mx-auto text-[#d83a00]" />
+          <h3 className="mt-3 font-[var(--font-heading)] text-base font-black text-[#172033]">Chưa đủ từ vựng để mở minigame</h3>
+          <p className="mt-1 text-xs text-[#7b8796]">Khóa học cần ít nhất 4 từ vựng đã xuất bản để hệ thống tạo màn chơi.</p>
+        </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3.5 sm:grid-cols-2">
           {games.map((game) => {
             const Icon = game.icon;
             const styles = gameAccentStyles[game.accent];
             return (
-              <article key={game.type} className={`group flex flex-col rounded-2xl border border-[#e8dccb] bg-white p-4 transition-all duration-200 hover:shadow-md ${styles.hover}`}>
-                <div className="flex items-start gap-3">
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-transform group-hover:scale-105 ${styles.icon}`}>
-                    <Icon size={21} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-black text-[#172033]">{game.title}</h3>
-                    <p className="mt-1 text-sm leading-5 text-[#5f6b7c]">{game.description}</p>
+              <article
+                key={game.type}
+                className={cn(
+                  'group flex flex-col justify-between rounded-[22px] border border-[#eedecf] bg-white p-5 shadow-2xs transition-all duration-200 hover:border-orange-300 hover:shadow-md gino-hover-lift',
+                  styles.hover
+                )}
+              >
+                <div>
+                  <div className="flex items-start gap-3.5">
+                    <span className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border shadow-2xs transition-transform duration-200 group-hover:scale-105', styles.icon)}>
+                      <Icon size={22} strokeWidth={2.2} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-[var(--font-heading)] text-base font-black text-[#172033] group-hover:text-[#d83a00] transition-colors">
+                        {game.title}
+                      </h3>
+                      <p className="mt-1 text-xs font-medium leading-relaxed text-[#5f6b7c]">
+                        {game.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    <span className={cn('rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider', styles.badge)}>
+                      {game.rounds} từ vựng
+                    </span>
+                    <span className="rounded-full border border-[#eedecf] bg-[#fffaf5] px-2.5 py-0.5 text-[10px] font-bold text-[#7b8796]">
+                      ⏱ {game.duration}
+                    </span>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-black ${styles.badge}`}>{game.rounds} từ</span>
-                  <span className="rounded-full border border-[#e8dccb] bg-[#fffaf3] px-2.5 py-0.5 text-[11px] font-black text-[#7b8796]">⏱ {game.duration}</span>
-                </div>
-                <button type="button" onClick={() => handlePlayGameType(game.type)} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-4 text-sm font-black text-white shadow-xs transition-all hover:brightness-110 active:scale-95">
-                  <Play size={15} fill="currentColor" /> Bắt đầu
+
+                <button
+                  type="button"
+                  onClick={() => handlePlayGameType(game.type)}
+                  className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d83a00] to-[#ea580c] px-4 text-xs font-black text-white shadow-2xs transition-all hover:brightness-110 active:scale-95"
+                >
+                  <Play size={14} fill="currentColor" /> Bắt đầu chơi
                 </button>
               </article>
             );

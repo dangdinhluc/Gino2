@@ -33,12 +33,15 @@ export function VocabularyHeadword({
   className?: string;
   align?: 'left' | 'center' | 'right';
 }) {
-  const kanjiText = item.kanji;
-  const furiganaText = (item as any).furigana ?? item.kana;
+  const kanjiText = item.kanji ?? item.kana ?? getVocabularyJapanese(item);
+  const furiganaText = item.kana;
 
   const alignClass = align === 'left' ? 'items-start text-left' : align === 'right' ? 'items-end text-right' : 'items-center text-center';
 
-  if (showFurigana && kanjiText && furiganaText) {
+  // Chỉ hiện furigana khi có mặt chữ kanji + cách đọc kana, và cách đọc khác mặt chữ.
+  const showRuby = showFurigana && Boolean(furiganaText) && Boolean(item.kanji) && furiganaText !== kanjiText;
+
+  if (showRuby) {
     return (
       <span className={cn('inline-flex flex-col leading-tight', alignClass, className)}>
         <span className={cn('text-[0.6em] font-extrabold text-[#c2410c] leading-none mb-1 select-none', rtClassName)}>
@@ -53,7 +56,7 @@ export function VocabularyHeadword({
 
   return (
     <span className={cn('font-black text-[#0f172a]', className)}>
-      {getVocabularyJapanese(item)}
+      {kanjiText}
     </span>
   );
 }

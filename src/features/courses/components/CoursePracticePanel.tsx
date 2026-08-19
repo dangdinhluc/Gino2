@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,11 +9,14 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Flame,
+  HelpCircle,
   LoaderCircle,
   Play,
   RotateCcw,
   Shuffle,
+  Sparkles,
   Target,
+  X,
   XCircle,
 } from 'lucide-react';
 import {
@@ -128,6 +132,12 @@ export function CoursePracticePanel({
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [combo, setCombo] = useState(0);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Huỷ timer tự động chuyển câu khi thoát khỏi panel.
+  useEffect(() => () => {
+    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+  }, []);
 
   const availableQuestions = mode === 'vocabulary'
     ? vocabularyQuestions
@@ -161,28 +171,29 @@ export function CoursePracticePanel({
     setError(null);
   };
 
-  const checkAnswer = async () => {
-    if (!activeQuestion || !selectedAnswer || activeAnswer || isChecking) return;
+  const handleSelectOption = async (option: string) => {
+    if (!activeQuestion || answers[activeQuestion.id] || isChecking) return;
+    setSelectedAnswer(option);
     setIsChecking(true);
     setError(null);
 
     let isCorrect = false;
     try {
       if (activeQuestion.kind === 'vocabulary') {
-        isCorrect = selectedAnswer === activeQuestion.correctAnswer;
+        isCorrect = option === activeQuestion.correctAnswer;
         vibrate(isCorrect ? [20, 40, 60] : [60, 30, 60]);
         await submitVocabularyRating(activeQuestion.vocabularyId ?? '', isCorrect ? 'good' : 'again');
         setAnswers((current) => ({
           ...current,
           [activeQuestion.id]: {
-            selected: selectedAnswer,
+            selected: option,
             isCorrect,
             explanation: activeQuestion.explanation,
             correctAnswer: activeQuestion.correctAnswer,
           },
         }));
       } else {
-        const optionId = activeQuestion.optionIds?.[selectedAnswer];
+        const optionId = activeQuestion.optionIds?.[option];
         if (!optionId) throw new Error('Không xác định được lựa chọn của câu hỏi.');
         const result = await submitReviewAnswer(activeQuestion.id.replace(/^question-/, ''), optionId);
         isCorrect = result.isCorrect;
@@ -190,7 +201,7 @@ export function CoursePracticePanel({
         setAnswers((current) => ({
           ...current,
           [activeQuestion.id]: {
-            selected: selectedAnswer,
+            selected: option,
             isCorrect,
             explanation: result.explanation || activeQuestion.explanation,
           },
@@ -229,8 +240,7 @@ export function CoursePracticePanel({
         combo={combo}
         error={error}
         onExit={exitPractice}
-        onSelect={setSelectedAnswer}
-        onCheck={() => void checkAnswer()}
+        onSelect={(opt) => void handleSelectOption(opt)}
         onNext={nextQuestion}
       />
     );
@@ -371,7 +381,6 @@ function CoursePracticeSession({
   error,
   onExit,
   onSelect,
-  onCheck,
   onNext,
 }: {
   courseTitle: string;
@@ -386,10 +395,18 @@ function CoursePracticeSession({
   error: string | null;
   onExit: () => void;
   onSelect: (answer: string) => void;
-  onCheck: () => void;
   onNext: () => void;
 }) {
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const progress = Math.round(((questionIndex + (answer ? 1 : 0)) / totalQuestions) * 100);
+
+  useEffect(() => {
+    if (answer) {
+      setShowFeedbackModal(true);
+    } else {
+      setShowFeedbackModal(false);
+    }
+  }, [answer]);
 
   return (
     <div className="mx-auto w-full max-w-[820px] space-y-4 pb-6">
@@ -434,11 +451,192 @@ function CoursePracticeSession({
         </div>
 
         {error && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700">{error}</p>}
-        {answer && <div role="status" className={cn('mt-5 rounded-xl border px-4 py-3.5', answer.isCorrect ? 'border-emerald-200 bg-emerald-50' : 'border-orange-200 bg-orange-50')}><p className={cn('flex items-center gap-2 text-sm font-bold', answer.isCorrect ? 'text-emerald-800' : 'text-orange-900')}>{answer.isCorrect ? <CheckCircle2 size={17} /> : <XCircle size={17} />} {answer.isCorrect ? 'Chính xác!' : 'Cần xem lại'}</p><p className="mt-1 text-sm leading-6 text-[#5f6b7c]">{answer.explanation}</p>{answer.correctAnswer && !answer.isCorrect && <p className="mt-1 text-sm font-bold text-orange-900">Đáp án đúng: {answer.correctAnswer}</p>}</div>}
+        {isChecking && (
+          <div className="mt-5 flex items-center justify-center gap-2 text-sm font-bold text-[#c2410c]">
+            <LoaderCircle size={17} className="animate-spin" /> Đang kiểm tra…
+          </div>
+        )}
 
-        <div className="mt-7 flex justify-end"><button type="button" onClick={answer ? onNext : onCheck} disabled={isChecking || (!answer && !selectedAnswer)} className={cn('inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-50', focusRing)}>{isChecking ? <><LoaderCircle size={17} className="animate-spin" /> Đang chấm…</> : answer ? <>{questionIndex === totalQuestions - 1 ? 'Xem kết quả' : 'Câu tiếp theo'} <ArrowRight size={17} /></> : <>Kiểm tra đáp án <Check size={17} /></>}</button></div>
+        {/* Footer info when modal is dismissed */}
+        {answer ? (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#f5ece1] pt-4">
+            <button
+              type="button"
+              onClick={() => setShowFeedbackModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-[#c2410c] hover:bg-orange-100 transition-colors"
+            >
+              <HelpCircle size={14} /> Xem lại giải thích
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              className={cn(
+                'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-xs font-black text-white transition-all hover:bg-orange-800 active:scale-95 shadow-sm',
+                focusRing
+              )}
+            >
+              {questionIndex === totalQuestions - 1 ? 'Xem kết quả' : 'Câu tiếp theo'} <ArrowRight size={15} />
+            </button>
+          </div>
+        ) : (
+          !isChecking && (
+            <p className="mt-6 text-center text-xs font-semibold text-[#8c97a8]">
+              💡 Chọn đáp án để kiểm tra kết quả ngay
+            </p>
+          )
+        )}
       </main>
+
+      {/* Pop-up feedback sheet */}
+      {showFeedbackModal && answer && (
+        <PracticeFeedbackSheet
+          answer={answer}
+          isLastQuestion={questionIndex === totalQuestions - 1}
+          onClose={() => setShowFeedbackModal(false)}
+          onNext={onNext}
+        />
+      )}
     </div>
+  );
+}
+
+function PracticeFeedbackSheet({
+  answer,
+  isLastQuestion,
+  onClose,
+  onNext,
+}: {
+  answer: PracticeAnswer;
+  isLastQuestion: boolean;
+  onClose: () => void;
+  onNext: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        onNext();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, onNext]);
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 p-0 sm:p-4 backdrop-blur-2xs"
+        onClick={onClose}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Kết quả câu hỏi"
+      >
+        <motion.div
+          initial={{ y: '100%', opacity: 0.6 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            'w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] border bg-white p-5 sm:p-6 shadow-2xl space-y-4',
+            answer.isCorrect ? 'border-emerald-200' : 'border-rose-200'
+          )}
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={cn(
+                  'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-xs',
+                  answer.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                )}
+              >
+                {answer.isCorrect ? (
+                  <CheckCircle2 size={24} strokeWidth={2.4} />
+                ) : (
+                  <XCircle size={24} strokeWidth={2.4} />
+                )}
+              </span>
+              <div>
+                <h3
+                  className={cn(
+                    'font-[var(--font-heading)] text-lg font-black tracking-tight',
+                    answer.isCorrect ? 'text-emerald-800' : 'text-rose-800'
+                  )}
+                >
+                  {answer.isCorrect ? 'Chính xác! 🎉' : 'Cần xem lại! 💡'}
+                </h3>
+                <p className="text-xs font-semibold text-[#7b8796]">
+                  {answer.isCorrect ? 'Tuyệt vời, bạn làm rất tốt.' : 'Ghi nhớ đáp án chuẩn dưới đây nhé.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+              aria-label="Đóng bảng giải thích"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Correct answer callout if wrong */}
+          {!answer.isCorrect && answer.correctAnswer && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 text-xs font-medium text-emerald-950">
+              <span className="block text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                Đáp án đúng:
+              </span>
+              <strong className="mt-0.5 block text-sm font-black text-emerald-900">
+                {answer.correctAnswer}
+              </strong>
+            </div>
+          )}
+
+          {/* Explanation */}
+          {answer.explanation && (
+            <div className="rounded-xl border border-[#f5ece1] bg-[#fffaf5] p-3.5">
+              <span className="block text-[10px] font-black uppercase tracking-wider text-[#95a0af]">
+                Giải thích:
+              </span>
+              <p className="mt-1 text-xs font-medium leading-relaxed text-[#5f6b7c]">
+                {answer.explanation}
+              </p>
+            </div>
+          )}
+
+          {/* Buttons Action Row */}
+          <div className="flex items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#e8dccb] bg-white px-4 text-xs font-bold text-[#5f6b7c] shadow-2xs hover:bg-[#fffaf5] active:scale-95 transition-all"
+            >
+              Đóng
+            </button>
+
+            <button
+              type="button"
+              onClick={onNext}
+              className={cn(
+                'flex-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-xs font-black text-white shadow-md hover:bg-orange-800 active:scale-95 transition-all',
+                focusRing
+              )}
+            >
+              {isLastQuestion ? 'Xem kết quả' : 'Câu tiếp theo'} <ArrowRight size={15} />
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 }
 
