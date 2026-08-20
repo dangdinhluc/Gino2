@@ -83,6 +83,7 @@ export function TabButton<T extends string>({ tab, activeTab, compact = false, o
 }
 
 import { DocumentHero } from '@/src/features/documents/components/DocumentHero';
+import { MarkdownViewer } from '@/src/features/documents/components/MarkdownViewer';
 import { DocumentStats } from '@/src/features/documents/components/DocumentStats';
 import { DocumentSearchAndFilter } from '@/src/features/documents/components/DocumentSearchAndFilter';
 import { DocumentCategoryBar } from '@/src/features/documents/components/DocumentCategoryBar';
@@ -381,8 +382,8 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
               className="mt-3 h-[32rem] w-full rounded-xl border border-[#e8dccb] bg-white lg:h-[min(70vh,48rem)]"
             />
           ) : selectedDocument.kind !== 'PDF' && selectedDocument.contentMarkdown ? (
-            <div ref={documentContentRef} onMouseUp={captureSelectedText} onKeyUp={captureSelectedText} tabIndex={0} className="mt-3 max-h-[32rem] overflow-y-auto rounded-xl border border-[#e8dccb] bg-white p-4 text-sm leading-7 whitespace-pre-wrap text-[#334155] outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
-              {selectedDocument.contentMarkdown}
+            <div ref={documentContentRef} onMouseUp={captureSelectedText} onKeyUp={captureSelectedText} tabIndex={0} className="mt-3 max-h-[32rem] overflow-y-auto rounded-xl border border-[#e8dccb] bg-white p-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+              <MarkdownViewer source={selectedDocument.contentMarkdown} />
             </div>
           ) : !isAssetLoading && !assetError && (
             <p className="mt-3 rounded-xl bg-white p-4 text-sm text-[#5f6b7c]">Tài liệu này chưa có bản xem trực tuyến.</p>
