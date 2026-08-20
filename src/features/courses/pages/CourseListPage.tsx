@@ -27,6 +27,7 @@ export default function CourseList() {
   const [isSearching, setIsSearching] = useState(false);
   const [activeLevel, setActiveLevel] = useState(ALL_LEVELS);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [view, setView] = useState<'all' | 'mine'>('all');
   const courseList = useCourseList();
   const courses = courseList.data;
   const isLoadingFromSupabase = courseList.status === 'loading';
@@ -49,14 +50,15 @@ export default function CourseList() {
   const filteredCourses = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     return courses.filter((course) => {
+      const matchesView = view === 'all' || course.isEnrolled !== false;
       const matchesQuery =
         !query ||
         course.title.toLowerCase().includes(query) ||
         course.description.toLowerCase().includes(query);
       const matchesLevel = activeLevel === ALL_LEVELS || course.level === activeLevel;
-      return matchesQuery && matchesLevel;
+      return matchesView && matchesQuery && matchesLevel;
     });
-  }, [searchQuery, activeLevel, courses]);
+  }, [searchQuery, activeLevel, view, courses]);
 
   const hasActiveLevelFilter = activeLevel !== ALL_LEVELS;
   const isFiltering = hasActiveLevelFilter || searchQuery.trim() !== '';
@@ -101,6 +103,38 @@ export default function CourseList() {
       </section>
 
       <CourseListErrorNotice result={courseList} />
+
+      {/* 1b. Toggle: Tất cả khóa / Khóa học của tôi */}
+      <div className="flex gap-2" role="tablist" aria-label="Phạm vi khóa học">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'all'}
+          onClick={() => setView('all')}
+          className={cn(
+            'rounded-xl px-4 py-2 text-sm font-extrabold transition-all duration-200 shadow-2xs',
+            view === 'all'
+              ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
+              : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
+          )}
+        >
+          Tất cả khóa
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'mine'}
+          onClick={() => setView('mine')}
+          className={cn(
+            'rounded-xl px-4 py-2 text-sm font-extrabold transition-all duration-200 shadow-2xs',
+            view === 'mine'
+              ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
+              : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
+          )}
+        >
+          Khóa của tôi
+        </button>
+      </div>
 
       {/* 2. Search & Filter Bar */}
       <section className="sticky top-[68px] z-30 rounded-[22px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">
@@ -355,19 +389,43 @@ export default function CourseList() {
             <BookOpen size={36} strokeWidth={2} />
           </div>
           <div>
-            <p className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">Chưa thấy khóa học phù hợp</p>
-            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">Thử từ khóa khác hoặc xóa lọc cấp độ để xem toàn bộ danh sách.</p>
+            <p className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
+              {view === 'mine' ? 'Chưa có khóa học nào trong gói của bạn' : 'Chưa thấy khóa học phù hợp'}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">
+              {view === 'mine'
+                ? 'Đăng ký gói học miễn phí để bắt đầu, hoặc chuyển sang xem tất cả khóa.'
+                : 'Thử từ khóa khác hoặc xóa lọc cấp độ để xem toàn bộ danh sách.'}
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery('');
-              setActiveLevel(ALL_LEVELS);
-            }}
-            className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
-          >
-            Bỏ lọc & Hiển thị tất cả
-          </button>
+          {view === 'mine' ? (
+            <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
+              <Link
+                to="/app/enrollments"
+                className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
+              >
+                Xem gói & đăng ký
+              </Link>
+              <button
+                type="button"
+                onClick={() => setView('all')}
+                className="rounded-2xl border border-[#eee3d5] bg-[#fffcf9] px-5 py-2.5 text-xs font-extrabold text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]"
+              >
+                Xem tất cả khóa
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setActiveLevel(ALL_LEVELS);
+              }}
+              className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
+            >
+              Bỏ lọc & Hiển thị tất cả
+            </button>
+          )}
         </div>
       )}
     </div>
