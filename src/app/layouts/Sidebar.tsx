@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Sparkles,
   Gamepad2,
+  Users,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
@@ -124,6 +125,7 @@ export function Sidebar() {
   ];
 
   const communityItems = [
+    { icon: Users, label: 'Cộng đồng', path: '/app/community', tone: 'violet' },
     { icon: Bell, label: 'Thông báo', path: '/app/notifications', tone: 'orange' },
     { icon: FileText, label: 'Nhật ký', path: '/app/journal', tone: 'pink' },
   ];

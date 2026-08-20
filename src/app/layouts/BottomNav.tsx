@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { Users } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ export function BottomNav() {
     { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
     { label: 'Ôn tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary, badge: dueCount },
     { label: 'Luyện thi', path: '/app/exams', icon: assets.shared.navigation.exams },
+    { label: 'Cộng đồng', path: '/app/community', icon: null },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 
@@ -48,14 +50,18 @@ export function BottomNav() {
                   ? "bg-gradient-to-br from-orange-100/90 to-amber-100/60 shadow-2xs scale-105"
                   : "opacity-85 hover:opacity-100"
               )}>
-                <img
-                  src={item.icon}
-                  alt={item.label}
-                  className={cn(
-                    "h-8 w-8 object-contain transition-transform duration-200 drop-shadow-xs",
-                    isActive ? "scale-110" : "filter grayscale-[15%]"
-                  )}
-                />
+                {item.icon ? (
+                  <img
+                    src={item.icon}
+                    alt={item.label}
+                    className={cn(
+                      "h-8 w-8 object-contain transition-transform duration-200 drop-shadow-xs",
+                      isActive ? "scale-110" : "filter grayscale-[15%]"
+                    )}
+                  />
+                ) : (
+                  <Users size={22} className={cn(isActive ? 'text-[#d83a00]' : 'text-[#64748b]')} aria-hidden="true" />
+                )}
                 {typeof item.badge === 'number' && item.badge > 0 && (
                   <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-1 text-[9px] font-black text-white shadow-xs">
                     {item.badge > 99 ? '99+' : item.badge}

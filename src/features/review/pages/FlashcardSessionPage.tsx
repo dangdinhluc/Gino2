@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { motion } from 'motion/react';
-import { ArrowLeft, CheckCircle2, RotateCcw, Timer, Volume2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Flame, RotateCcw, Timer, Trophy, Volume2 } from 'lucide-react';
 import {
   getDueVocabularyCards,
   submitVocabularyRating,
@@ -14,7 +15,7 @@ import { Confetti } from '@/src/shared/components/Confetti';
 type SessionMode = 'due' | 'new' | 'cram';
 type RatingCounts = Record<VocabularyRating, number>;
 
-const SESSION_SECONDS = 3 * 60;
+const DEFAULT_SESSION_MINUTES = 3;
 
 const ratingOptions: Array<{ rating: VocabularyRating; label: string; className: string; haptic: number[] }> = [
   { rating: 'again', label: 'Quên', className: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100', haptic: [30] },
@@ -58,6 +59,9 @@ function speakJapanese(card: DueVocabularyCard) {
 export default function FlashcardSession() {
   const [searchParams] = useSearchParams();
   const mode = parseMode(searchParams.get('mode'));
+  const requestedMinutes = Number(searchParams.get('duration'));
+  const sessionMinutes = requestedMinutes === 5 ? 5 : DEFAULT_SESSION_MINUTES;
+  const sessionSeconds = sessionMinutes * 60;
   const [cards, setCards] = useState<DueVocabularyCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -65,7 +69,9 @@ export default function FlashcardSession() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [counts, setCounts] = useState<RatingCounts>(emptyCounts);
-  const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [rewardStats, setRewardStats] = useState<LearnerStatsSnapshot | null>(null);
 
   const loadCards = useCallback(async () => {
     setIsLoading(true);
@@ -73,7 +79,9 @@ export default function FlashcardSession() {
     setIndex(0);
     setIsRevealed(false);
     setCounts(emptyCounts);
-    setSecondsLeft(SESSION_SECONDS);
+    setSecondsLeft(sessionSeconds);
+    setSessionExpired(false);
+    setRewardStats(null);
     try {
       const nextCards = cardsForMode(await getDueVocabularyCards(100), mode);
       setCards(nextCards);
@@ -83,22 +91,38 @@ export default function FlashcardSession() {
     } finally {
       setIsLoading(false);
     }
-  }, [mode]);
+  }, [mode, sessionSeconds]);
 
   useEffect(() => {
     void loadCards();
     return () => window.speechSynthesis?.cancel();
   }, [loadCards]);
 
-  // Micro-session timer: đếm ngược 3 phút, không chặn phiên.
+  // Micro-session timer: hết giờ thì chốt phiên, không tự submit thẻ chưa đánh giá.
   useEffect(() => {
-    const interval = window.setInterval(() => setSecondsLeft((current) => Math.max(0, current - 1)), 1000);
+    if (sessionExpired || secondsLeft <= 0) return undefined;
+    const interval = window.setInterval(() => {
+      setSecondsLeft((current) => {
+        if (current <= 1) {
+          window.clearInterval(interval);
+          setSessionExpired(true);
+          setCards([]);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [secondsLeft, sessionExpired]);
 
   const currentCard = cards[index] ?? null;
   const totalRated = counts.again + counts.hard + counts.good + counts.easy;
   const progress = totalRated + cards.length > 0 ? Math.round((totalRated / (totalRated + cards.length)) * 100) : 0;
+
+  useEffect(() => {
+    if (currentCard || totalRated === 0 || rewardStats) return;
+    void fetchLearnerStats().then(setRewardStats).catch(() => undefined);
+  }, [currentCard, rewardStats, totalRated]);
 
   const rateCard = async (rating: VocabularyRating) => {
     if (!currentCard || !isRevealed || isSaving) return;
@@ -144,23 +168,31 @@ export default function FlashcardSession() {
         {totalRated > 0 && <Confetti />}
         <div className="relative">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><CheckCircle2 size={30} /></div>
-          <h1 className="mt-4 font-[var(--font-heading)] text-2xl font-black text-[#172033]">{totalRated ? 'Hoàn thành phiên ôn 🎉' : 'Chưa có thẻ phù hợp'}</h1>
-          <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{totalRated ? summary : 'Hệ thống chưa có thẻ đến hạn trong các khóa anh được ghi danh.'}</p>
+          <h1 className="mt-4 font-[var(--font-heading)] text-2xl font-black text-[#172033]">{totalRated ? (sessionExpired ? 'Hết giờ — vẫn giữ thành quả 🎉' : 'Hoàn thành phiên ôn 🎉') : 'Chưa có thẻ phù hợp'}</h1>
+          <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{totalRated ? `${summary}${sessionExpired ? ` · Phiên ${sessionMinutes} phút đã kết thúc.` : ''}` : 'Hệ thống chưa có thẻ đến hạn trong các khóa anh được ghi danh.'}</p>
           {totalRated > 0 && (
-            <div className="mx-auto mt-4 grid max-w-sm grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
-                <p className="text-2xl font-black text-emerald-700">{rememberedCount}</p>
-                <p className="mt-0.5 text-[11px] font-bold text-emerald-800">Nhớ</p>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-3">
+              <div className="grid max-w-sm grid-cols-3 gap-2 text-center">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                  <p className="text-2xl font-black text-emerald-700">{rememberedCount}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-emerald-800">Nhớ</p>
+                </div>
+                <div className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2.5">
+                  <p className="text-2xl font-black text-[#c2410c]">{revisitedCount}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-orange-800">Ôn lại</p>
+                </div>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                  <p className="text-2xl font-black text-amber-700">+{sessionXp}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-amber-800">XP</p>
+                </div>
               </div>
-              <div className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2.5">
-                <p className="text-2xl font-black text-[#c2410c]">{revisitedCount}</p>
-                <p className="mt-0.5 text-[11px] font-bold text-orange-800">Ôn lại</p>
-              </div>
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
-                <p className="text-2xl font-black text-amber-700">+{sessionXp}</p>
-                <p className="mt-0.5 text-[11px] font-bold text-amber-800">XP</p>
-              </div>
-            </div>
+              {rewardStats && (
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-3 py-2 text-xs font-black text-[#c2410c]">
+                  {rewardStats.currentStreak > 0 ? <Flame size={15} className="fill-orange-400 text-orange-500" /> : <Trophy size={15} />}
+                  Chuỗi hiện tại: {rewardStats.currentStreak} ngày · Tổng XP: {rewardStats.totalXp}
+                </div>
+              )}
+            </motion.div>
           )}
           <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <button type="button" onClick={() => void loadCards()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-bold text-[#d83a00]"><RotateCcw size={15} /> Làm mới</button>
@@ -191,7 +223,7 @@ export default function FlashcardSession() {
           )}
           role="timer"
           aria-live="off"
-          title="Phiên vi mô 3 phút"
+          title={`Phiên vi mô ${sessionMinutes} phút`}
         >
           <Timer size={13} />
           {secondsLeft === 0 ? 'Xong phiên' : formatTime(secondsLeft)}
@@ -202,7 +234,7 @@ export default function FlashcardSession() {
 
       {secondsLeft === 0 && (
         <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
-          Phiên 3 phút đã xong — tiếp tục thoải mái, mỗi thẻ thêm 10 XP vào chuỗi! 🔥
+          Phiên {sessionMinutes} phút đã xong — thẻ đã đánh giá vẫn giữ nguyên XP thật trong chuỗi! 🔥
         </p>
       )}
 

@@ -34,6 +34,7 @@ export default function ReviewCenter() {
   const [snapshot, setSnapshot] = useState<ReviewSnapshot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingSetting, setIsSavingSetting] = useState(false);
+  const [sessionMinutes, setSessionMinutes] = useState<3 | 5>(3);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -141,7 +142,7 @@ export default function ReviewCenter() {
       value: Math.min(snapshot.cards.length, 20),
       unit: 'thẻ / phiên',
       description: 'Phiên ngắn 20 thẻ ngẫu nhiên để tăng phản xạ ca làm.',
-      to: '/app/review/flashcards?mode=cram',
+      to: `/app/review/flashcards?mode=cram&duration=${sessionMinutes}`,
       icon: Zap,
       iconClass: 'bg-amber-50 text-amber-700 border-amber-100',
       primary: false,
@@ -260,6 +261,26 @@ export default function ReviewCenter() {
             </article>
           );
         })}
+      </section>
+
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 shadow-2xs">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Phiên micro</p>
+          <p className="mt-1 text-sm font-bold text-[#172033]">Chọn nhịp học 3 hoặc 5 phút. Hết giờ chỉ chốt phiên, không tự đánh giá thẻ.</p>
+        </div>
+        <div className="flex gap-2" role="group" aria-label="Thời lượng phiên micro">
+          {[3, 5].map((minutes) => (
+            <button
+              key={minutes}
+              type="button"
+              aria-pressed={sessionMinutes === minutes}
+              onClick={() => setSessionMinutes(minutes as 3 | 5)}
+              className={cn('rounded-xl px-4 py-2 text-sm font-black transition-colors', sessionMinutes === minutes ? 'bg-[#d83a00] text-white' : 'border border-amber-200 bg-white text-amber-800 hover:bg-amber-100')}
+            >
+              {minutes} phút
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Bottom 2 Status & Setting Cards */}

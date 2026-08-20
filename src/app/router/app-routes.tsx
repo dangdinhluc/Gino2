@@ -23,6 +23,7 @@ const LearningHubPage = lazy(() => import('@/src/features/hub/pages/LearningHubP
 const ProfilePage = lazy(() => import('@/src/features/profile/pages/ProfilePage'));
 const SettingsPage = lazy(() => import('@/src/features/profile/pages/SettingsPage'));
 const JournalPage = lazy(() => import('@/src/features/social/pages/JournalPage'));
+const CommunityPage = lazy(() => import('@/src/features/social/pages/CommunityPage'));
 const NotificationCenterPage = lazy(() => import('@/src/features/notifications/pages/NotificationCenterPage'));
 
 const routeLoading = <main className="grid min-h-[45vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở màn hình…</main>;
@@ -55,6 +56,7 @@ export function AppRoutes() {
       <Route path="ai-speak" element={screen(<AISprechenLabPage />)} />
       <Route path="ai-speak/history" element={screen(<SpeakingHistoryPage />)} />
       <Route path="journal" element={screen(<JournalPage />)} />
+      <Route path="community" element={screen(<CommunityPage />)} />
       <Route path="notifications" element={screen(<NotificationCenterPage />)} />
       <Route path="search" element={<Navigate to="/app/dashboard" replace />} />
       <Route path="friends" element={<Navigate to="/app/notifications" replace />} />

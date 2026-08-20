@@ -2247,6 +2247,87 @@ export type Database = {
           title: string
         }[]
       }
+      get_community_feed: {
+        Args: { target_limit?: number }
+        Returns: {
+          body: string
+          created_at: string
+          display_name: string
+          handle: string
+          metadata: Json
+          post_id: string
+          post_type: string
+          user_id: string
+        }[]
+      }
+      get_community_me: {
+        Args: never
+        Returns: {
+          bio: string
+          display_name: string
+          email: string
+          handle: string
+          is_public: boolean
+          user_id: string
+        }[]
+      }
+      get_community_messages: {
+        Args: { target_limit?: number; target_user_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }[]
+      }
+      create_community_post: {
+        Args: { target_body: string }
+        Returns: { post_id: string }[]
+      }
+      create_progress_post: {
+        Args: never
+        Returns: { current_streak: number; daily_xp: number; post_id: string }[]
+      }
+      follow_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      unfollow_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      upsert_community_profile: {
+        Args: { target_bio?: string; target_handle: string; target_public?: boolean }
+        Returns: { bio: string; handle: string; is_public: boolean; user_id: string }[]
+      }
+      list_community_threads: {
+        Args: never
+        Returns: {
+          display_name: string
+          handle: string
+          last_at: string
+          last_body: string
+          other_user_id: string
+          unread_count: number
+        }[]
+      }
+      search_community_members: {
+        Args: { target_limit?: number; target_query?: string }
+        Returns: {
+          bio: string
+          display_name: string
+          follower_count: number
+          following: boolean
+          handle: string
+          user_id: string
+        }[]
+      }
+      send_community_message: {
+        Args: { target_body: string; target_user_id: string }
+        Returns: { message_id: string }[]
+      }
       get_latest_assessment_result: {
         Args: { target_assessment_id: string }
         Returns: {
