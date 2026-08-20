@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { assetPath, assets } from '@/src/shared/lib/assets';
+import { countUnreadLearnerNotifications } from '@/src/features/notifications/repositories/notificationRepository';
 
 const XP_PER_LEVEL = 500;
 
@@ -30,6 +31,7 @@ export function Sidebar() {
   const [railHint, setRailHint] = useState<{ label: string; top: number; left: number; tone: string } | null>(null);
   const [stats, setStats] = useState<LearnerStatsSnapshot | null>(null);
   const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,11 +52,12 @@ export function Sidebar() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchLearnerStats(), fetchLearnerProfile()])
-      .then(([nextStats, nextProfile]) => {
+    Promise.all([fetchLearnerStats(), fetchLearnerProfile(), countUnreadLearnerNotifications()])
+      .then(([nextStats, nextProfile, nextUnread]) => {
         if (cancelled) return;
         setStats(nextStats);
         setProfile(nextProfile);
+        setUnreadNotifications(nextUnread);
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
@@ -126,7 +129,7 @@ export function Sidebar() {
 
   const communityItems = [
     { icon: Users, label: 'Cộng đồng', path: '/app/community', tone: 'violet' },
-    { icon: Bell, label: 'Thông báo', path: '/app/notifications', tone: 'orange' },
+    { icon: Bell, label: 'Thông báo', path: '/app/notifications', tone: 'orange', badge: unreadNotifications > 0 ? unreadNotifications : undefined },
     { icon: FileText, label: 'Nhật ký', path: '/app/journal', tone: 'pink' },
   ];
 
@@ -337,6 +340,7 @@ export function Sidebar() {
                           <item.icon size={isCollapsed ? 19 : 17} className="shrink-0" />
                         </div>
                         {!isCollapsed && <span className="hidden lg:inline">{item.label}</span>}
+                        {item.badge && !isCollapsed && <span className="ml-auto hidden min-w-5 rounded-full bg-orange-600 px-1.5 py-0.5 text-center text-[10px] font-black text-white lg:inline">{Number(item.badge) > 99 ? '99+' : item.badge}</span>}
                       </div>
                     </>
                   )}

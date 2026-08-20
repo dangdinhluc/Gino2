@@ -26,3 +26,13 @@ export async function markLearnerNotificationRead(id: string): Promise<void> {
   const { error } = await supabase.rpc('mark_notification_read', { target_notification_id: id });
   if (error) throw new Error(error.message);
 }
+
+export async function countUnreadLearnerNotifications(): Promise<number> {
+  if (!supabase) throw new Error('Supabase chưa được cấu hình.');
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .is('read_at', null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}

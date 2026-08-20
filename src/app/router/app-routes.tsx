@@ -59,8 +59,8 @@ export function AppRoutes() {
       <Route path="community" element={screen(<CommunityPage />)} />
       <Route path="notifications" element={screen(<NotificationCenterPage />)} />
       <Route path="search" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="friends" element={<Navigate to="/app/notifications" replace />} />
-      <Route path="messages" element={<Navigate to="/app/notifications" replace />} />
+      <Route path="friends" element={<Navigate to="/app/community" replace />} />
+      <Route path="messages" element={<Navigate to="/app/community" replace />} />
       <Route path="settings" element={screen(<SettingsPage />)} />
       <Route path="review" element={<Navigate to="/app/practice" replace />} />
       <Route path="review/flashcards" element={screen(<FlashcardSessionPage />)} />
