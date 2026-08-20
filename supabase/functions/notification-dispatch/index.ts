@@ -1,3 +1,4 @@
+import webpush from 'npm:web-push@3.6.7';
 import { corsHeaders, errorResponse, handleError, isAllowedOrigin, json, parseJsonBody, serviceClient } from '../_shared/http.ts';
 
 interface ClaimedDelivery {
@@ -16,6 +17,12 @@ interface ResendConfig {
   from: string;
 }
 
+interface PushSubscription {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
 function constantTimeEqual(left: string, right: string): boolean {
   if (left.length !== right.length) return false;
   let difference = 0;
@@ -32,11 +39,19 @@ function assertDispatchSecret(request: Request): void {
   if (origin && !isAllowedOrigin(request)) throw new Error('ORIGIN_NOT_ALLOWED');
 }
 
-function resendConfig(): ResendConfig {
+function resendConfig(): ResendConfig | null {
   const apiKey = Deno.env.get('RESEND_API_KEY')?.trim();
   const from = Deno.env.get('RESEND_FROM_EMAIL')?.trim();
-  if (!apiKey || !from) throw new Error('EMAIL_SERVICE_CONFIG_MISSING');
+  if (!apiKey || !from) return null;
   return { apiKey, from };
+}
+
+function pushConfig(): { publicKey: string; privateKey: string; subject: string } | null {
+  const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')?.trim();
+  const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')?.trim();
+  const subject = (Deno.env.get('VAPID_SUBJECT')?.trim() || 'mailto:support@tokutei-gino.app');
+  if (!publicKey || !privateKey) return null;
+  return { publicKey, privateKey, subject };
 }
 
 function escapeHtml(value: string): string {
@@ -45,7 +60,7 @@ function escapeHtml(value: string): string {
 
 function actionLink(actionUrl: string | null): string | null {
   if (!actionUrl) return null;
-  const appUrl = (Deno.env.get('PUBLIC_APP_URL') ?? Deno.env.get('APP_ORIGIN') ?? '').trim().replace(/\/$/, '');
+  const appUrl = (Deno.env.get('PUBLIC_APP_URL') ?? Deno.env.get('APP_ORIGIN') ?? 'https://dangdinhluc.github.io/Gino2').trim().replace(/\/$/, '');
   if (!appUrl || !actionUrl.startsWith('/') || actionUrl.startsWith('//')) return null;
   try {
     return new URL(actionUrl, `${appUrl}/`).toString();
@@ -82,12 +97,23 @@ async function sendEmail(config: ResendConfig, delivery: ClaimedDelivery, recipi
   throw new Error(lastError);
 }
 
-async function completeDelivery(admin: ReturnType<typeof serviceClient>, deliveryId: string, status: 'sent' | 'failed', error?: string): Promise<void> {
-  const { error: completionError } = await admin.rpc('complete_notification_email_delivery', {
-    target_delivery_id: deliveryId,
-    target_status: status,
-    target_error: error?.slice(0, 2000) ?? null,
-  });
+async function sendPush(config: { publicKey: string; privateKey: string; subject: string }, subscription: PushSubscription, delivery: ClaimedDelivery): Promise<void> {
+  const url = actionLink(delivery.action_url);
+  webpush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
+  await webpush.sendNotification(
+    { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
+    JSON.stringify({ title: delivery.title, body: delivery.body, url: url ?? undefined }),
+    { TTL: 60 * 60 * 24, urgency: 'normal' },
+  );
+}
+
+async function completeEmailDelivery(admin: ReturnType<typeof serviceClient>, deliveryId: string, status: 'sent' | 'failed' | 'skipped', error?: string): Promise<void> {
+  const { error: completionError } = await admin.rpc('complete_notification_email_delivery', { target_delivery_id: deliveryId, target_status: status, target_error: error?.slice(0, 2000) ?? null });
+  if (completionError) throw new Error(completionError.message);
+}
+
+async function completePushDelivery(admin: ReturnType<typeof serviceClient>, deliveryId: string, status: 'sent' | 'failed' | 'skipped', error?: string): Promise<void> {
+  const { error: completionError } = await admin.rpc('complete_notification_push_delivery', { target_delivery_id: deliveryId, target_status: status, target_error: error?.slice(0, 2000) ?? null });
   if (completionError) throw new Error(completionError.message);
 }
 
@@ -95,6 +121,78 @@ function batchSize(body: Record<string, unknown>): number {
   const value = body.batchSize ?? 25;
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 50) throw new Error('INVALID_BATCH_SIZE');
   return value;
+}
+
+async function dispatchEmail(admin: ReturnType<typeof serviceClient>, size: number): Promise<{ sent: number; failed: number; skipped: number; configured: boolean }> {
+  const config = resendConfig();
+  if (!config) return { sent: 0, failed: 0, skipped: 0, configured: false };
+
+  const { data: claimedData, error: claimError } = await admin.rpc('claim_notification_email_deliveries', { target_batch_size: size });
+  if (claimError) throw new Error(claimError.message);
+  const claimed = (claimedData ?? []) as ClaimedDelivery[];
+  let sent = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (const delivery of claimed) {
+    if (delivery.status === 'skipped') { skipped += 1; continue; }
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(delivery.user_id);
+    const recipient = userData.user?.email?.trim();
+    if (userError || !recipient) {
+      failed += 1;
+      try { await completeEmailDelivery(admin, delivery.delivery_id, 'failed', userError?.message ?? 'RECIPIENT_EMAIL_MISSING'); } catch { /* retry */ }
+      continue;
+    }
+    try {
+      await sendEmail(config, delivery, recipient);
+      await completeEmailDelivery(admin, delivery.delivery_id, 'sent');
+      sent += 1;
+    } catch (error) {
+      failed += 1;
+      try { await completeEmailDelivery(admin, delivery.delivery_id, 'failed', error instanceof Error ? error.message : 'EMAIL_PROVIDER_FAILED'); } catch { /* retry */ }
+    }
+  }
+  return { sent, failed, skipped, configured: true };
+}
+
+async function dispatchPush(admin: ReturnType<typeof serviceClient>, size: number): Promise<{ sent: number; failed: number; skipped: number; configured: boolean }> {
+  const config = pushConfig();
+  if (!config) return { sent: 0, failed: 0, skipped: 0, configured: false };
+
+  const { data: claimedData, error: claimError } = await admin.rpc('claim_notification_push_deliveries', { target_batch_size: size });
+  if (claimError) throw new Error(claimError.message);
+  const claimed = (claimedData ?? []) as ClaimedDelivery[];
+  let sent = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  for (const delivery of claimed) {
+    if (delivery.status === 'skipped') { skipped += 1; continue; }
+    const { data: subs, error: subsError } = await admin.from('push_subscriptions').select('endpoint, p256dh, auth').eq('user_id', delivery.user_id);
+    if (subsError) throw new Error(subsError.message);
+    if (!subs?.length) {
+      skipped += 1;
+      try { await completePushDelivery(admin, delivery.delivery_id, 'skipped', 'NO_SUBSCRIPTION'); } catch { /* retry */ }
+      continue;
+    }
+    let delivered = 0;
+    for (const sub of subs) {
+      try {
+        await sendPush(config, sub as PushSubscription, delivery);
+        delivered += 1;
+      } catch {
+        // Per-device failure (expired/revoked endpoint) — do not fail the whole delivery.
+      }
+    }
+    if (delivered > 0) {
+      sent += 1;
+      await completePushDelivery(admin, delivery.delivery_id, 'sent');
+    } else {
+      failed += 1;
+      await completePushDelivery(admin, delivery.delivery_id, 'failed', 'PUSH_SEND_FAILED');
+    }
+  }
+  return { sent, failed, skipped, configured: true };
 }
 
 Deno.serve(async (request) => {
@@ -105,42 +203,19 @@ Deno.serve(async (request) => {
     assertDispatchSecret(request);
     const body = parseJsonBody(await request.json());
     const admin = serviceClient();
+    const size = batchSize(body);
+
     const { data: queuedReminders, error: reminderError } = await admin.rpc('queue_due_reminders');
     if (reminderError) throw new Error(reminderError.message);
-    const config = resendConfig();
-    const { data: claimedData, error: claimError } = await admin.rpc('claim_notification_email_deliveries', { target_batch_size: batchSize(body) });
-    if (claimError) throw new Error(claimError.message);
 
-    const claimed = (claimedData ?? []) as ClaimedDelivery[];
-    let sent = 0;
-    let failed = 0;
-    let skipped = 0;
+    const email = await dispatchEmail(admin, size);
+    const push = await dispatchPush(admin, size);
 
-    for (const delivery of claimed) {
-      if (delivery.status === 'skipped') {
-        skipped += 1;
-        continue;
-      }
-
-      const { data: userData, error: userError } = await admin.auth.admin.getUserById(delivery.user_id);
-      const recipient = userData.user?.email?.trim();
-      if (userError || !recipient) {
-        failed += 1;
-        try { await completeDelivery(admin, delivery.delivery_id, 'failed', userError?.message ?? 'RECIPIENT_EMAIL_MISSING'); } catch { /* retry is safer than reporting success */ }
-        continue;
-      }
-
-      try {
-        await sendEmail(config, delivery, recipient);
-        await completeDelivery(admin, delivery.delivery_id, 'sent');
-        sent += 1;
-      } catch (error) {
-        failed += 1;
-        try { await completeDelivery(admin, delivery.delivery_id, 'failed', error instanceof Error ? error.message : 'EMAIL_PROVIDER_FAILED'); } catch { /* keep the claim recoverable by the stale-lock retry */ }
-      }
-    }
-
-    return json({ queuedReminders: Number(queuedReminders ?? 0), claimed: claimed.length, sent, failed, skipped }, 200, request);
+    return json({
+      queuedReminders: Number(queuedReminders ?? 0),
+      email: { ...email, configured: email.configured },
+      push: { sent: push.sent, failed: push.failed, skipped: push.skipped, configured: push.configured },
+    }, 200, request);
   } catch (error) {
     return handleError(error, request);
   }

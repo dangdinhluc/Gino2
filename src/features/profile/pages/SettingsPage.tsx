@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Bell, Check, Mail, Moon, Palette, RotateCcw, Settings, Sparkles, Volume2, Zap } from 'lucide-react';
+import { Bell, BellRing, Check, Mail, Moon, Palette, RotateCcw, Settings, Sparkles, Volume2, Zap } from 'lucide-react';
+import { registerPush, unregisterPush } from '@/src/features/notifications/repositories/pushRepository';
 import { APP_BACKGROUNDS, useAppTheme } from '@/src/app/theme/AppThemeProvider';
 import { getLearnerSettings, updateLearnerSettings, type LearnerSettings } from '@/src/features/profile/repositories/learnerSettingsRepository';
 
-type SettingKey = 'ttsEnabled' | 'inAppNotifications' | 'emailNotifications' | 'aiConcise';
+type SettingKey = 'ttsEnabled' | 'inAppNotifications' | 'emailNotifications' | 'pushNotifications' | 'aiConcise';
 
 const toggleDefinitions: Array<{ key: SettingKey; title: string; description: string; icon: typeof Bell }> = [
   { key: 'ttsEnabled', title: 'Tự động phát âm', description: 'Dùng giọng nói của thiết bị cho từ và câu tiếng Nhật.', icon: Volume2 },
   { key: 'inAppNotifications', title: 'Thông báo trong ứng dụng', description: 'Nhận nhắc học và thông báo khóa học trong Notification Center.', icon: Bell },
   { key: 'emailNotifications', title: 'Thông báo qua email', description: 'Nhận email khi có thông báo quan trọng theo tùy chọn của anh.', icon: Mail },
+  { key: 'pushNotifications', title: 'Thông báo đẩy trên điện thoại', description: 'Nhận nhắc ôn tập ngay cả khi anh không mở app.', icon: BellRing },
   { key: 'aiConcise', title: 'Phản hồi AI ngắn gọn', description: 'Ưu tiên gợi ý cô đọng trong AI Chat và AI Writing.', icon: Sparkles },
 ];
 
@@ -26,7 +28,17 @@ export default function SettingsPage() {
   const save = async (update: Partial<LearnerSettings>) => {
     if (!settings || isSaving) return;
     setIsSaving(true); setError(null);
-    try { setSettings(await updateLearnerSettings(update)); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Không lưu được cài đặt.'); } finally { setIsSaving(false); }
+    try {
+      if (update.pushNotifications === true) {
+        const status = await registerPush();
+        if (status !== 'enabled') throw new Error(status === 'denied' ? 'Trình duyệt đã chặn thông báo. Hãy bật lại quyền thông báo trong cài đặt trình duyệt.' : 'Thiết bị hoặc trình duyệt này chưa hỗ trợ thông báo đẩy.');
+      }
+      if (update.pushNotifications === false) await unregisterPush();
+      setSettings(await updateLearnerSettings(update));
+      setError(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Không lưu được cài đặt.');
+    } finally { setIsSaving(false); }
   };
 
   const clearCache = async () => {

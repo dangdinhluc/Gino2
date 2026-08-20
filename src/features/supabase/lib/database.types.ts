@@ -1146,6 +1146,7 @@ export type Database = {
           in_app_notifications: boolean
           new_cards_per_day: number
           onboarding_completed_at: string | null
+          push_notifications: boolean
           reminder_time: string | null
           timezone: string
           tts_enabled: boolean
@@ -1159,6 +1160,7 @@ export type Database = {
           in_app_notifications?: boolean
           new_cards_per_day?: number
           onboarding_completed_at?: string | null
+          push_notifications?: boolean
           reminder_time?: string | null
           timezone?: string
           tts_enabled?: boolean
@@ -1172,6 +1174,7 @@ export type Database = {
           in_app_notifications?: boolean
           new_cards_per_day?: number
           onboarding_completed_at?: string | null
+          push_notifications?: boolean
           reminder_time?: string | null
           timezone?: string
           tts_enabled?: boolean
@@ -1671,6 +1674,39 @@ export type Database = {
           email?: string
           profile_role?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2327,6 +2363,40 @@ export type Database = {
       send_community_message: {
         Args: { target_body: string; target_user_id: string }
         Returns: { message_id: string }[]
+      }
+      claim_notification_push_deliveries: {
+        Args: { target_batch_size?: number }
+        Returns: {
+          action_url: string
+          attempts: number
+          body: string
+          delivery_id: string
+          notification_id: string
+          status: string
+          title: string
+          user_id: string
+        }[]
+      }
+      complete_notification_push_delivery: {
+        Args: {
+          target_delivery_id: string
+          target_error?: string
+          target_status: string
+        }
+        Returns: undefined
+      }
+      register_push_subscription: {
+        Args: {
+          target_auth: string
+          target_endpoint: string
+          target_p256dh: string
+          target_user_agent?: string
+        }
+        Returns: string
+      }
+      unregister_push_subscription: {
+        Args: { target_endpoint: string }
+        Returns: undefined
       }
       get_latest_assessment_result: {
         Args: { target_assessment_id: string }

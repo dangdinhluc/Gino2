@@ -1,5 +1,6 @@
 import { requireSupabase } from '@/src/features/supabase/lib/supabaseRepository';
 import type { Json } from '@/src/features/supabase/lib/database.types';
+import { readableFunctionError, configuredServiceError } from './aiFunctionError';
 
 export interface SpeakingPrompt {
   id: string;
@@ -106,7 +107,7 @@ export async function uploadSpeakingAudio(storagePath: string, blob: Blob, mimeT
 
 async function invokeSpeaking(action: 'process' | 'delete', submissionId: string): Promise<SpeakingSubmission> {
   const { data, error } = await requireSupabase().functions.invoke('ai-speaking', { body: { action, submissionId } });
-  if (error) throw new Error(error.message);
+  if (error) throw await readableFunctionError(error, configuredServiceError('Speech'));
   const payload = data as { submissionId?: string; status?: string; transcript?: string | null; result?: Json };
   if (!payload.submissionId || !payload.status) throw new Error('Không nhận được kết quả Speaking từ máy chủ.');
   return {

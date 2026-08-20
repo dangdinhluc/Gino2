@@ -4,6 +4,7 @@ export interface LearnerSettings {
   dailyGoalMinutes: number;
   emailNotifications: boolean;
   inAppNotifications: boolean;
+  pushNotifications: boolean;
   newCardsPerDay: number;
   reminderTime: string | null;
   timezone: string;
@@ -24,6 +25,7 @@ function mapSettings(row: {
   daily_goal_minutes: number;
   email_notifications: boolean;
   in_app_notifications: boolean;
+  push_notifications: boolean;
   new_cards_per_day: number;
   reminder_time: string | null;
   timezone: string;
@@ -35,6 +37,7 @@ function mapSettings(row: {
     dailyGoalMinutes: row.daily_goal_minutes,
     emailNotifications: row.email_notifications,
     inAppNotifications: row.in_app_notifications,
+    pushNotifications: row.push_notifications,
     newCardsPerDay: row.new_cards_per_day,
     reminderTime: row.reminder_time,
     timezone: row.timezone,
@@ -49,7 +52,7 @@ export async function getLearnerSettings(): Promise<LearnerSettings> {
   const userId = await requireUserId();
   const { data, error } = await supabase
     .from('learner_settings')
-    .select('daily_goal_minutes, email_notifications, in_app_notifications, new_cards_per_day, reminder_time, timezone, tts_enabled, ai_concise, onboarding_completed_at')
+    .select('daily_goal_minutes, email_notifications, in_app_notifications, push_notifications, new_cards_per_day, reminder_time, timezone, tts_enabled, ai_concise, onboarding_completed_at')
     .eq('user_id', userId)
     .single();
   if (error) throw new Error(error.message);
@@ -65,6 +68,7 @@ export async function updateLearnerSettings(update: Partial<LearnerSettings>): P
       ...(update.dailyGoalMinutes === undefined ? {} : { daily_goal_minutes: Math.min(Math.max(Math.round(update.dailyGoalMinutes), 5), 240) }),
       ...(update.emailNotifications === undefined ? {} : { email_notifications: update.emailNotifications }),
       ...(update.inAppNotifications === undefined ? {} : { in_app_notifications: update.inAppNotifications }),
+      ...(update.pushNotifications === undefined ? {} : { push_notifications: update.pushNotifications }),
       ...(update.newCardsPerDay === undefined ? {} : { new_cards_per_day: Math.min(Math.max(Math.round(update.newCardsPerDay), 1), 50) }),
       ...(update.reminderTime === undefined ? {} : { reminder_time: update.reminderTime }),
       ...(update.timezone === undefined ? {} : { timezone: update.timezone }),
@@ -72,7 +76,7 @@ export async function updateLearnerSettings(update: Partial<LearnerSettings>): P
       ...(update.aiConcise === undefined ? {} : { ai_concise: update.aiConcise }),
     })
     .eq('user_id', userId)
-    .select('daily_goal_minutes, email_notifications, in_app_notifications, new_cards_per_day, reminder_time, timezone, tts_enabled, ai_concise, onboarding_completed_at')
+    .select('daily_goal_minutes, email_notifications, in_app_notifications, push_notifications, new_cards_per_day, reminder_time, timezone, tts_enabled, ai_concise, onboarding_completed_at')
     .single();
   if (error) throw new Error(error.message);
   return mapSettings(data);

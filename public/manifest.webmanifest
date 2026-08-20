@@ -1,0 +1,16 @@
+{
+  "name": "TOKUTEI GINO",
+  "short_name": "GINO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaf3",
+  "theme_color": "#d83a00",
+  "icons": [
+    {
+      "src": "/Gino2/assets/shared/mascots/brand-mascot.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}

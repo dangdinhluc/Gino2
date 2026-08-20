@@ -122,7 +122,7 @@ export function Sidebar() {
     { icon: Layout, imageIcon: assets.shared.navigation.courses, label: 'Khóa học Tokutei', path: '/app/courses', tone: 'sky' },
     { icon: Sparkles, imageIcon: assets.shared.navigation.vocabulary, label: 'Ôn tập SRS', path: '/app/practice', tone: 'emerald', badge: dueCount > 0 ? `${dueCount}` : undefined },
     { icon: GraduationCap, imageIcon: assets.shared.navigation.exams, label: 'Trung tâm Luyện thi', path: '/app/exams', tone: 'amber' },
-    { icon: Bookmark, imageIcon: assets.courses.workspace.vocabulary, label: 'Từ vựng của tôi', path: '/app/grammar', tone: 'violet' },
+    { icon: Bookmark, imageIcon: assets.courses.workspace.vocabulary, label: 'Ngữ pháp', path: '/app/grammar', tone: 'violet' },
     { icon: Gamepad2, label: 'Game Zone', path: '/app/hub', tone: 'pink' },
     { icon: Settings, label: 'Cài đặt', path: '/app/settings', tone: 'sky' },
   ];

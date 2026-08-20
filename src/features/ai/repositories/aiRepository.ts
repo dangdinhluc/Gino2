@@ -1,5 +1,6 @@
 import { supabase, supabaseConfig } from '@/src/features/supabase/lib/supabaseClient';
 import type { Json } from '@/src/features/supabase/lib/database.types';
+import { readableFunctionError, configuredServiceError } from './aiFunctionError';
 
 export interface AiChatMessage {
   id: string;
@@ -57,7 +58,17 @@ export async function streamAiChat(input: {
       conversationId: input.conversationId,
     }),
   });
-  if (!response.ok || !response.body) throw new Error((await response.text()) || 'AI chat không khả dụng.');
+  if (!response.ok || !response.body) {
+    let message = 'AI chat không khả dụng.';
+    try {
+      const payload = await response.clone().json() as { error?: string; message?: string };
+      message = payload.error ?? payload.message ?? message;
+    } catch {
+      const text = await response.text();
+      if (text) message = text;
+    }
+    throw new Error(message);
+  }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -110,7 +121,7 @@ export async function submitAiWriting(input: {
   const { data, error } = await supabase.functions.invoke('ai-writing', {
     body: { text, courseId: input.courseId, promptId: input.promptId },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw await readableFunctionError(error, configuredServiceError('AI'));
   return data as AiWritingResult;
 }
 
