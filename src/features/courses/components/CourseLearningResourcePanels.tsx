@@ -100,6 +100,11 @@ import {
   fetchReadDocumentIds,
   recordDocumentOpened,
 } from '@/src/features/documents/repositories/documentProgressRepository';
+import { StudyHeatmap } from '@/src/features/profile/components/StudyHeatmap';
+import {
+  fetchLearningActivityHeatmap,
+  type StudyHeatmapDay,
+} from '@/src/features/profile/repositories/learningActivityRepository';
 
 interface DocumentsPanelProps {
   courseId: string;
@@ -124,6 +129,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
   const [deletingAnnotation, setDeletingAnnotation] = useState<DocumentAnnotation | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [readDocumentIds, setReadDocumentIds] = useState<Set<string>>(new Set());
+  const [heatmapDays, setHeatmapDays] = useState<StudyHeatmapDay[]>([]);
   const documentContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,6 +139,14 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
       .catch(() => { /* tiến độ đọc là phụ trợ — thất bại không chặn tài liệu */ });
     return () => { cancelled = true; };
   }, [courseId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLearningActivityHeatmap(30)
+      .then((days) => { if (!cancelled) setHeatmapDays(days); })
+      .catch(() => { /* heatmap là phụ trợ — thất bại không chặn tài liệu */ });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     recordDocumentOpened({
@@ -302,6 +316,13 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
 
       {/* 2. Card Thống kê tài liệu */}
       <DocumentStats stats={stats} />
+
+      {/* 2b. Heatmap nhịp học 30 ngày mini */}
+      {heatmapDays.length > 0 && (
+        <div className="lg:max-w-[340px]">
+          <StudyHeatmap days={heatmapDays} />
+        </div>
+      )}
 
       {/* 3 & 4. Sticky Search & Filter Bar */}
       <div className="sticky top-[68px] z-30 space-y-2 rounded-[20px] bg-[#fffaf3]/95 p-2 backdrop-blur-md transition-all border border-[#eedecf]/80 shadow-2xs">
