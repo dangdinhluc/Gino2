@@ -120,6 +120,9 @@ export default function FlashcardSession() {
   };
 
   const summary = useMemo(() => `${totalRated} thẻ đã ghi nhận trong phiên này`, [totalRated]);
+  const rememberedCount = counts.good + counts.easy;
+  const revisitedCount = counts.again + counts.hard;
+  const sessionXp = totalRated * 10;
 
   if (isLoading) {
     return <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-4 text-sm font-bold text-[#5f6b7c]">Đang tải thẻ từ Supabase Cloud…</div>;
@@ -142,7 +145,23 @@ export default function FlashcardSession() {
         <div className="relative">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><CheckCircle2 size={30} /></div>
           <h1 className="mt-4 font-[var(--font-heading)] text-2xl font-black text-[#172033]">{totalRated ? 'Hoàn thành phiên ôn 🎉' : 'Chưa có thẻ phù hợp'}</h1>
-          <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{totalRated ? `${summary} · ${totalRated * 10} XP đã cộng vào chuỗi học tập.` : 'Hệ thống chưa có thẻ đến hạn trong các khóa anh được ghi danh.'}</p>
+          <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{totalRated ? summary : 'Hệ thống chưa có thẻ đến hạn trong các khóa anh được ghi danh.'}</p>
+          {totalRated > 0 && (
+            <div className="mx-auto mt-4 grid max-w-sm grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                <p className="text-2xl font-black text-emerald-700">{rememberedCount}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-emerald-800">Nhớ</p>
+              </div>
+              <div className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2.5">
+                <p className="text-2xl font-black text-[#c2410c]">{revisitedCount}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-orange-800">Ôn lại</p>
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                <p className="text-2xl font-black text-amber-700">+{sessionXp}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-amber-800">XP</p>
+              </div>
+            </div>
+          )}
           <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <button type="button" onClick={() => void loadCards()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-bold text-[#d83a00]"><RotateCcw size={15} /> Làm mới</button>
             <Link to="/app/practice" className="inline-flex items-center justify-center rounded-xl bg-[#d83a00] px-4 py-2 text-sm font-bold text-white">Về trung tâm ôn tập</Link>
