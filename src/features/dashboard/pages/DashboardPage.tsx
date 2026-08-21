@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Bell,
+  Gift,
   Flame,
   GraduationCap,
   Layers,
@@ -25,6 +26,7 @@ import { pickRandomDashboardAnnouncement, resolveDashboardHeroAsset, selectDashb
 import { assets } from '@/src/shared/lib/assets';
 import { Reveal } from '@/src/shared/components/Reveal';
 import { cn } from '@/src/lib/utils';
+import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 
 const XP_PER_LEVEL = 500;
 const DAILY_XP_GOAL = 60;
@@ -59,6 +61,9 @@ export default function Dashboard() {
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+  const [rewardState, setRewardState] = useState<{ claimed: boolean; rewardXp: number } | null>(null);
+  const [rewardError, setRewardError] = useState<string | null>(null);
+  const [claimingReward, setClaimingReward] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +111,21 @@ export default function Dashboard() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [isQuestsOpen]);
+
+  async function handleClaimReward(): Promise<void> {
+    if (claimingReward) return;
+    setClaimingReward(true); setRewardError(null);
+    try {
+      const result = await claimDailyReward();
+      setRewardState({ claimed: result.claimed, rewardXp: result.rewardXp });
+      if (result.claimed) {
+        const refreshed = await fetchLearnerStats();
+        setStats(refreshed);
+      }
+    } catch (reason) {
+      setRewardError(reason instanceof Error ? reason.message : 'Không nhận được phần thưởng hôm nay.');
+    } finally { setClaimingReward(false); }
+  }
 
   const displayName = profile?.displayName || 'Học viên';
   const displayStreak = stats?.currentStreak ?? dashboard?.streakDays ?? 0;
@@ -400,6 +420,16 @@ export default function Dashboard() {
           <span className="block truncate text-[10px] font-black text-[#c2410c] sm:hidden">{dailyGoalProgress}% hôm nay</span>
         </article>
       </section>
+      </Reveal>
+
+      <Reveal delay={0.04}>
+        <section className="flex flex-col gap-3 rounded-[24px] border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" aria-label="Phần thưởng mỗi ngày">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-600 shadow-sm"><Gift size={20} /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Phần thưởng mỗi ngày</p><p className="mt-1 text-sm font-bold text-[#172033]">Mở app, nhận 15 XP và giữ nhịp học.</p>{rewardState && <p className="mt-1 text-xs font-semibold text-emerald-700">{rewardState.claimed ? `Đã nhận +${rewardState.rewardXp} XP hôm nay.` : 'Đã nhận phần thưởng hôm nay.'}</p>}{rewardError && <p role="alert" className="mt-1 text-xs font-semibold text-red-700">{rewardError}</p>}</div>
+          </div>
+          <button type="button" onClick={() => void handleClaimReward()} disabled={claimingReward || rewardState?.claimed === false} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d83a00] px-4 py-2.5 text-sm font-black text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"><Gift size={16} />{claimingReward ? 'Đang nhận…' : rewardState?.claimed === false ? 'Đã nhận hôm nay' : 'Nhận phần thưởng'}</button>
+        </section>
       </Reveal>
 
       {/* 2.5. Nhịp học 7 ngày + Anticipation */}

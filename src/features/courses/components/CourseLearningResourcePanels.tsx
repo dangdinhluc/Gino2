@@ -101,6 +101,8 @@ import {
   fetchReadDocumentIds,
   recordDocumentOpened,
 } from '@/src/features/documents/repositories/documentProgressRepository';
+import { fetchDocumentBookmarkIds, setDocumentBookmark } from '@/src/features/documents/repositories/documentBookmarkRepository';
+import { Bookmark } from 'lucide-react';
 import { StudyHeatmap } from '@/src/features/profile/components/StudyHeatmap';
 import {
   fetchLearningActivityHeatmap,
@@ -130,6 +132,8 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
   const [deletingAnnotation, setDeletingAnnotation] = useState<DocumentAnnotation | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [readDocumentIds, setReadDocumentIds] = useState<Set<string>>(new Set());
+  const [bookmarkedDocumentIds, setBookmarkedDocumentIds] = useState<Set<string>>(new Set());
+  const [bookmarkError, setBookmarkError] = useState<string | null>(null);
   const [heatmapDays, setHeatmapDays] = useState<StudyHeatmapDay[]>([]);
   const documentContentRef = useRef<HTMLDivElement>(null);
 
@@ -138,6 +142,14 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
     fetchReadDocumentIds(courseId)
       .then((ids) => { if (!cancelled) setReadDocumentIds(ids); })
       .catch(() => { /* tiến độ đọc là phụ trợ — thất bại không chặn tài liệu */ });
+    return () => { cancelled = true; };
+  }, [courseId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchDocumentBookmarkIds()
+      .then((ids) => { if (!cancelled) setBookmarkedDocumentIds(ids); })
+      .catch(() => { /* bookmark là phụ trợ — không chặn trình xem */ });
     return () => { cancelled = true; };
   }, [courseId]);
 
@@ -256,6 +268,26 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
     setEditDraft('');
   };
 
+  async function toggleBookmark(documentId: string): Promise<void> {
+    const bookmarked = !bookmarkedDocumentIds.has(documentId);
+    setBookmarkError(null);
+    setBookmarkedDocumentIds((current) => {
+      const next = new Set(current);
+      if (bookmarked) next.add(documentId); else next.delete(documentId);
+      return next;
+    });
+    try {
+      await setDocumentBookmark(documentId, bookmarked);
+    } catch (error: unknown) {
+      setBookmarkedDocumentIds((current) => {
+        const next = new Set(current);
+        if (bookmarked) next.delete(documentId); else next.add(documentId);
+        return next;
+      });
+      setBookmarkError(error instanceof Error ? error.message : 'Không cập nhật được tài liệu đã lưu.');
+    }
+  }
+
   const categories = useMemo(() => {
     const pdfCount = documents.filter((d) => d.kind === 'PDF').length;
     const docCount = documents.filter((d) => d.kind !== 'PDF').length;
@@ -345,7 +377,9 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
                 document={doc}
                 isSelected={selectedDocument.id === doc.id}
                 isRead={readDocumentIds.has(doc.id)}
+                isBookmarked={bookmarkedDocumentIds.has(doc.id)}
                 onSelect={onSelectDocument}
+                onMenu={() => void toggleBookmark(doc.id)}
               />
             ))
           ) : (
@@ -364,6 +398,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Trình xem tài liệu</p>
               <h3 className="mt-1 text-base font-black text-[#172033]">{selectedDocument.title}</h3>
             </div>
+            <button type="button" onClick={() => void toggleBookmark(selectedDocument.id)} aria-pressed={bookmarkedDocumentIds.has(selectedDocument.id)} className={cn('inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-black', bookmarkedDocumentIds.has(selectedDocument.id) ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-[#e8dccb] bg-white text-[#7b8796] hover:border-amber-300')}><Bookmark size={15} className={bookmarkedDocumentIds.has(selectedDocument.id) ? 'fill-amber-500' : ''} />{bookmarkedDocumentIds.has(selectedDocument.id) ? 'Đã lưu' : 'Lưu tài liệu'}</button>
             {selectedDocument.kind === 'PDF' && viewerUrl && (
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold text-emerald-700">
                 Đang xem trong app
@@ -375,6 +410,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
           </div>
           {isAssetLoading && <p className="mt-3 text-sm text-[#5f6b7c]">Đang tạo liên kết xem tài liệu…</p>}
           {assetError && <p className="mt-3 text-sm font-semibold text-red-700">{assetError}</p>}
+          {bookmarkError && <p role="alert" className="mt-3 text-sm font-semibold text-red-700">{bookmarkError}</p>}
           {selectedDocument.kind === 'PDF' && viewerUrl ? (
             <iframe
               title={`Trình xem PDF: ${selectedDocument.title}`}

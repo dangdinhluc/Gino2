@@ -5,6 +5,8 @@ import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { fetchLearningActivityHeatmap, type StudyHeatmapDay } from '@/src/features/profile/repositories/learningActivityRepository';
 import { StudyHeatmap } from '@/src/features/profile/components/StudyHeatmap';
+import { listLearnerAchievements, listLearnerCertificates, rewardDate, type LearnerAchievement, type LearnerCertificate } from '@/src/features/rewards/repositories/rewardRepository';
+import { Award, GraduationCap } from 'lucide-react';
 import {
   Bell,
   BookOpen,
@@ -31,6 +33,8 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [heatmap, setHeatmap] = useState<StudyHeatmapDay[]>([]);
+  const [achievements, setAchievements] = useState<LearnerAchievement[]>([]);
+  const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +49,9 @@ export default function Profile() {
     fetchLearningActivityHeatmap(30)
       .then((days) => { if (!cancelled) setHeatmap(days); })
       .catch(() => { /* heatmap chỉ là phụ trợ — thất bại không chặn hồ sơ */ });
+    Promise.all([listLearnerAchievements(), listLearnerCertificates()])
+      .then(([nextAchievements, nextCertificates]) => { if (!cancelled) { setAchievements(nextAchievements); setCertificates(nextCertificates); } })
+      .catch(() => { /* reward panels chỉ là phụ trợ */ });
     return () => { cancelled = true; };
   }, []);
 
@@ -168,6 +175,8 @@ export default function Profile() {
       </section>
 
       {heatmap.length > 0 && <StudyHeatmap days={heatmap} />}
+
+      {(achievements.length > 0 || certificates.length > 0) && <section className="grid gap-5 lg:grid-cols-2"><article className="rounded-3xl border border-[#f0e5d9] bg-white p-5"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-700"><Award size={19} /></span><div><h2 className="font-[var(--font-heading)] text-lg font-black text-[#172033]">Huy hiệu</h2><p className="text-xs text-[#7b8796]">Thành tích đã mở khóa bằng dữ liệu thật.</p></div></div><div className="mt-4 grid gap-2">{achievements.map((item) => <div key={item.achievementId} className="rounded-2xl border border-amber-100 bg-amber-50/50 p-3"><p className="text-sm font-black text-[#172033]">{item.title}</p><p className="mt-1 text-xs text-[#7b8796]">{item.description} · {rewardDate(item.earnedAt)}</p></div>)}{achievements.length === 0 && <p className="text-sm text-[#7b8796]">Chưa có huy hiệu. Giữ nhịp học để mở khóa.</p>}</div></article><article className="rounded-3xl border border-[#f0e5d9] bg-white p-5"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><GraduationCap size={19} /></span><div><h2 className="font-[var(--font-heading)] text-lg font-black text-[#172033]">Chứng nhận</h2><p className="text-xs text-[#7b8796]">Mã xác nhận hoàn thành khóa học.</p></div></div><div className="mt-4 space-y-2">{certificates.map((item) => <div key={item.id} className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3"><p className="text-sm font-black text-[#172033]">{item.courseTitle}</p><p className="mt-1 font-mono text-xs font-bold text-emerald-700">{item.certificateCode}</p><p className="mt-1 text-xs text-[#7b8796]">Cấp ngày {rewardDate(item.issuedAt)}</p></div>)}{certificates.length === 0 && <p className="text-sm text-[#7b8796]">Hoàn thành toàn bộ bài học để nhận chứng nhận.</p>}</div></article></section>}
 
       <button type="button" onClick={() => void handleSignOut()} disabled={signingOut} className={`profile-logout-button ${focusRing} disabled:cursor-not-allowed disabled:opacity-60`}>
         <LogOut size={18} strokeWidth={1.8} /> Đăng xuất

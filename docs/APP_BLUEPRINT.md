@@ -2,6 +2,8 @@
 
 Ngày: 2026-07-27
 
+> Production status 2026-08-21: enrollment/free package flow, real dashboard stats, micro-session SRS, document viewer/private annotations/bookmarks, XP/streak/rewards/badges/certificates, Community feed/follow/message/group/leaderboard/realtime/block/report, Web Push PWA và error handling đã triển khai. Paid checkout cần chốt provider; AI cần server credentials; email reminder cần Resend credentials.
+
 ---
 
 ## I. App là gì?

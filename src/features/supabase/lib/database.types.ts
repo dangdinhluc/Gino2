@@ -527,6 +527,240 @@ export type Database = {
           },
         ]
       }
+      community_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      community_follows: {
+        Row: {
+          created_at: string
+          followed_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followed_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followed_id?: string
+          follower_id?: string
+        }
+        Relationships: []
+      }
+      community_group_members: {
+        Row: {
+          group_id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_groups: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_public: boolean
+          name: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          name: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_public?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_groups_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      community_posts: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          group_id: string | null
+          id: string
+          metadata: Json
+          post_type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          group_id?: string | null
+          id?: string
+          metadata?: Json
+          post_type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          group_id?: string | null
+          id?: string
+          metadata?: Json
+          post_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "community_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_profiles: {
+        Row: {
+          bio: string
+          created_at: string
+          handle: string
+          is_public: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string
+          created_at?: string
+          handle: string
+          is_public?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          handle?: string
+          is_public?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       content_revisions: {
         Row: {
           action: string
@@ -557,45 +791,6 @@ export type Database = {
           id?: string
           snapshot?: Json
           version?: number
-        }
-        Relationships: []
-      }
-      dashboard_hero_slots: {
-        Row: {
-          alt_text: string
-          asset_key: string
-          created_at: string
-          end_time: string
-          id: string
-          is_active: boolean
-          label: string
-          sort_order: number
-          start_time: string
-          updated_at: string
-        }
-        Insert: {
-          alt_text: string
-          asset_key: string
-          created_at?: string
-          end_time: string
-          id: string
-          is_active?: boolean
-          label: string
-          sort_order?: number
-          start_time: string
-          updated_at?: string
-        }
-        Update: {
-          alt_text?: string
-          asset_key?: string
-          created_at?: string
-          end_time?: string
-          id?: string
-          is_active?: boolean
-          label?: string
-          sort_order?: number
-          start_time?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -685,6 +880,45 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_hero_slots: {
+        Row: {
+          alt_text: string
+          asset_key: string
+          created_at: string
+          end_time: string
+          id: string
+          is_active: boolean
+          label: string
+          sort_order: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text: string
+          asset_key: string
+          created_at?: string
+          end_time: string
+          id: string
+          is_active?: boolean
+          label: string
+          sort_order?: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string
+          asset_key?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_annotations: {
         Row: {
           anchor: Json
@@ -722,6 +956,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "document_annotations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_bookmarks: {
+        Row: {
+          created_at: string
+          document_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_bookmarks_document_id_fkey"
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "documents"
@@ -1080,6 +1340,41 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievement_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learner_certificates: {
+        Row: {
+          certificate_code: string
+          course_id: string
+          id: string
+          issued_at: string
+          metadata: Json
+          user_id: string
+        }
+        Insert: {
+          certificate_code: string
+          course_id: string
+          id?: string
+          issued_at?: string
+          metadata?: Json
+          user_id: string
+        }
+        Update: {
+          certificate_code?: string
+          course_id?: string
+          id?: string
+          issued_at?: string
+          metadata?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learner_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
@@ -1446,7 +1741,9 @@ export type Database = {
           channel: string
           created_at: string
           id: string
+          last_attempt_at: string | null
           last_error: string | null
+          locked_at: string | null
           notification_id: string
           sent_at: string | null
           status: string
@@ -1457,7 +1754,9 @@ export type Database = {
           channel: string
           created_at?: string
           id?: string
+          last_attempt_at?: string | null
           last_error?: string | null
+          locked_at?: string | null
           notification_id: string
           sent_at?: string | null
           status?: string
@@ -1468,7 +1767,9 @@ export type Database = {
           channel?: string
           created_at?: string
           id?: string
+          last_attempt_at?: string | null
           last_error?: string | null
+          locked_at?: string | null
           notification_id?: string
           sent_at?: string | null
           status?: string
@@ -2143,11 +2444,50 @@ export type Database = {
         Args: { target_announcement_id: string }
         Returns: undefined
       }
+      block_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       can_read_course: { Args: { target_course_id: string }; Returns: boolean }
       can_read_lesson: { Args: { target_lesson_id: string }; Returns: boolean }
       can_write_content_status: {
         Args: { target_status: string }
         Returns: boolean
+      }
+      claim_daily_reward: {
+        Args: never
+        Returns: {
+          claimed: boolean
+          current_streak: number
+          newly_earned: Json
+          reward_xp: number
+        }[]
+      }
+      claim_notification_email_deliveries: {
+        Args: { target_batch_size?: number }
+        Returns: {
+          action_url: string
+          attempts: number
+          body: string
+          delivery_id: string
+          notification_id: string
+          status: string
+          title: string
+          user_id: string
+        }[]
+      }
+      claim_notification_push_deliveries: {
+        Args: { target_batch_size?: number }
+        Returns: {
+          action_url: string
+          attempts: number
+          body: string
+          delivery_id: string
+          notification_id: string
+          status: string
+          title: string
+          user_id: string
+        }[]
       }
       complete_learner_onboarding: {
         Args: {
@@ -2155,6 +2495,22 @@ export type Database = {
           target_display_name: string
           target_level: string
           target_timezone: string
+        }
+        Returns: undefined
+      }
+      complete_notification_email_delivery: {
+        Args: {
+          target_delivery_id: string
+          target_error?: string
+          target_status: string
+        }
+        Returns: undefined
+      }
+      complete_notification_push_delivery: {
+        Args: {
+          target_delivery_id: string
+          target_error?: string
+          target_status: string
         }
         Returns: undefined
       }
@@ -2181,6 +2537,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_community_post: {
+        Args: { target_body: string }
+        Returns: {
+          post_id: string
+        }[]
+      }
+      create_progress_post: {
+        Args: never
+        Returns: {
+          current_streak: number
+          daily_xp: number
+          post_id: string
+        }[]
+      }
       enroll_in_free_package: {
         Args: { target_package_id: string }
         Returns: {
@@ -2191,11 +2561,11 @@ export type Database = {
           status: string
         }[]
       }
-      get_admin_analytics: { Args: never; Returns: Json }
-      get_admin_learner_detail: {
-        Args: { target_learner_id: string }
-        Returns: Json
+      follow_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
+      get_admin_analytics: { Args: never; Returns: Json }
       get_admin_assessment_questions: {
         Args: never
         Returns: {
@@ -2208,6 +2578,10 @@ export type Database = {
           prompt: string
           updated_at: string
         }[]
+      }
+      get_admin_learner_detail: {
+        Args: { target_learner_id: string }
+        Returns: Json
       }
       get_admin_lesson_exercises: {
         Args: never
@@ -2243,6 +2617,51 @@ export type Database = {
           prompt: string
           question_id: string
           selected_answer: string
+        }[]
+      }
+      get_community_feed: {
+        Args: { target_limit?: number }
+        Returns: {
+          body: string
+          created_at: string
+          display_name: string
+          handle: string
+          metadata: Json
+          post_id: string
+          post_type: string
+          user_id: string
+        }[]
+      }
+      get_community_leaderboard: {
+        Args: { target_limit?: number }
+        Returns: {
+          current_streak: number
+          display_name: string
+          handle: string
+          user_id: string
+          weekly_xp: number
+        }[]
+      }
+      get_community_me: {
+        Args: never
+        Returns: {
+          bio: string
+          display_name: string
+          email: string
+          handle: string
+          is_public: boolean
+          user_id: string
+        }[]
+      }
+      get_community_messages: {
+        Args: { target_limit?: number; target_user_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string
+          recipient_id: string
+          sender_id: string
         }[]
       }
       get_course_review_questions: {
@@ -2282,121 +2701,6 @@ export type Database = {
           subtitle: string
           title: string
         }[]
-      }
-      get_community_feed: {
-        Args: { target_limit?: number }
-        Returns: {
-          body: string
-          created_at: string
-          display_name: string
-          handle: string
-          metadata: Json
-          post_id: string
-          post_type: string
-          user_id: string
-        }[]
-      }
-      get_community_me: {
-        Args: never
-        Returns: {
-          bio: string
-          display_name: string
-          email: string
-          handle: string
-          is_public: boolean
-          user_id: string
-        }[]
-      }
-      get_community_messages: {
-        Args: { target_limit?: number; target_user_id: string }
-        Returns: {
-          body: string
-          created_at: string
-          id: string
-          read_at: string | null
-          recipient_id: string
-          sender_id: string
-        }[]
-      }
-      create_community_post: {
-        Args: { target_body: string }
-        Returns: { post_id: string }[]
-      }
-      create_progress_post: {
-        Args: never
-        Returns: { current_streak: number; daily_xp: number; post_id: string }[]
-      }
-      follow_community_user: {
-        Args: { target_user_id: string }
-        Returns: undefined
-      }
-      unfollow_community_user: {
-        Args: { target_user_id: string }
-        Returns: undefined
-      }
-      upsert_community_profile: {
-        Args: { target_bio?: string; target_handle: string; target_public?: boolean }
-        Returns: { bio: string; handle: string; is_public: boolean; user_id: string }[]
-      }
-      list_community_threads: {
-        Args: never
-        Returns: {
-          display_name: string
-          handle: string
-          last_at: string
-          last_body: string
-          other_user_id: string
-          unread_count: number
-        }[]
-      }
-      search_community_members: {
-        Args: { target_limit?: number; target_query?: string }
-        Returns: {
-          bio: string
-          display_name: string
-          follower_count: number
-          following: boolean
-          handle: string
-          user_id: string
-        }[]
-      }
-      send_community_message: {
-        Args: { target_body: string; target_user_id: string }
-        Returns: { message_id: string }[]
-      }
-      claim_notification_push_deliveries: {
-        Args: { target_batch_size?: number }
-        Returns: {
-          action_url: string
-          attempts: number
-          body: string
-          delivery_id: string
-          notification_id: string
-          status: string
-          title: string
-          user_id: string
-        }[]
-      }
-      complete_notification_push_delivery: {
-        Args: {
-          target_delivery_id: string
-          target_error?: string
-          target_status: string
-        }
-        Returns: undefined
-      }
-      register_push_subscription: {
-        Args: {
-          target_auth: string
-          target_endpoint: string
-          target_p256dh: string
-          target_user_agent?: string
-        }
-        Returns: string
-      }
-      unregister_push_subscription: {
-        Args: { target_endpoint: string }
-        Returns: undefined
       }
       get_latest_assessment_result: {
         Args: { target_assessment_id: string }
@@ -2441,6 +2745,58 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      join_community_group: {
+        Args: { target_group_id: string }
+        Returns: undefined
+      }
+      leave_community_group: {
+        Args: { target_group_id: string }
+        Returns: undefined
+      }
+      list_community_groups: {
+        Args: { target_limit?: number }
+        Returns: {
+          course_id: string
+          description: string
+          id: string
+          joined: boolean
+          member_count: number
+          name: string
+        }[]
+      }
+      list_community_threads: {
+        Args: never
+        Returns: {
+          display_name: string
+          handle: string
+          last_at: string
+          last_body: string
+          other_user_id: string
+          unread_count: number
+        }[]
+      }
+      list_learner_achievements: {
+        Args: never
+        Returns: {
+          achievement_id: string
+          description: string
+          earned_at: string
+          icon: string
+          metadata: Json
+          title: string
+        }[]
+      }
+      list_learner_certificates: {
+        Args: never
+        Returns: {
+          certificate_code: string
+          course_id: string
+          course_title: string
+          id: string
+          issued_at: string
+          metadata: Json
+        }[]
+      }
       mark_notification_read: {
         Args: { target_notification_id: string }
         Returns: undefined
@@ -2451,10 +2807,6 @@ export type Database = {
           target_entity_type: string
           target_status: string
         }
-        Returns: undefined
-      }
-      rollback_content_revision: {
-        Args: { target_revision_id: string }
         Returns: undefined
       }
       queue_due_reminders: { Args: never; Returns: number }
@@ -2495,6 +2847,40 @@ export type Database = {
           last_reviewed_at: string
           status: string
           vocabulary_item_id: string
+        }[]
+      }
+      register_push_subscription: {
+        Args: {
+          target_auth: string
+          target_endpoint: string
+          target_p256dh: string
+          target_user_agent?: string
+        }
+        Returns: string
+      }
+      report_community_content: {
+        Args: { target_id: string; target_reason: string; target_type: string }
+        Returns: string
+      }
+      rollback_content_revision: {
+        Args: { target_revision_id: string }
+        Returns: undefined
+      }
+      search_community_members: {
+        Args: { target_limit?: number; target_query?: string }
+        Returns: {
+          bio: string
+          display_name: string
+          follower_count: number
+          following: boolean
+          handle: string
+          user_id: string
+        }[]
+      }
+      send_community_message: {
+        Args: { target_body: string; target_user_id: string }
+        Returns: {
+          message_id: string
         }[]
       }
       staff_role: { Args: never; Returns: string }
@@ -2541,6 +2927,31 @@ export type Database = {
           repetitions: number
           status: string
           vocabulary_item_id: string
+        }[]
+      }
+      unblock_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      unfollow_community_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      unregister_push_subscription: {
+        Args: { target_endpoint: string }
+        Returns: undefined
+      }
+      upsert_community_profile: {
+        Args: {
+          target_bio?: string
+          target_handle: string
+          target_public?: boolean
+        }
+        Returns: {
+          bio: string
+          handle: string
+          is_public: boolean
+          user_id: string
         }[]
       }
     }

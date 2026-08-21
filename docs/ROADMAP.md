@@ -2,7 +2,9 @@
 
 Ngày: 2026-07-27
 Người đánh giá: Codex (agent)
-Dựa trên: audit toàn bộ codebase + trao đổi với chủ dự án
+Dựa trên: audit toàn bộ codebase + production Supabase verification
+
+> Cập nhật production 2026-08-21: enrollment/free packages, document viewer + private annotations, dashboard stats, micro-session SRS, XP/streak, Community MVP, push notification, daily reward, badges, certificates, Community moderation, groups, leaderboard, realtime messages và document bookmarks đã có code/backend. Payment paid checkout, AI credentials và email provider vẫn cần credential/quyết định ngoài source.
 
 ---
 

@@ -72,6 +72,7 @@ export default function FlashcardSession() {
   const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [rewardStats, setRewardStats] = useState<LearnerStatsSnapshot | null>(null);
+  const sessionStorageKey = `gino-flashcard-session-${mode}-${sessionMinutes}`;
 
   const loadCards = useCallback(async () => {
     setIsLoading(true);
@@ -85,13 +86,20 @@ export default function FlashcardSession() {
     try {
       const nextCards = cardsForMode(await getDueVocabularyCards(100), mode);
       setCards(nextCards);
+      try {
+        const saved = JSON.parse(window.sessionStorage.getItem(sessionStorageKey) ?? 'null') as { secondsLeft?: number; counts?: RatingCounts } | null;
+        if (saved?.secondsLeft && saved.secondsLeft > 0 && saved.secondsLeft < sessionSeconds) setSecondsLeft(saved.secondsLeft);
+        if (saved?.counts) setCounts({ ...emptyCounts, ...saved.counts });
+      } catch {
+        window.sessionStorage.removeItem(sessionStorageKey);
+      }
     } catch (error) {
       setCards([]);
       setLoadError(error instanceof Error ? error.message : 'Không tải được thẻ ôn tập.');
     } finally {
       setIsLoading(false);
     }
-  }, [mode, sessionSeconds]);
+  }, [mode, sessionSeconds, sessionStorageKey]);
 
   useEffect(() => {
     void loadCards();
@@ -118,6 +126,19 @@ export default function FlashcardSession() {
   const currentCard = cards[index] ?? null;
   const totalRated = counts.again + counts.hard + counts.good + counts.easy;
   const progress = totalRated + cards.length > 0 ? Math.round((totalRated / (totalRated + cards.length)) * 100) : 0;
+
+  useEffect(() => {
+    if (isLoading || sessionExpired || totalRated === 0) return;
+    window.sessionStorage.setItem(sessionStorageKey, JSON.stringify({ secondsLeft, counts }));
+  }, [counts, isLoading, secondsLeft, sessionExpired, sessionStorageKey, totalRated]);
+
+  useEffect(() => {
+    if (sessionExpired || (cards.length === 0 && totalRated > 0)) window.sessionStorage.removeItem(sessionStorageKey);
+  }, [cards.length, sessionExpired, sessionStorageKey, totalRated]);
+
+  useEffect(() => {
+    if (sessionExpired) vibrate([60, 40, 60]);
+  }, [sessionExpired]);
 
   useEffect(() => {
     if (currentCard || totalRated === 0 || rewardStats) return;

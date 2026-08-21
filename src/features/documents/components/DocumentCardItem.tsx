@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ChevronRight, Clock3, MoreVertical } from 'lucide-react';
+import { Bookmark, CheckCircle2, ChevronRight, Clock3, MoreVertical } from 'lucide-react';
 import type { CourseDocumentItem } from '@/src/features/courses/courseLearning.types';
 
 interface DocumentCardItemProps {
@@ -7,6 +7,7 @@ interface DocumentCardItemProps {
   document: CourseDocumentItem;
   isSelected?: boolean;
   isRead?: boolean;
+  isBookmarked?: boolean;
   onSelect: (id: string) => void;
   onMenu?: (id: string) => void;
 }
@@ -15,6 +16,7 @@ export function DocumentCardItem({
   document,
   isSelected = false,
   isRead = false,
+  isBookmarked = false,
   onSelect,
   onMenu,
 }: DocumentCardItemProps) {
@@ -52,18 +54,20 @@ export function DocumentCardItem({
             </span>
           </div>
 
-          {/* Menu options */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMenu?.(document.id);
-            }}
-            aria-label="Tùy chọn tài liệu"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-[#8c97a8] transition-colors hover:bg-slate-100 hover:text-[#0f172a]"
-          >
-            <MoreVertical size={16} />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {isBookmarked && <Bookmark size={14} className="fill-amber-500 text-amber-600" aria-label="Đã lưu" />}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMenu?.(document.id);
+              }}
+              aria-label="Tùy chọn tài liệu"
+              className="flex h-7 w-7 items-center justify-center rounded-xl text-[#8c97a8] transition-colors hover:bg-slate-100 hover:text-[#0f172a]"
+            >
+              <MoreVertical size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Title */}
