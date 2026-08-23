@@ -10,7 +10,7 @@
 - Browser measurement: Playwright Chromium headless shell, fresh context per route, 390x844 viewport
 - Database measurement: linked Supabase production database, read-only queries only
 - Local Docker/Supabase: not started, per request
-- Production migration deployment: not performed; both performance migrations remain pending
+- Production migration deployment: completed after validation; both performance migrations are applied
 
 ## Before
 
@@ -64,7 +64,7 @@
 
 ## After
 
-These are code/build results after the changes. The authenticated production Dashboard and the new database function runtime were not measured live because credentials were unavailable and the migrations were intentionally not deployed.
+These are code/build results after the changes. The authenticated production Dashboard browser flow was not measured because no test learner credentials were available; the database functions were measured live after migration deployment.
 
 ### Dashboard
 
@@ -76,8 +76,10 @@ These are code/build results after the changes. The authenticated production Das
 
 ### Database
 
-- New migration dry-run: passed; both new migrations are pending and were not applied.
-- Read-only optimized `get_learner_stats()` equivalent CTE: 700.749 ms on the linked production dataset. This is an equivalent query benchmark, not a claim that the production RPC has already changed.
+- New migration dry-run and apply: passed; `20260823051556` and `20260823053932` are present in `supabase_migrations.schema_migrations`.
+- Live production `get_learner_stats()` EXPLAIN after deployment: 7.348 ms on the first measured run and 3.528 ms on a warm run.
+- Live production `get_learner_dashboard()` EXPLAIN after deployment: 8.013 ms.
+- Live production `get_daily_learning_plan()` EXPLAIN after deployment: 16.822 ms.
 - Structural regression test confirms timezone context is materialized once and event dates use direct `AT TIME ZONE` conversion.
 - Remaining timezone-sensitive RPCs now use the stored validated timezone directly rather than calling the row-wise helper.
 
@@ -118,8 +120,9 @@ Authenticated rows below are source/unit instrumentation, not live browser count
 
 | Measurement | Before | After |
 |---|---:|---:|
-| Current production `get_learner_stats()` EXPLAIN | 4,951.729 ms | Pending migration; live RPC not changed |
-| Optimized equivalent CTE | Not applicable | 700.749 ms, read-only linked-DB benchmark |
+| Current production `get_learner_stats()` EXPLAIN | 4,951.729 ms | 7.348 ms first run; 3.528 ms warm run |
+| Current production `get_learner_dashboard()` EXPLAIN | Not measured separately | 8.013 ms |
+| Current production `get_daily_learning_plan()` EXPLAIN | Not measured separately | 16.822 ms |
 | `pg_timezone_names` access | In the read helper path | Write-boundary validation in pending migration |
 
 ## Bundle comparison
@@ -144,8 +147,8 @@ The original PNGs remain in the repository as source/fallback material. Runtime 
 ## Remaining bottlenecks
 
 - Initial JS is 659.55 kB minified and still above the aspirational 500 kB budget. Motion and shared shell dependencies remain candidates for a later measured split.
-- Authenticated Dashboard network timings and live post-migration DB timings require a valid test learner session and an explicit migration deployment.
+- Authenticated Dashboard network timings still require a valid test learner session.
 - Production schema lint still reports two pre-existing ambiguity errors in `public.report_community_content` and `public.upsert_community_profile`; they were outside this performance scope and were not changed.
 - A later linked-schema-lint retry was blocked by Supabase CLI login-role password authentication; the earlier successful lint run produced the two errors above.
 - No TTL cache was added. Dashboard stats/rewards are freshness-sensitive, and no authenticated revisit measurement justified introducing cache invalidation complexity yet.
-- GitHub Pages path validation passed at build level with `/Gino2/assets/...`; no production deployment was performed.
+- GitHub Pages path validation passed at build level with `/Gino2/assets/...`; the code push that triggers the Pages deployment is still the final external step.
