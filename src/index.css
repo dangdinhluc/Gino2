@@ -2402,6 +2402,11 @@
   will-change: transform, opacity;
 }
 
+@media (max-width: 640px) {
+  .anime-blob { filter: blur(48px); }
+  .anime-mote:nth-of-type(n + 9) { display: none; }
+}
+
 @keyframes anime-mote-rise {
   0% {
     opacity: 0;
