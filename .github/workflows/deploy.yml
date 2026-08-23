@@ -2,7 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - ux/mock-navigation-refactor
   workflow_dispatch:
 
 permissions:
@@ -22,41 +24,69 @@ jobs:
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
       VITE_DATA_MODE: real
     steps:
-      - name: Checkout
+      - name: Checkout production main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production-src
+
+      - name: Checkout UX preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: ux/mock-navigation-refactor
+          path: preview-src
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
 
       - name: Validate Cloud configuration
         run: |
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
 
-      - name: Run tests
-        run: npm run test
+      - name: Validate production
+        working-directory: production-src
+        run: |
+          npm ci
+          npm run lint
+          npm run test
+          npm run typecheck
 
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Build (base /Gino2/)
-        run: npm run build
+      - name: Build production root
+        working-directory: production-src
         env:
           GITHUB_PAGES: 'true'
+        run: npm run build
 
-      - name: SPA fallback (404.html)
-        run: cp dist/index.html dist/404.html
+      - name: Validate UX preview
+        working-directory: preview-src
+        run: |
+          npm ci
+          npm run lint
+          npm run test
+          npm run typecheck
 
-      - name: Setup Pages (tu bat neu chua co)
+      - name: Build UX preview
+        working-directory: preview-src
+        run: npm run build -- --base=/Gino2/preview/
+
+      - name: Assemble Pages artifact
+        run: |
+          mkdir -p site/preview
+          cp -a production-src/dist/. site/
+          cp -a preview-src/dist/. site/preview/
+          cp site/index.html site/404.html
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('site/404.html')
+          html = path.read_text()
+          redirect = """<script>if (location.pathname.startsWith('/Gino2/preview/') && location.pathname !== '/Gino2/preview/') { location.replace('/Gino2/preview/'); }</script>"""
+          path.write_text(html.replace('<head>', '<head>' + redirect, 1))
+          PY
+
+      - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -64,7 +94,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build
@@ -73,6 +103,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy production + preview
         id: deployment
         uses: actions/deploy-pages@v4
