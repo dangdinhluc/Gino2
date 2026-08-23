@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { AITutorChatPanel } from '@/src/features/ai/components/AITutorChatPanel';
-import { useAiTutorChat } from '@/src/features/ai/hooks/useAiTutorChat';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import { assets } from '@/src/shared/lib/assets';
 
 const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
+const LazyAITutorChatContent = lazy(() => import('@/src/features/ai/components/AITutorChatContent'));
 
 export function MobileAITutorPopover() {
   const [isOpen, setIsOpen] = useState(false);
-  const { draft, error, handleSubmit, isSending, messages, sendMessage, setDraft } = useAiTutorChat();
+  const [hasOpened, setHasOpened] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -25,8 +24,6 @@ export function MobileAITutorPopover() {
     if (!previousFocusRef.current) {
       previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
     }
-
-    dialogRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -60,7 +57,10 @@ export function MobileAITutorPopover() {
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen((currentState) => !currentState)}
+        onClick={() => setIsOpen((currentState) => {
+          if (!currentState) setHasOpened(true);
+          return !currentState;
+        })}
         aria-label={isOpen ? 'Ẩn chat AI' : 'Mở chat AI Tokutei'}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
@@ -94,36 +94,17 @@ export function MobileAITutorPopover() {
         </motion.div>
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={dialogRef}
-            id="floating-ai-tutor-popover"
-            role="dialog"
-            aria-modal="false"
-            tabIndex={-1}
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="fixed bottom-[calc(10.4rem+env(safe-area-inset-bottom))] right-3 z-[70] hidden w-[calc(100vw-1.5rem)] max-w-sm min-[375px]:block md:bottom-24 md:right-5 lg:bottom-24 lg:right-6 lg:w-[24rem] lg:max-w-md xl:right-7 xl:w-[25rem]"
-          >
-            <AITutorChatPanel
-              className="h-[70dvh] min-h-[26rem] max-h-[36rem] rounded-[2rem] shadow-[0_30px_80px_-34px_rgba(17,24,39,0.34)] lg:h-[38rem] lg:max-h-[calc(100dvh-8rem)]"
-              compactHeader
-              draft={draft}
-              error={error}
-              isSending={isSending}
-              messages={messages}
-              onClose={() => setIsOpen(false)}
-              onDraftChange={setDraft}
-              onSendMessage={sendMessage}
-              onSubmit={handleSubmit}
-              showCloseButton
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {hasOpened && (
+        <Suspense
+          fallback={isOpen ? (
+            <div ref={dialogRef} id="floating-ai-tutor-popover" role="dialog" tabIndex={-1} className="fixed bottom-[calc(10.4rem+env(safe-area-inset-bottom))] right-3 z-[70] hidden w-[calc(100vw-1.5rem)] max-w-sm rounded-[2rem] border border-[#e8dccb] bg-[#fffaf3] p-5 text-sm font-bold text-[#5f6b7c] min-[375px]:block md:bottom-24 md:right-5 lg:bottom-24 lg:right-6 lg:w-[24rem] lg:max-w-md xl:right-7 xl:w-[25rem]">
+              Đang mở chat AI…
+            </div>
+          ) : null}
+        >
+          <LazyAITutorChatContent open={isOpen} dialogRef={dialogRef} onClose={() => setIsOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 }

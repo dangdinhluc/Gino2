@@ -1,20 +1,29 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { fetchAiConversationHistory, streamAiChat, type AiChatMessage } from '@/src/features/ai/repositories/aiRepository';
 
-export function useAiTutorChat() {
+interface UseAiTutorChatOptions {
+  enabled?: boolean;
+}
+
+export function useAiTutorChat({ enabled = false }: UseAiTutorChatOptions = {}) {
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
+  const historyRequestedRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+    if (!enabled || historyRequestedRef.current) return undefined;
+    historyRequestedRef.current = true;
     fetchAiConversationHistory()
-      .then((history) => { if (!cancelled) setMessages(history); })
-      .catch((nextError: unknown) => { if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được lịch sử AI.'); });
-    return () => { cancelled = true; };
-  }, []);
+      .then((history) => setMessages(history))
+      .catch((nextError: unknown) => {
+        historyRequestedRef.current = false;
+        setError(nextError instanceof Error ? nextError.message : 'Không tải được lịch sử AI.');
+      });
+    return undefined;
+  }, [enabled]);
 
   const sendMessage = async (text: string): Promise<void> => {
     const trimmedText = text.trim();
