@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
 const CourseListPage = lazy(() => import('@/src/features/courses/pages/CourseListPage'));
+const CourseHomePage = lazy(() => import('@/src/features/courses/pages/CourseHomePage'));
 const CourseLearningPage = lazy(() => import('@/src/features/courses/pages/CourseLearningPage'));
 const PackageCatalogPage = lazy(() => import('@/src/features/enrollments/pages/PackageCatalogPage'));
 const ExamCenterPage = lazy(() => import('@/src/features/exams/pages/ExamCenterPage'));
@@ -44,7 +45,8 @@ export function AppRoutes() {
       <Route path="courses" element={screen(<CourseListPage />)} />
       <Route path="enrollments" element={screen(<PackageCatalogPage />)} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
-      <Route path="courses/:id/learn" element={screen(<CourseLearningPage />)} />
+      <Route path="courses/:id/learn" element={screen(<CourseHomePage />)} />
+      <Route path="courses/:id/workspace" element={screen(<CourseLearningPage />)} />
       <Route path="exams" element={screen(<ExamCenterPage />)} />
       <Route path="exams/:id/start" element={screen(<ExamRunnerPage />)} />
       <Route path="exams/:id/result" element={screen(<ExamResultPage />)} />
