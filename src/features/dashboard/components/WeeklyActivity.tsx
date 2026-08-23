@@ -4,7 +4,7 @@ import type { LearnerStatsSnapshot } from '@/src/features/dashboard/repositories
 const XP_PER_LEVEL = 500;
 
 interface WeeklyActivityProps {
-  now: Date;
+  today: string;
   weeklyActivity: NonNullable<LearnerStatsSnapshot['weeklyActivity']>;
   displayStreak: number;
   xpIntoLevel: number;
@@ -13,7 +13,7 @@ interface WeeklyActivityProps {
   streakMilestone: number | null;
 }
 
-export function WeeklyActivity({ now, weeklyActivity, displayStreak, xpIntoLevel, remainingLevelXp, level, streakMilestone }: WeeklyActivityProps) {
+export function WeeklyActivity({ today, weeklyActivity, displayStreak, xpIntoLevel, remainingLevelXp, level, streakMilestone }: WeeklyActivityProps) {
   return (
     <section className="rounded-[28px] border border-[#f5ece1] bg-white p-5 sm:p-6 shadow-2xs space-y-4" aria-label="Nhịp học 7 ngày qua">
       <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3.5">
@@ -32,9 +32,9 @@ export function WeeklyActivity({ now, weeklyActivity, displayStreak, xpIntoLevel
 
       <div className="flex items-end justify-between gap-2" role="img" aria-label="Heatmap 7 ngày học gần nhất">
         {weeklyActivity.map((day) => {
-          const date = new Date(`${day.date}T00:00:00`);
-          const isToday = date.toDateString() === now.toDateString();
-          const label = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()];
+          const date = new Date(`${day.date}T00:00:00Z`);
+          const isToday = day.date === today;
+          const label = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getUTCDay()];
           const xp = day.xp;
           const cellClass = xp <= 0
             ? 'bg-[#f3ead9]'

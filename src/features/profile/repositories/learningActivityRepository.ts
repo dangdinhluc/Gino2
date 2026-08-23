@@ -7,11 +7,21 @@ export interface StudyHeatmapDay {
   count: number;
 }
 
-function toLocalDateKey(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const day = String(value.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+export function toLearnerDateKey(value: Date, timeZone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value);
+    const part = (type: string) => parts.find((item) => item.type === type)?.value ?? '';
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  } catch {
+    if (timeZone !== 'Asia/Tokyo') return toLearnerDateKey(value, 'Asia/Tokyo');
+    return value.toISOString().slice(0, 10);
+  }
+}
+
+function subtractLocalDays(dateKey: string, days: number): string {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
 }
 
 /**
@@ -20,9 +30,12 @@ function toLocalDateKey(value: Date): string {
  */
 export async function fetchLearningActivityHeatmap(days = 30): Promise<StudyHeatmapDay[]> {
   const client = requireSupabase();
+  const { data: timezoneData, error: timezoneError } = await client.rpc('learner_timezone');
+  if (timezoneError) throw new Error(timezoneError.message);
+  const timezone = typeof timezoneData === 'string' ? timezoneData : 'Asia/Tokyo';
+  const today = toLearnerDateKey(new Date(), timezone);
   const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - (days - 1));
+  start.setTime(start.getTime() - (days + 2) * 86_400_000);
 
   const { data, error } = await client
     .from('learning_activity_events')
@@ -32,15 +45,13 @@ export async function fetchLearningActivityHeatmap(days = 30): Promise<StudyHeat
 
   const counts = new Map<string, number>();
   for (const row of data ?? []) {
-    const key = toLocalDateKey(new Date(row.occurred_at));
+    const key = toLearnerDateKey(new Date(row.occurred_at), timezone);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 
   const result: StudyHeatmapDay[] = [];
-  for (let offset = 0; offset < days; offset += 1) {
-    const day = new Date(start);
-    day.setDate(start.getDate() + offset);
-    const key = toLocalDateKey(day);
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
+    const key = subtractLocalDays(today, offset);
     result.push({ date: key, count: counts.get(key) ?? 0 });
   }
   return result;

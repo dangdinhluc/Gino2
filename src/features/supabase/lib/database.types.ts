@@ -2744,6 +2744,14 @@ export type Database = {
           weekly_xp: number
         }[]
       }
+      learner_local_date: {
+        Args: { target_at?: string; target_user_id?: string }
+        Returns: string
+      }
+      learner_timezone: {
+        Args: { target_user_id?: string }
+        Returns: string
+      }
       has_staff_permission: {
         Args: { target_permission: string }
         Returns: boolean

@@ -10,6 +10,7 @@
     "clean": "rm -rf dist",
     "test": "tsx src/test/run-tests.ts",
     "test:community-security": "tsx scripts/community-security-test.ts",
+    "test:timezone-boundary": "tsx scripts/timezone-boundary-test.ts",
     "seed:cloud-demo": "tsx scripts/seed-cloud-demo.ts seed",
     "verify:cloud-demo": "tsx scripts/seed-cloud-demo.ts verify",
     "cleanup:cloud-demo": "tsx scripts/seed-cloud-demo.ts cleanup",

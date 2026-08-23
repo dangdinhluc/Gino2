@@ -197,7 +197,7 @@ export default function Dashboard() {
       {weeklyActivity.length > 0 && (
         <Reveal delay={0.06}>
           <WeeklyActivity
-            now={now}
+            today={weeklyActivity[weeklyActivity.length - 1]?.date ?? ''}
             weeklyActivity={weeklyActivity}
             displayStreak={displayStreak}
             xpIntoLevel={xpIntoLevel}

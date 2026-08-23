@@ -33,7 +33,7 @@ export function StudyHeatmap({ days }: StudyHeatmapProps) {
   const activeDays = days.filter((day) => day.count > 0).length;
   const totalEvents = days.reduce((sum, day) => sum + day.count, 0);
   const firstActiveDay = days.find((day) => day.count > 0);
-  const weekdayOffset = firstActiveDay ? new Date(`${firstActiveDay.date}T00:00:00`).getDay() : 0;
+  const weekdayOffset = firstActiveDay ? new Date(`${firstActiveDay.date}T00:00:00Z`).getUTCDay() : 0;
 
   return (
     <section className="rounded-[24px] border border-[#f5ece1] bg-white p-5 shadow-2xs" aria-label="Lịch học 30 ngày">
