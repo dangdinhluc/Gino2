@@ -1,5 +1,6 @@
 import webpush from 'npm:web-push@3.6.7';
 import { corsHeaders, errorResponse, handleError, isAllowedOrigin, json, parseJsonBody, serviceClient } from '../_shared/http.ts';
+import { actionLink, appRelativeRoute } from './url.ts';
 
 interface ClaimedDelivery {
   delivery_id: string;
@@ -58,19 +59,12 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character] ?? character);
 }
 
-function actionLink(actionUrl: string | null): string | null {
-  if (!actionUrl) return null;
-  const appUrl = (Deno.env.get('PUBLIC_APP_URL') ?? Deno.env.get('APP_ORIGIN') ?? 'https://dangdinhluc.github.io/Gino2').trim().replace(/\/$/, '');
-  if (!appUrl || !actionUrl.startsWith('/') || actionUrl.startsWith('//')) return null;
-  try {
-    return new URL(actionUrl, `${appUrl}/`).toString();
-  } catch {
-    return null;
-  }
+function absoluteActionLink(actionUrl: string | null): string | null {
+  return actionLink(actionUrl, Deno.env.get('PUBLIC_APP_URL') ?? Deno.env.get('APP_ORIGIN') ?? 'https://dangdinhluc.github.io/Gino2');
 }
 
 async function sendEmail(config: ResendConfig, delivery: ClaimedDelivery, recipient: string): Promise<void> {
-  const link = actionLink(delivery.action_url);
+  const link = absoluteActionLink(delivery.action_url);
   const safeTitle = escapeHtml(delivery.title);
   const safeBody = escapeHtml(delivery.body).replace(/\n/g, '<br />');
   const html = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#172033"><h2>${safeTitle}</h2><p>${safeBody}</p>${link ? `<p><a href="${escapeHtml(link)}">Mở trong TOKUTEI GINO</a></p>` : ''}</div>`;
@@ -98,7 +92,7 @@ async function sendEmail(config: ResendConfig, delivery: ClaimedDelivery, recipi
 }
 
 async function sendPush(config: { publicKey: string; privateKey: string; subject: string }, subscription: PushSubscription, delivery: ClaimedDelivery): Promise<void> {
-  const url = actionLink(delivery.action_url);
+  const url = appRelativeRoute(delivery.action_url);
   webpush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
   await webpush.sendNotification(
     { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },

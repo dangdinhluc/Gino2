@@ -7,6 +7,7 @@ import '@/src/features/dashboard/lib/dashboardHero.test';
 import '@/src/features/supabase/lib/seedValidation.test';
 import '@/src/features/supabase/lib/supabaseClient.test';
 import '@/src/features/profile/repositories/learningActivityRepository.test';
+import '@/src/features/notifications/lib/pushUrl.test';
 import '@/src/test/games/memoryGenerator.test';
 import '@/src/test/games/builderGenerator.test';
 import '@/src/test/games/gameStore.test';
