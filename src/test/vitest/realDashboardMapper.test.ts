@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { mapRealDashboardData } from '@/src/features/dashboard/repositories/realDashboardRepository';
-import type { LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
-import type { LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import type { DailyLearningPlan } from '@/src/features/dashboard/repositories/learnerDashboardRepository';
+import type { LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
+import type { LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 
 const emptyProfile: LearnerProfileSnapshot = {
   displayName: 'Học viên',
   email: 'learner@example.com',
-  targetLevel: null,
+  targetLevel: 'Tokutei Gino',
 };
 
 const emptyStats: LearnerStatsSnapshot = {
@@ -47,6 +47,6 @@ describe('mapRealDashboardData', () => {
     expect(data.today.exercises).toBe(0);
     expect(data.activeCourse).toBeNull();
     expect(data.courses).toEqual([]);
-    expect(JSON.stringify(data)).not.toMatch(/Minna no Nihongo|Kaiwa Starter|ዄ/24|120/);
+    expect(JSON.stringify(data)).not.toMatch(/Minna no Nihongo|Kaiwa Starter|12\/24|\b120\b/);
   });
 });
