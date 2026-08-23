@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { cn } from '@/src/lib/utils';
+import { BookOpen, Home, PencilLine, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
@@ -18,53 +18,37 @@ export function BottomNav() {
   }, [location.pathname]);
 
   const navItems = [
-    { label: 'Hôm nay', path: '/app/dashboard', icon: assets.shared.navigation.home },
-    { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
-    { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary, badge: dueCount },
-    { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
+    { label: 'Hôm nay', path: '/app/dashboard', icon: Home },
+    { label: 'Khóa học', path: '/app/courses', icon: BookOpen },
+    { label: 'Luyện tập', path: '/app/practice', icon: PencilLine, badge: dueCount },
+    { label: 'Cá nhân', path: '/app/profile', icon: UserRound },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex min-h-[4.5rem] items-center justify-around border-t border-[#e8dccb] bg-[#fffaf5]/96 px-2 pb-[calc(0.25rem+env(safe-area-inset-bottom))] pt-1 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl lg:hidden">
-      {navItems.map((item) => (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className="bottom-nav-item relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 transition-all duration-200"
-        >
-          {({ isActive }) => (
-            <motion.div className="flex min-w-0 flex-col items-center gap-0.5" whileTap={{ scale: 0.92 }}>
-              <div className={cn(
-                'relative flex h-10 w-10 items-center justify-center rounded-2xl p-1 transition-all duration-200',
-                isActive
-                  ? 'scale-105 bg-gradient-to-br from-orange-100/90 to-amber-100/60 shadow-2xs'
-                  : 'opacity-85 hover:opacity-100'
-              )}>
-                <img
-                  src={item.icon}
-                  alt={item.label}
-                  className={cn(
-                    'h-8 w-8 object-contain drop-shadow-xs transition-transform duration-200',
-                    isActive ? 'scale-110' : 'filter grayscale-[15%]'
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex min-h-[4.5rem] max-w-[1180px] items-center justify-around border-t border-[#e7e7ee] bg-white/98 px-2 pb-[calc(.3rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_24px_rgba(30,25,50,.05)] backdrop-blur-xl lg:hidden">
+      <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[46%] rounded-full border border-[#e7defc] bg-white p-1.5 shadow-[0_6px_18px_rgba(88,63,170,.16)]">
+        <img src={assets.shared.mascots.brand} alt="" className="h-10 w-10 object-contain" />
+      </div>
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <NavLink key={item.path} to={item.path} className="relative flex min-w-0 flex-1 items-center justify-center">
+            {({ isActive }) => (
+              <motion.div className="flex min-w-0 flex-col items-center gap-1 px-1 py-1" whileTap={{ scale: 0.94 }}>
+                <span className={`relative flex h-7 w-9 items-center justify-center rounded-xl ${isActive ? 'text-[#6f45d8]' : 'text-[#30313a]'}`}>
+                  <Icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+                  {typeof item.badge === 'number' && item.badge > 0 && (
+                    <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#6f45d8] px-1 text-[9px] font-extrabold text-white">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
                   )}
-                />
-                {typeof item.badge === 'number' && item.badge > 0 && (
-                  <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-1 text-[9px] font-black text-white shadow-xs">
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                )}
-              </div>
-              <span className={cn(
-                'bottom-nav-label max-w-full truncate text-[10px] font-black tracking-tight transition-colors',
-                isActive ? 'text-[#d83a00]' : 'text-[#64748b]'
-              )}>
-                {item.label}
-              </span>
-              {isActive && <div className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-[#d83a00] shadow-2xs" />}
-            </motion.div>
-          )}
-        </NavLink>
-      ))}
+                </span>
+                <span className={`truncate text-[10px] font-bold ${isActive ? 'text-[#6f45d8]' : 'text-[#3f4149]'}`}>{item.label}</span>
+              </motion.div>
+            )}
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }
