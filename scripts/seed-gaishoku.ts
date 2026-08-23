@@ -190,6 +190,14 @@ const assessmentByModule: Record<string, string> = {
   'ssw2-gai-m04': 'ssw2-gai-assess-store',
 };
 
+const OFFICIAL_MOCK_EXAM_CONFIG = {
+  durationMinutes: 70,
+  totalPoints: 250,
+  passingPoints: 163,
+  scoringMode: 'weighted_questions',
+  showStrategyAfterSubmit: true,
+} as const;
+
 function assertUnique(label: string, ids: string[]): void {
   assert.equal(new Set(ids).size, ids.length, `${label} contains duplicate IDs`);
 }
@@ -384,6 +392,7 @@ function buildRows() {
     passing_score: exam.meta.passing_percent,
     status: contentStatus,
     order_index: Math.max(...seed.assessments.map((assessment) => assessment.order_index), 0) + index + 1,
+    config: OFFICIAL_MOCK_EXAM_CONFIG,
   }));
   const v3MockQuestions = mockV3.mock_exams.flatMap((exam) => exam.questions.map((question) => ({
     id: question.id,
@@ -393,10 +402,31 @@ function buildRows() {
     options: question.options,
     explanation: questionExplanation(question),
     order_index: question.exam_question_no,
+    metadata: {
+      domain: question.domain,
+      section: question.section,
+      kind: question.kind,
+      points: question.points,
+      strategy: {
+        quickRule: question.strategy_explanation?.quick_rule_vi,
+        answerReason: question.strategy_explanation?.answer_reason_vi,
+      },
+    },
   })));
 
   return {
-    courses: [{ ...seed.course, status: contentStatus, published_at: publishedAt }],
+    courses: [{
+      ...seed.course,
+      status: contentStatus,
+      published_at: publishedAt,
+      feature_config: {
+        vocabulary: true,
+        documents: true,
+        practice: true,
+        games: true,
+        exams: true,
+      },
+    }],
     modules: seed.modules.map((module) => ({ ...module, status: sourceStatus(module.status) })),
     lessons,
     vocabulary: seed.vocabulary_items.map((item) => ({
@@ -520,6 +550,7 @@ async function main(): Promise<void> {
       valid: true,
       source: DATA_PATH,
       course: seed.course.id,
+      officialMockExamConfig: OFFICIAL_MOCK_EXAM_CONFIG,
       counts: {
         modules: rows.modules.length,
         lessons: rows.lessons.length,
