@@ -17,11 +17,11 @@ interface ServiceAccount {
 
 let cachedGoogleToken: { accessToken: string; expiresAt: number } | null = null;
 
-function geminiEndpoint(): string {
+function geminiEndpoint(): { endpoint: string; apiKey: string } {
   const key = Deno.env.get('GEMINI_API_KEY');
   const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
   if (!key) throw new Error('SERVICE_CONFIG_MISSING');
-  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  return { endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, apiKey: key };
 }
 
 function getServiceAccount(): ServiceAccount {
@@ -129,9 +129,10 @@ function parseFeedback(value: string, confidence: number | null): SpeakingFeedba
 }
 
 async function assessTranscript(transcript: string, instructions: string, rubric: unknown, confidence: number | null): Promise<SpeakingFeedback> {
-  const response = await fetch(geminiEndpoint(), {
+  const { endpoint, apiKey } = geminiEndpoint();
+  const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: [
         'Bạn là giám khảo luyện nói tiếng Nhật Tokutei Gino cho học viên Việt Nam.',
@@ -202,6 +203,7 @@ Deno.serve(async (request) => {
 
     getServiceAccount();
     geminiEndpoint();
+    // TODO(ai-quota): quota is consumed before provider response; move to success accounting in a separate schema-reviewed change.
     const { error: rateError } = await client.rpc('consume_ai_rate_limit', { target_feature: 'speaking' });
     if (rateError) throw new Error(rateError.message);
     const { error: quotaError } = await client.rpc('consume_ai_quota', { target_feature: 'speaking' });

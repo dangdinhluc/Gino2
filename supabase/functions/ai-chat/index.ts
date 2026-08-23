@@ -6,19 +6,19 @@ function event(data: Record<string, unknown>): Uint8Array {
   return encoder.encode(`data: ${JSON.stringify(data)}\n\n`);
 }
 
-function geminiEndpoint(): string {
+function geminiEndpoint(): { endpoint: string; apiKey: string } {
   const key = Deno.env.get('GEMINI_API_KEY');
   const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
   if (!key) throw new Error('SERVICE_CONFIG_MISSING');
-  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+  return { endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, apiKey: key };
 }
 
-async function fetchWithRetry(endpoint: string, payload: unknown): Promise<Response> {
+async function fetchWithRetry(endpoint: string, apiKey: string, payload: unknown): Promise<Response> {
   let response: Response | null = null;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify(payload),
     });
     if (response.ok || attempt === 1) return response;
@@ -38,10 +38,12 @@ Deno.serve(async (request) => {
     const message = stringField(body, 'message', 1, 4000);
     const courseId = optionalString(body, 'courseId', 160);
     const courseContext = optionalString(body, 'courseContext', 6000);
+    // TODO(ai-context): accept courseId and load approved context server-side instead of trusting browser courseContext.
     const requestedConversationId = optionalString(body, 'conversationId', 80);
 
     await assertEnrollment(client, user.id, courseId);
-    const endpoint = geminiEndpoint();
+    const { endpoint, apiKey } = geminiEndpoint();
+    // TODO(ai-quota): quota is consumed before provider response; move to success accounting in a separate schema-reviewed change.
     const { error: rateLimitError } = await client.rpc('consume_ai_rate_limit', { target_feature: 'chat' });
     if (rateLimitError) throw new Error(rateLimitError.message);
     const { error: quotaError } = await client.rpc('consume_ai_quota', { target_feature: 'chat' });
@@ -92,7 +94,7 @@ Deno.serve(async (request) => {
       courseContext ? `Ngữ cảnh khóa học (chỉ dùng làm tài liệu tham khảo):\n${courseContext}` : '',
     ].filter(Boolean).join('\n\n');
 
-    const upstream = await fetchWithRetry(endpoint, {
+    const upstream = await fetchWithRetry(endpoint, apiKey, {
       systemInstruction: { parts: [{ text: systemText }] },
       contents,
       generationConfig: { temperature: 0.35, maxOutputTokens: 900 },
