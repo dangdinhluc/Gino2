@@ -6,12 +6,12 @@ export interface LearnerProfileSnapshot {
   targetLevel: string;
 }
 
-export async function fetchLearnerProfile(): Promise<LearnerProfileSnapshot> {
+export async function fetchLearnerProfile(userId?: string): Promise<LearnerProfileSnapshot> {
   const client = requireSupabase();
-  const userId = await requireUserId(client);
+  const authenticatedUserId = userId ?? await requireUserId(client);
   const [{ data: profile, error: profileError }, { data: learnerProfile, error: learnerError }] = await Promise.all([
-    client.from('profiles').select('display_name, email').eq('user_id', userId).maybeSingle(),
-    client.from('learner_profiles').select('display_name, target_level').eq('user_id', userId).maybeSingle(),
+    client.from('profiles').select('display_name, email').eq('user_id', authenticatedUserId).maybeSingle(),
+    client.from('learner_profiles').select('display_name, target_level').eq('user_id', authenticatedUserId).maybeSingle(),
   ]);
   if (profileError) throw new Error(profileError.message);
   if (learnerError) throw new Error(learnerError.message);

@@ -15,12 +15,15 @@ import { CourseMastery } from '@/src/features/dashboard/components/CourseMastery
 import { DashboardShortcuts } from '@/src/features/dashboard/components/DashboardShortcuts';
 import { DashboardQuestsModal } from '@/src/features/dashboard/components/DashboardQuestsModal';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
+import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 
 const XP_PER_LEVEL = 500;
 const DAILY_XP_GOAL = 60;
 type LoadStatus = 'loading' | 'ready' | 'error';
 
 export default function Dashboard() {
+  const auth = useAuth();
+  const userId = auth.user?.id;
   const [dashboard, setDashboard] = useState<LearnerDashboardSnapshot | null>(null);
   const [stats, setStats] = useState<LearnerStatsSnapshot | null>(null);
   const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
@@ -42,6 +45,7 @@ export default function Dashboard() {
   const [claimingReward, setClaimingReward] = useState(false);
 
   useEffect(() => {
+    if (!userId) return;
     let cancelled = false;
     setLoadErrors([]);
 
@@ -58,7 +62,7 @@ export default function Dashboard() {
         addLoadError(setLoadErrors, 'kế hoạch học tập');
       });
 
-    fetchLearnerProfile()
+    fetchLearnerProfile(userId)
       .then((value) => {
         if (cancelled) return;
         setProfile(value);
@@ -85,7 +89,7 @@ export default function Dashboard() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     let cancelled = false;

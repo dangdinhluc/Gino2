@@ -41,8 +41,10 @@ export default function Profile() {
   const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
 
   useEffect(() => {
+    const userId = auth.user?.id;
+    if (!userId) return;
     let cancelled = false;
-    Promise.all([fetchLearnerProfile(), fetchLearnerDashboard(), fetchLearnerStats()])
+    Promise.all([fetchLearnerProfile(userId), fetchLearnerDashboard(), fetchLearnerStats()])
       .then(([snapshot, nextDashboard, nextStats]) => {
         if (cancelled) return;
         setProfile(snapshot);
@@ -51,7 +53,7 @@ export default function Profile() {
       })
       .catch((nextError: unknown) => { if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được hồ sơ.'); });
     return () => { cancelled = true; };
-  }, []);
+  }, [auth.user?.id]);
 
   useEffect(() => {
     let cancelled = false;

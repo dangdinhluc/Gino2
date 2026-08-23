@@ -73,8 +73,6 @@ export async function getDueVocabularyCards(limit = 50): Promise<DueVocabularyCa
   if (!supabase) {
     throw new Error('Supabase chưa được cấu hình.');
   }
-  await requireUserId();
-
   const { data, error } = await supabase.rpc('get_due_vocabulary_cards', { target_limit: Math.min(Math.max(limit, 1), 100) });
   if (error) throw new Error(error.message);
   return (data ?? []).map((card) => ({
@@ -97,8 +95,6 @@ export async function submitVocabularyRating(vocabularyItemId: string, rating: V
   if (!supabase) {
     throw new Error('Supabase chưa được cấu hình.');
   }
-  await requireUserId();
-
   const { data, error } = await supabase.rpc('submit_vocabulary_rating', {
     target_vocabulary_item_id: vocabularyItemId,
     target_rating: rating,
@@ -119,8 +115,6 @@ export async function submitReviewAnswer(questionId: string, optionId: string): 
   if (!supabase) {
     throw new Error('Supabase chưa được cấu hình.');
   }
-  await requireUserId();
-
   const { data, error } = await supabase.rpc('submit_review_answer', {
     target_question_id: questionId,
     target_option_id: optionId,
