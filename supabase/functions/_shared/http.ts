@@ -88,24 +88,31 @@ export function optionalString(body: Record<string, unknown>, field: string, max
 }
 
 export function handleError(error: unknown, request: Request): Response {
-  const message = error instanceof Error ? error.message : 'REQUEST_FAILED';
-  if (message === 'AUTH_REQUIRED') return errorResponse('Đăng nhập là bắt buộc.', 401, request);
-  if (message === 'NOTIFICATION_DISPATCH_UNAUTHORIZED') return errorResponse('Yêu cầu dispatcher không hợp lệ.', 401, request);
-  if (message === 'NOTIFICATION_DISPATCH_CONFIG_MISSING') return errorResponse('Notification dispatcher chưa được cấu hình.', 503, request);
-  if (message === 'ORIGIN_NOT_ALLOWED') return errorResponse('Origin không được phép.', 403, request);
-  if (message === 'OWNER_PERMISSION_REQUIRED') return errorResponse('Chỉ Owner có thể thực hiện thao tác này.', 403, request);
-  if (message === 'ENROLLMENT_REQUIRED') return errorResponse('Tài khoản chưa được cấp quyền vào khóa học.', 403, request);
-  if (message === 'AI_QUOTA_EXCEEDED') return errorResponse('Đã hết quota AI trong tháng.', 429, request);
-  if (message === 'AI_RATE_LIMITED') return errorResponse('Thao tác quá nhanh. Vui lòng thử lại sau một phút.', 429, request);
-  if (message === 'SERVICE_CONFIG_MISSING') return errorResponse('AI service chưa được cấu hình.', 503, request);
-  if (message === 'EMAIL_SERVICE_CONFIG_MISSING') return errorResponse('Email service chưa được cấu hình.', 503, request);
-  if (message === 'INVALID_BATCH_SIZE') return errorResponse('Số lượng email mỗi lượt không hợp lệ.', 400, request);
-  if (message === 'APP_ORIGIN_REQUIRED') return errorResponse('Chưa cấu hình URL ứng dụng cho lời mời.', 503, request);
-  if (message === 'INVALID_EMAIL') return errorResponse('Email nhân sự không hợp lệ.', 400, request);
-  if (message === 'INVALID_STAFF_ROLE') return errorResponse('Vai trò nhân sự không hợp lệ.', 400, request);
-  if (message.startsWith('STAFF_INVITE_FAILED')) return errorResponse('Không thể gửi lời mời. Email có thể đã có tài khoản hoặc email Auth chưa được cấu hình.', 400, request);
-  if (message === 'STAFF_INVITE_ROLE_GRANT_FAILED') return errorResponse('Không thể gán quyền cho nhân sự vừa mời.', 500, request);
-  if (message.startsWith('EMAIL_PROVIDER_')) return errorResponse('Nhà cung cấp email tạm thời không phản hồi. Hệ thống sẽ thử lại.', 502, request);
-  if (message.startsWith('GEMINI_') || message.startsWith('SPEECH_')) return errorResponse('Dịch vụ AI tạm thời không phản hồi. Vui lòng thử lại.', 502, request);
-  return errorResponse(message, 400, request);
+  const code = error instanceof Error ? error.message : 'REQUEST_FAILED';
+  const mapped: Record<string, [string, number]> = {
+    AUTH_REQUIRED: ['Đăng nhập là bắt buộc.', 401],
+    NOTIFICATION_DISPATCH_UNAUTHORIZED: ['Yêu cầu dispatcher không hợp lệ.', 401],
+    NOTIFICATION_DISPATCH_CONFIG_MISSING: ['Notification dispatcher chưa được cấu hình.', 503],
+    ORIGIN_NOT_ALLOWED: ['Origin không được phép.', 403],
+    OWNER_PERMISSION_REQUIRED: ['Chỉ Owner có thể thực hiện thao tác này.', 403],
+    STAFF_PERMISSION_REQUIRED: ['Tài khoản không có quyền thực hiện thao tác này.', 403],
+    ENROLLMENT_REQUIRED: ['Tài khoản chưa được cấp quyền vào khóa học.', 403],
+    AI_QUOTA_EXCEEDED: ['Đã hết quota AI trong tháng.', 429],
+    AI_RATE_LIMITED: ['Thao tác quá nhanh. Vui lòng thử lại sau một phút.', 429],
+    SERVICE_CONFIG_MISSING: ['AI service chưa được cấu hình.', 503],
+    EMAIL_SERVICE_CONFIG_MISSING: ['Email service chưa được cấu hình.', 503],
+    INVALID_PAYLOAD: ['Dữ liệu yêu cầu không hợp lệ.', 400],
+    INVALID_BATCH_SIZE: ['Số lượng email mỗi lượt không hợp lệ.', 400],
+    APP_ORIGIN_REQUIRED: ['Chưa cấu hình URL ứng dụng cho lời mời.', 503],
+    INVALID_EMAIL: ['Email nhân sự không hợp lệ.', 400],
+    INVALID_STAFF_ROLE: ['Vai trò nhân sự không hợp lệ.', 400],
+    STAFF_INVITE_ROLE_GRANT_FAILED: ['Không thể gán quyền cho nhân sự vừa mời.', 500],
+  };
+  const known = mapped[code];
+  if (known) return errorResponse(known[0], known[1], request);
+  if (code.startsWith('INVALID_')) return errorResponse('Dữ liệu yêu cầu không hợp lệ.', 400, request);
+  if (code.startsWith('STAFF_INVITE_FAILED')) return errorResponse('Không thể gửi lời mời. Email có thể đã có tài khoản hoặc email Auth chưa được cấu hình.', 400, request);
+  if (code.startsWith('EMAIL_PROVIDER_') || code.startsWith('GEMINI_') || code.startsWith('SPEECH_')) return errorResponse('Dịch vụ tạm thời không phản hồi. Vui lòng thử lại.', 502, request);
+  console.error('[edge-function]', { code, name: error instanceof Error ? error.name : 'UnknownError' });
+  return errorResponse('Không thể xử lý yêu cầu.', 500, request);
 }
