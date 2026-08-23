@@ -123,7 +123,7 @@ Authenticated rows below are source/unit instrumentation, not live browser count
 | Current production `get_learner_stats()` EXPLAIN | 4,951.729 ms | 7.348 ms first run; 3.528 ms warm run |
 | Current production `get_learner_dashboard()` EXPLAIN | Not measured separately | 8.013 ms |
 | Current production `get_daily_learning_plan()` EXPLAIN | Not measured separately | 16.822 ms |
-| `pg_timezone_names` access | In the read helper path | Write-boundary validation in pending migration |
+| `pg_timezone_names` access | In the read helper path | Write-boundary validation in the applied migration |
 
 ## Bundle comparison
 
