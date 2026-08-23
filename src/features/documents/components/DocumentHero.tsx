@@ -37,6 +37,8 @@ export function DocumentHero({ totalCount }: DocumentHeroProps) {
           <img
             src={assets.documents.mascot}
             alt="Tokutei Documents Tanuki Mascot"
+            loading="lazy"
+            decoding="async"
             className="h-22 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-28 md:h-32 drop-shadow-md"
           />
         </div>

@@ -7,21 +7,21 @@ const asset = (path: string) => assetPath(`assets/${path}`);
 export const assets = {
   shared: {
     backgrounds: {
-      dashboardLibrary: asset('shared/backgrounds/dashboard-library-background.png'),
+      dashboardLibrary: asset('shared/backgrounds/dashboard-library-background.webp'),
       englishHero: asset('shared/backgrounds/english-hero-background.jpg'),
     },
     mascots: {
-      aiTutorTanuki: asset('shared/mascots/ai-tutor-tanuki.png'),
-      brand: asset('shared/mascots/brand-mascot.png'),
-      meow: asset('shared/mascots/meow-mascot.png'),
-      sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.png'),
+      aiTutorTanuki: asset('shared/mascots/ai-tutor-tanuki.webp'),
+      brand: asset('shared/mascots/brand-mascot.webp'),
+      meow: asset('shared/mascots/meow-mascot.webp'),
+      sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.webp'),
     },
     navigation: {
-      courses: asset('shared/navigation/courses.png'),
-      exams: asset('shared/navigation/exams.png'),
-      home: asset('shared/navigation/home.png'),
-      profile: asset('shared/navigation/profile.png'),
-      vocabulary: asset('shared/navigation/vocabulary.png'),
+      courses: asset('shared/navigation/courses.webp'),
+      exams: asset('shared/navigation/exams.webp'),
+      home: asset('shared/navigation/home.webp'),
+      profile: asset('shared/navigation/profile.webp'),
+      vocabulary: asset('shared/navigation/vocabulary.webp'),
     },
   },
   courses: {
@@ -47,8 +47,8 @@ export const assets = {
     },
   },
   games: {
-    giftBox: asset('games/gift-box.png'),
-    mascot: asset('games/game-tanuki.png'),
+    giftBox: asset('games/gift-box.webp'),
+    mascot: asset('games/game-tanuki.webp'),
     icons: {
       calendar: asset('games/icons/calendar.png'),
       chart: asset('games/icons/chart.png'),
@@ -56,18 +56,18 @@ export const assets = {
       trophy: asset('games/icons/trophy.png'),
     },
     thumbnails: {
-      flappy: asset('games/thumbnails/flappy.png'),
-      situation: asset('games/thumbnails/situation.png'),
-      sprint: asset('games/thumbnails/sprint.png'),
+      flappy: asset('games/thumbnails/flappy.webp'),
+      situation: asset('games/thumbnails/situation.webp'),
+      sprint: asset('games/thumbnails/sprint.webp'),
     },
   },
   exams: {
-    mascot: asset('exams/tanuki.png'),
+    mascot: asset('exams/tanuki.webp'),
   },
   documents: {
-    mascot: asset('documents/tanuki.png'),
+    mascot: asset('documents/tanuki.webp'),
   },
   vocabulary: {
-    mascot: asset('vocabulary/tanuki.png'),
+    mascot: asset('vocabulary/tanuki.webp'),
   },
 } as const;

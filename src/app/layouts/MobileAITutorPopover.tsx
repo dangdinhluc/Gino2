@@ -83,6 +83,7 @@ export function MobileAITutorPopover() {
             <img
               src={assets.shared.mascots.aiTutorTanuki}
               alt="Tokutei AI Chat Mascot"
+              decoding="async"
               className="h-full w-full object-contain scale-125"
             />
           </div>
