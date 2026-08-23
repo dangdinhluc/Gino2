@@ -73,8 +73,7 @@ export function rowsFor(data: ProductionData, section: SectionId): Row[] {
 
 export function sectionCount(data: ProductionData, section: SectionId): number | null {
   if (section === 'overview') return null;
-  if (section === 'students') return data.students.length;
-  return rowsFor(data, section).length;
+  return data.counts[section] ?? (section === 'students' ? data.students.length : rowsFor(data, section).length);
 }
 
 export function fieldsFor(section: SectionId, data: ProductionData): CmsField[] {

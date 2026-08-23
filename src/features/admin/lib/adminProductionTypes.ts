@@ -80,10 +80,11 @@ export interface ProductionData {
   revisions: Tables<'content_revisions'>[];
   activity: Tables<'admin_activity_logs'>[];
   analytics: AdminAnalytics | null;
+  counts: Partial<Record<SectionId, number>>;
 }
 
 export const emptyProductionData = (): ProductionData => ({
   courses: [], modules: [], lessons: [], vocabulary: [], assessments: [], questions: [], documents: [], audio: [], lessonAssets: [], lessonExercises: [], lessonVocabulary: [], reviewQuestions: [], reviewOptions: [], grammarTopics: [], grammarRules: [], grammarExamples: [], grammarTopicCourses: [], speakingPrompts: [],
   packages: [], packageCourses: [], prompts: [], sitePages: [], dashboardHero: [], students: [], enrollments: [], announcements: [], staff: [], alerts: [],
-  apiKeys: [], revisions: [], activity: [], analytics: null,
+  apiKeys: [], revisions: [], activity: [], analytics: null, counts: {},
 });
