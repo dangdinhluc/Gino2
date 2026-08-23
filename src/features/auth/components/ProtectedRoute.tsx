@@ -25,13 +25,13 @@ function AuthShell({ title, body }: { title: string; body: string }) {
 
 export function ProtectedRoute({ area, children }: ProtectedRouteProps) {
   const location = useLocation();
-  const { isAuthenticated, isAdmin, isLoading, isSupabaseConfigured } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading, isSupabaseConfigured, staffRoleStatus } = useAuth();
 
   if (isLoading) {
     return <AuthShell title="Đang kiểm tra phiên đăng nhập" body="Em đang xác thực session Supabase trước khi mở khu vực học/admin." />;
   }
 
-  const decision = decideAuthRouteAccess({ area, isAuthenticated, isAdmin, isSupabaseConfigured });
+  const decision = decideAuthRouteAccess({ area, isAuthenticated, isAdmin, staffRoleStatus, isSupabaseConfigured });
 
   if (decision.status === 'setup-required') {
     return (
@@ -44,6 +44,14 @@ export function ProtectedRoute({ area, children }: ProtectedRouteProps) {
 
   if (decision.status === 'redirect') {
     return <Navigate to={decision.to} replace state={{ from: `${location.pathname}${location.search}${location.hash}` }} />;
+  }
+
+  if (decision.status === 'loading-role') {
+    return <AuthShell title="Đang kiểm tra quyền admin" body="Phiên đăng nhập vẫn hợp lệ. Đang xác minh quyền nhân sự." />;
+  }
+
+  if (decision.status === 'role-error') {
+    return <AuthShell title="Không thể xác minh quyền admin" body="Phiên đăng nhập vẫn hợp lệ. Vui lòng tải lại để thử xác minh quyền nhân sự." />;
   }
 
   if (decision.status === 'denied') {

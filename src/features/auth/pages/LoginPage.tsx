@@ -54,6 +54,7 @@ export default function LoginPage({ area }: LoginPageProps) {
     area,
     isAuthenticated: auth.isAuthenticated,
     isAdmin: auth.isAdmin,
+    staffRoleStatus: auth.staffRoleStatus,
     isSupabaseConfigured: auth.isSupabaseConfigured,
   });
 

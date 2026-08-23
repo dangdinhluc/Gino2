@@ -10,11 +10,14 @@ interface AuthActionResult {
 
 export type StaffRole = 'owner' | 'content_editor' | 'instructor_support' | 'analyst';
 
+export type StaffRoleStatus = 'idle' | 'loading' | 'loaded' | 'error';
+
 interface AuthState {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
   staffRole: StaffRole | null;
+  staffRoleStatus: StaffRoleStatus;
   isLoading: boolean;
   error: string | null;
 }
@@ -36,6 +39,7 @@ const initialState: AuthState = {
   user: null,
   isAdmin: false,
   staffRole: null,
+  staffRoleStatus: 'idle',
   isLoading: true,
   error: null,
 };
@@ -139,24 +143,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const requestId = sessionRequestIdRef.current + 1;
     sessionRequestIdRef.current = requestId;
 
+    if (!session) {
+      if (isMountedRef.current) setState({ ...initialState, isLoading: false });
+      return;
+    }
+
+    setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'loading', isLoading: false, error: null });
     try {
-      const staffRole = await loadStaffRole(session?.user ?? null);
-
-      if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) {
-        return;
-      }
-
-      setState({
-        session,
-        user: session?.user ?? null,
-        isAdmin: staffRole !== null,
-        staffRole,
-        isLoading: false,
-        error: null,
-      });
+      const staffRole = await loadStaffRole(session.user);
+      if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) return;
+      setState({ session, user: session.user, isAdmin: staffRole !== null, staffRole, staffRoleStatus: 'loaded', isLoading: false, error: null });
     } catch (error: unknown) {
       if (isMountedRef.current && sessionRequestIdRef.current === requestId) {
-        setState({ ...initialState, isLoading: false, error: getAuthErrorMessage(error) });
+        setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'error', isLoading: false, error: getAuthErrorMessage(error) });
       }
     }
   }, []);
