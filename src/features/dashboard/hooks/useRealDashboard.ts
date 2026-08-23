@@ -1,35 +1,48 @@
-import { useEffect, useState } from 'react';
-import { fetchRealDashboard } from '../repositories/realDashboardRepository';
-import type { RealDashboardData } from '../types';
+import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/src/features/auth/lib/AuthProvider';
+import { fetchRealDashboardData, type RealDashboardData } from '@/src/features/dashboard/repositories/realDashboardRepository';
 
 export function useRealDashboard() {
+  const { user } = useAuth();
   const [data, setData] = useState<RealDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const refetch = useCallback(() => setReloadToken((value) => value + 1), []);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
-    async function load() {
-      try {
-        setLoading(true);
-        const dashboard = await fetchRealDashboard();
-        if (mounted) setData(dashboard);
-      } catch (e) {
-        if (mounted) {
-          setError(e instanceof Error ? e.message : 'Không thể tải dữ liệu dashboard');
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
+    if (!user?.id) {
+      setData(null);
+      setLoading(false);
+      setError(new Error('Vui lòng đăng nhập để xem Dashboard.'));
+      return () => {
+        cancelled = true;
+      };
     }
 
-    load();
+    setLoading(true);
+    setError(null);
+
+    fetchRealDashboardData(user.id)
+      .then((value) => {
+        if (cancelled) return;
+        setData(value);
+        setLoading(false);
+      })
+      .catch((reason: unknown) => {
+        if (cancelled) return;
+        setData(null);
+        setError(reason instanceof Error ? reason : new Error('Không thể tải dữ liệu Dashboard.'));
+        setLoading(false);
+      });
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [reloadToken, user?.id]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }

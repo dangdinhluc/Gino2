@@ -1,43 +1,102 @@
-import { fetchDailyLearningPlan, fetchLearnerDashboard } from './learnerDashboardRepository';
-import { fetchLearnerStats } from './learnerStatsRepository';
-import { fetchLearnerProfile } from '@/src/features/profile/repositories/profileRepository';
-import type { RealDashboardData } from '../types';
+import { fetchPublishedCourses, type CourseListEntry } from '@/src/features/courses/repositories/coursesRepository';
+import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
+import { fetchDailyLearningPlan, type DailyLearningPlan } from './learnerDashboardRepository';
+import { fetchLearnerStats, type LearnerStatsSnapshot } from './learnerStatsRepository';
 
-export async function fetchRealDashboard(userId: string, email?: string | null): Promise<RealDashboardData> {
-  const [snapshot, plan, stats, profile] = await Promise.all([
-    fetchLearnerDashboard(),
-    fetchDailyLearningPlan(),
-    fetchLearnerStats(),
-    fetchLearnerProfile(userId),
-  ]);
+export interface RealDashboardData {
+  profile: {
+    name: string;
+    avatar?: string;
+  };
+  activeCourse: {
+    id: string;
+    title: string;
+    progress: number;
+    nextLesson: { id: string; title: string } | null;
+  } | null;
+  courses: Array<{
+    id: string;
+    title: string;
+    progress: number;
+    image: string;
+    totalLessons: number;
+  }>;
+  today: {
+    vocabularyDue: number;
+    exercises: number;
+    lessons: number;
+  };
+  stats: {
+    streak: number;
+    xp: number;
+    learnedWords: number;
+    studyMinutes: number | null;
+  };
+  weakPoints: Array<{
+    title: string;
+    accuracy: number;
+  }>;
+}
 
-  const name = profile?.displayName || email?.split('@')[0] || 'Bạn';
+interface RealDashboardSources {
+  profile: LearnerProfileSnapshot;
+  stats: LearnerStatsSnapshot;
+  plan: DailyLearningPlan;
+  courses: CourseListEntry[];
+}
+
+export function mapRealDashboardData({ profile, stats, plan, courses }: RealDashboardSources): RealDashboardData {
+  const enrolledCourses = courses.filter((course) => course.isEnrolled === true);
+  const plannedCourse = enrolledCourses.find((course) => course.id === plan.nextLesson?.courseId) ?? null;
+  const activeCourseEntry = plannedCourse
+    ?? enrolledCourses.find((course) => course.progress > 0 && course.progress < 100)
+    ?? enrolledCourses[0]
+    ?? null;
+  const nextLesson = activeCourseEntry && plan.nextLesson?.courseId === activeCourseEntry.id
+    ? { id: plan.nextLesson.id, title: plan.nextLesson.title }
+    : null;
 
   return {
-    profile: {
-      name,
-      avatar: profile?.avatarUrl ?? null,
-    },
-    course: plan.nextLesson
+    profile: { name: profile.displayName },
+    activeCourse: activeCourseEntry
       ? {
-          id: plan.nextLesson.courseId,
-          title: plan.nextLesson.courseTitle,
-          progress: 0,
-          nextLesson: plan.nextLesson.title,
+          id: activeCourseEntry.id,
+          title: activeCourseEntry.title,
+          progress: activeCourseEntry.progress,
+          nextLesson,
         }
       : null,
+    courses: enrolledCourses.map((course) => ({
+      id: course.id,
+      title: course.title,
+      progress: course.progress,
+      image: course.image,
+      totalLessons: course.totalLessons,
+    })),
     today: {
       vocabularyDue: plan.dueVocabulary,
-      reviewCount: snapshot.completedLessons,
-      studyMinutes: plan.goalMinutes,
+      exercises: stats.reviewedToday,
+      lessons: nextLesson ? 1 : 0,
     },
     stats: {
-      streak: stats?.currentStreak ?? snapshot.streakDays,
-      xp: stats?.dailyXp ?? 0,
-      learnedWords: snapshot.masteredVocabulary,
+      streak: stats.currentStreak,
+      xp: stats.dailyXp,
+      learnedWords: stats.masteredVocabulary,
+      studyMinutes: null,
     },
     weakPoints: plan.weakAssessment
-      ? [{ title: plan.weakAssessment.title, score: plan.weakAssessment.score }]
+      ? [{ title: plan.weakAssessment.title, accuracy: plan.weakAssessment.score }]
       : [],
   };
+}
+
+export async function fetchRealDashboardData(userId: string): Promise<RealDashboardData> {
+  const [profile, stats, plan, courses] = await Promise.all([
+    fetchLearnerProfile(userId),
+    fetchLearnerStats(),
+    fetchDailyLearningPlan(),
+    fetchPublishedCourses(),
+  ]);
+
+  return mapRealDashboardData({ profile, stats, plan, courses });
 }

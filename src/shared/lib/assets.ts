@@ -13,27 +13,32 @@ import tanukiWavingIcon from '@/src/img/tanuki_waving.png';
 import mascotActiveRingIcon from '@/src/img/mascot_active_ring.png';
 import speechBubbleIcon from '@/src/img/speech_bubble.png';
 
-// Native 3D Assets & Layers from PSD (src/img/anh)
+// Native 3D Assets & Layers from PSD (src/img/ICON & src/img/anh)
+import mascotHeroWave from '@/src/img/ICON/01-mascot-hero-wave.png';
+import mascotReadingBook from '@/src/img/ICON/02-mascot-reading-book.png';
+import mascotVocabWriting from '@/src/img/ICON/03-mascot-vocab-writing.png';
+import mascotPracticePencil from '@/src/img/ICON/04-mascot-practice-pencil.png';
+import mascotNextLessonN5 from '@/src/img/ICON/05-mascot-next-lesson-n5.png';
+import mascotBackpack from '@/src/img/ICON/06-mascot-backpack.png';
+import iconJapaneseBooks from '@/src/img/ICON/07-icon-japanese-books.png';
+import iconChecklist from '@/src/img/ICON/08-icon-checklist.png';
+import iconOpenBook from '@/src/img/ICON/09-icon-open-book.png';
+import iconPassSign from '@/src/img/ICON/10-icon-pass-sign.png';
+import sceneJapanFujiTorii from '@/src/img/ICON/11-scene-japan-fuji-torii.png';
+import iconStudyTimer from '@/src/img/ICON/15-icon-study-timer.png';
+import iconXpStar from '@/src/img/ICON/16-icon-xp-star.png';
+import badgeStreak12 from '@/src/img/ICON/18-badge-streak-12.png';
+import badgeReward30xp from '@/src/img/ICON/19-badge-reward-30xp.png';
+import trophyAchievement from '@/src/img/ICON/20-trophy-achievement.png';
+import speechStudyTogether from '@/src/img/ICON/21-speech-study-together.png';
+import mascotQuickLearnActive from '@/src/img/ICON/22-mascot-quick-learn-active.png';
+import mascotSleep from '@/src/img/ICON/23-mascot-sleep.png';
+
+// Legacy / Alternative layers from src/img/anh
 import fujiLandscapeBanner from '@/src/img/anh/Lớp_1.png';
-import headerMascotWaving from '@/src/img/anh/Lớp_30.png';
-import mascotReadingGino from '@/src/img/anh/Lớp_29.png';
-import mascotWriting from '@/src/img/anh/Lớp_28.png';
-import mascotLaptop from '@/src/img/anh/Lớp_27.png';
-import mascotCelebrate from '@/src/img/anh/Lớp_26.png';
-import pagodaLandscape from '@/src/img/anh/Lớp_25.png';
 import mascotFaceWinking from '@/src/img/anh/Lớp_24.png';
-import mascotFaceSmiling from '@/src/img/anh/Lớp_23.png';
 import chestGold from '@/src/img/anh/Lớp_19.png';
-import xpStar from '@/src/img/anh/Lớp_18.png';
 import flameStreak from '@/src/img/anh/Lớp_17.png';
-import calendarPaw from '@/src/img/anh/Lớp_16.png';
-import pawPrint from '@/src/img/anh/Lớp_14.png';
-import lightbulb3D from '@/src/img/anh/Lớp_10.png';
-import trophyGold from '@/src/img/anh/Lớp_9.png';
-import gamepadPurple from '@/src/img/anh/Lớp_7.png';
-import openBookFlower from '@/src/img/anh/Lớp_5.png';
-import bookStackNihongo from '@/src/img/anh/Lớp_4.png';
-import speechBanner from '@/src/img/anh/Lớp_3.png';
 
 const assetBaseUrl = import.meta.env?.BASE_URL ?? '/';
 
@@ -47,37 +52,40 @@ export const assets = {
       dashboardLibrary: asset('shared/backgrounds/dashboard-library-background.webp'),
       englishHero: asset('shared/backgrounds/english-hero-background.jpg'),
       fujiLandscape: fujiLandscapeBanner,
-      pagodaLandscape,
+      fujiScene: sceneJapanFujiTorii,
     },
     mascots: {
       aiTutorTanuki: asset('shared/mascots/ai-tutor-tanuki.webp'),
       brand: asset('shared/mascots/brand-mascot.webp'),
       meow: asset('shared/mascots/meow-mascot.webp'),
       quickLearn: hocnhanhIcon,
-      quickLearnActive: mascotActiveRingIcon,
+      quickLearnActive: mascotQuickLearnActive,
       tanukiWaving: tanukiWavingIcon,
-      headerWaving: headerMascotWaving,
+      headerWaving: mascotHeroWave,
+      readingBook: mascotReadingBook,
+      vocabWriting: mascotVocabWriting,
+      practicePencil: mascotPracticePencil,
+      nextLessonN5: mascotNextLessonN5,
+      backpack: mascotBackpack,
+      sleep: mascotSleep,
       faceWinking: mascotFaceWinking,
-      faceSmiling: mascotFaceSmiling,
-      writing: mascotWriting,
-      reading: mascotReadingGino,
-      laptop: mascotLaptop,
-      celebrate: mascotCelebrate,
       speechBubble: speechBubbleIcon,
-      speechBanner,
-      lightbulb: lightbulb3D,
-      pawPrint,
+      speechBanner: speechStudyTogether,
+      lightbulb: meoIcon,
       sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.webp'),
     },
     dashboard: {
       chestGold,
-      xpStar,
+      xpStar: iconXpStar,
       flameStreak,
-      calendarPaw,
-      trophy: trophyGold,
-      gamepad: gamepadPurple,
-      bookStack: bookStackNihongo,
-      openBook: openBookFlower,
+      badgeStreak: badgeStreak12,
+      badgeReward30xp,
+      studyTimer: iconStudyTimer,
+      bookStack: iconJapaneseBooks,
+      checklist: iconChecklist,
+      openBook: iconOpenBook,
+      passSign: iconPassSign,
+      trophy: trophyAchievement,
     },
     navigation: {
       courses: khoahocIcon,
