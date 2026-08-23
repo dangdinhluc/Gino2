@@ -32,6 +32,7 @@ export function Sidebar() {
   const [stats, setStats] = useState<LearnerStatsSnapshot | null>(null);
   const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [brandImageFailed, setBrandImageFailed] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -168,15 +169,9 @@ export function Sidebar() {
             <motion.div whileHover={{ scale: 1.05 }} className="relative h-10 w-10 min-w-[40px]">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 opacity-50 blur-md" />
               <div className="relative flex h-full w-full items-center justify-center rounded-full bg-white shadow-lg">
-                <img
-                  src={assets.shared.mascots.brand}
-                  alt="Mascot"
-                  className="h-full w-full object-contain p-1"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">🐯</span>';
-                  }}
-                />
+                {brandImageFailed ? <span aria-hidden="true" className="text-2xl">🐯</span> : (
+                  <img src={assets.shared.mascots.brand} alt="Mascot" className="h-full w-full object-contain p-1" onError={() => setBrandImageFailed(true)} />
+                )}
               </div>
             </motion.div>
             {!isCollapsed && (
