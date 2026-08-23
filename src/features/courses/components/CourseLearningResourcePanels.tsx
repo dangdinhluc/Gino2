@@ -32,11 +32,11 @@ export function TabButton<T extends string>({ tab, activeTab, compact = false, o
       onKeyDown={(event) => onKeyDown(event, tab.id)}
       onClick={() => onSelect(tab.id)}
       className={cn(
-        'flex items-center rounded-2xl transition-all duration-200',
+        'flex items-center rounded-xl transition-all duration-150',
         compact
-          ? 'min-h-[3.35rem] w-full min-w-0 flex-col justify-center gap-0.5 px-0.5 py-1 text-[10px] sm:text-xs'
+          ? 'min-h-[3.35rem] w-full min-w-0 flex-col justify-center gap-0.5 px-0.5 py-1 text-[9px] sm:text-[10px]'
           : 'w-full gap-3 px-4 py-3 text-sm',
-        isActive ? 'font-black text-[#d83a00]' : 'text-[#7b8796] hover:text-[#172033]',
+        isActive ? 'font-extrabold text-[#6f45d8]' : 'font-semibold text-[#6f727c] hover:text-[#303138]',
         focusRing
       )}
     >
@@ -45,12 +45,12 @@ export function TabButton<T extends string>({ tab, activeTab, compact = false, o
           src={tab.imageIcon}
           alt=""
           className={cn(
-            'h-7 w-7 object-contain transition-transform duration-200 drop-shadow-2xs',
-            isActive ? 'scale-110' : 'filter grayscale-[20%] opacity-85'
+            'h-6 w-6 object-contain transition-transform duration-150 drop-shadow-2xs',
+            isActive ? 'scale-105' : 'opacity-70 grayscale-[15%]'
           )}
         />
       ) : (
-        <Icon size={20} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
+        <Icon size={18} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
       )}
       <span className="max-w-full truncate">{tab.label}</span>
     </button>
