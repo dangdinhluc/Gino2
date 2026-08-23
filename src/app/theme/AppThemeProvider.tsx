@@ -34,8 +34,12 @@ const AppThemeContext = createContext<AppThemeContextValue | null>(null);
 
 function getInitialBackground(): AppBackgroundId {
   if (typeof window === 'undefined') return 'sakura';
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  return APP_BACKGROUNDS.some((option) => option.id === saved) ? saved as AppBackgroundId : 'sakura';
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    return APP_BACKGROUNDS.some((option) => option.id === saved) ? saved as AppBackgroundId : 'sakura';
+  } catch {
+    return 'sakura';
+  }
 }
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
@@ -48,7 +52,11 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.appBackground = background;
-    window.localStorage.setItem(STORAGE_KEY, background);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, background);
+    } catch {
+      // Theme choice remains active for the current session when storage is unavailable.
+    }
   }, [background]);
 
   return <AppThemeContext.Provider value={{ background, setBackground }}>{children}</AppThemeContext.Provider>;
