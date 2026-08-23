@@ -3,8 +3,45 @@ import type { Database, Tables, TablesInsert } from '@/src/features/supabase/lib
 
 export type AdminDraft<T extends keyof Database['public']['Tables']> = Partial<Tables<T>> & { id?: string; isNew?: boolean };
 
+export interface AdminTablePage<T> {
+  rows: T[];
+  total: number;
+}
+
+export interface AdminTablePageOptions {
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  ascending?: boolean;
+  search?: string;
+  searchColumns?: readonly string[];
+  filters?: readonly { column: string; value: string }[];
+}
+
 export function insertDraft<T extends keyof Database['public']['Tables']>(id: string | undefined, payload: Partial<Tables<T>>): TablesInsert<T> {
   return { ...(id ? { id } : {}), ...payload } as TablesInsert<T>;
+}
+
+function safeSearch(value: string): string {
+  return value.normalize('NFKC').replace(/[^\p{L}\p{N}\s_-]/gu, ' ').trim().slice(0, 80);
+}
+
+export async function listAdminTablePage<T extends keyof Database['public']['Tables']>(table: T, options: AdminTablePageOptions): Promise<AdminTablePage<Tables<T>>> {
+  const client = await requireAdmin();
+  let query = client
+    .from(table)
+    .select('*', { count: 'exact' })
+    .order(options.orderBy as never, { ascending: options.ascending ?? false });
+  for (const filter of options.filters ?? []) query = query.eq(filter.column as never, filter.value);
+  const needle = safeSearch(options.search ?? '');
+  if (needle && options.searchColumns?.length) {
+    query = query.or(options.searchColumns.map((column) => `${column}.ilike.*${needle}*`).join(','));
+  }
+  const pageSize = Math.max(1, Math.min(Math.round(options.pageSize), 100));
+  const page = Math.max(0, Math.round(options.page));
+  const { data, error, count } = await query.range(page * pageSize, (page + 1) * pageSize - 1);
+  if (error) throw new Error(error.message);
+  return { rows: (data ?? []) as unknown as Tables<T>[], total: count ?? 0 };
 }
 
 export type AdminReviewOption = Database['public']['Functions']['get_admin_review_options']['Returns'][number];

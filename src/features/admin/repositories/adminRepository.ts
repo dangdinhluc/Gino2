@@ -1,6 +1,7 @@
 // Barrel re-export giữ API surface cũ không vỡ.
 export {
   getCurrentAdminRole,
+  listAdminTablePage,
   requireAdmin,
   type AdminAnalytics,
   type AdminContentReadiness,
@@ -8,6 +9,8 @@ export {
   type AdminEmailDelivery,
   type AdminLearnerDetail,
   type AdminLessonExercise,
+  type AdminTablePage,
+  type AdminTablePageOptions,
   type AdminReviewOption,
   type AdminStaffMember,
   type AdminStaffRole,

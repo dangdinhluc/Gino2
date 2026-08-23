@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   Bell,
@@ -81,6 +81,7 @@ import {
   listAdminSpeakingPrompts,
   listAdminStaff,
   listAdminStudents,
+  listAdminTablePage,
   listAdminVocabulary,
   publishAdminContent,
   rollbackAdminContentRevision,
@@ -118,7 +119,7 @@ import {
   type AdminStaffMember,
   type AdminStaffRole,
 } from '@/src/features/admin/repositories/adminRepository';
-import type { Tables } from '@/src/features/supabase/lib/database.types';
+import type { Database, Tables } from '@/src/features/supabase/lib/database.types';
 import { DASHBOARD_HERO_ASSET_OPTIONS } from '@/src/features/dashboard/lib/dashboardHero';
 
 type AssessmentQuestion = Awaited<ReturnType<typeof listAdminAssessmentQuestions>>[number];
@@ -197,13 +198,14 @@ interface ProductionData {
   revisions: Tables<'content_revisions'>[];
   activity: Tables<'admin_activity_logs'>[];
   analytics: AdminAnalytics | null;
+  counts: Partial<Record<SectionId, number>>;
 }
 
 const PAGE_SIZE = 12;
 const emptyData = (): ProductionData => ({
   courses: [], modules: [], lessons: [], vocabulary: [], assessments: [], questions: [], documents: [], audio: [], lessonAssets: [], lessonExercises: [], lessonVocabulary: [], reviewQuestions: [], reviewOptions: [], grammarTopics: [], grammarRules: [], grammarExamples: [], grammarTopicCourses: [], speakingPrompts: [],
   packages: [], packageCourses: [], prompts: [], sitePages: [], dashboardHero: [], students: [], enrollments: [], announcements: [], staff: [], alerts: [],
-  apiKeys: [], revisions: [], activity: [], analytics: null,
+  apiKeys: [], revisions: [], activity: [], analytics: null, counts: {},
 });
 
 const CONTENT_ENTITY_TYPES: Partial<Record<SectionId, string>> = {
@@ -276,47 +278,49 @@ function sectionsFor(role: AdminStaffRole): Array<{ id: SectionId; label: string
   return sections;
 }
 
-async function loadProductionData(role: AdminStaffRole): Promise<ProductionData> {
-  const content = isContentRole(role);
-  const learner = isLearnerRole(role);
-  const analytics = isAnalyticsRole(role);
-  const owner = role === 'owner';
-  const announcement = isAnnouncementRole(role) || role === 'analyst';
-  const [courses, modules, lessons, vocabulary, assessments, questions, documents, audio, lessonAssets, lessonExercises, lessonVocabulary, reviewQuestions, reviewOptions, grammarTopics, grammarRules, grammarExamples, grammarTopicCourses, speakingPrompts, packages, packageCourses, prompts, sitePages, dashboardHero, students, enrollments, announcements, staff, alerts, apiKeys, revisions, activity, analyticsData] = await Promise.all([
-    content ? listAdminCourses() : Promise.resolve([] as Tables<'courses'>[]),
-    content ? listAdminModules() : Promise.resolve([] as Tables<'course_modules'>[]),
-    content ? listAdminLessons() : Promise.resolve([] as Tables<'lessons'>[]),
-    content ? listAdminVocabulary() : Promise.resolve([] as Tables<'vocabulary_items'>[]),
-    content ? listAdminAssessments() : Promise.resolve([] as Tables<'assessments'>[]),
-    content ? listAdminAssessmentQuestions() : Promise.resolve([] as AssessmentQuestion[]),
-    content ? listAdminDocuments() : Promise.resolve([] as Tables<'documents'>[]),
-    content ? listAdminAudio() : Promise.resolve([] as Tables<'podcast_episodes'>[]),
-    content ? listAdminLessonAssets() : Promise.resolve([] as Tables<'lesson_assets'>[]),
-    content ? listAdminLessonExercises() : Promise.resolve([] as AdminLessonExercise[]),
-    content ? listAdminLessonVocabulary() : Promise.resolve([] as Tables<'lesson_vocabulary'>[]),
-    content ? listAdminReviewQuestions() : Promise.resolve([] as ReviewQuestion[]),
-    content ? listAdminReviewOptions() : Promise.resolve([] as AdminReviewOption[]),
-    content ? listAdminGrammarTopics() : Promise.resolve([] as Tables<'grammar_topics'>[]),
-    content ? listAdminGrammarRules() : Promise.resolve([] as Tables<'grammar_rules'>[]),
-    content ? listAdminGrammarExamples() : Promise.resolve([] as Tables<'grammar_examples'>[]),
-    content ? listAdminGrammarTopicCourses() : Promise.resolve([] as Tables<'grammar_topic_courses'>[]),
-    content ? listAdminSpeakingPrompts() : Promise.resolve([] as Tables<'speaking_prompts'>[]),
-    owner ? listAdminPackages() : Promise.resolve([] as Tables<'packages'>[]),
-    owner ? listAdminPackageCourses() : Promise.resolve([] as Tables<'package_courses'>[]),
-    owner ? listAdminPrompts() : Promise.resolve([] as Tables<'ai_prompts'>[]),
-    owner ? listAdminSitePages() : Promise.resolve([] as Tables<'site_pages'>[]),
-    owner ? listAdminDashboardHeroSlots() : Promise.resolve([] as Tables<'dashboard_hero_slots'>[]),
-    learner || owner ? listAdminStudents() : Promise.resolve([] as Tables<'profiles'>[]),
-    learner || owner ? listAdminEnrollments() : Promise.resolve([] as Tables<'enrollments'>[]),
-    announcement ? listAdminAnnouncements() : Promise.resolve([] as Tables<'announcements'>[]),
-    owner ? listAdminStaff() : Promise.resolve([] as AdminStaffMember[]),
-    analytics ? listAdminAlerts() : Promise.resolve([] as Tables<'admin_alerts'>[]),
-    owner ? listAdminApiKeyMetadata() : Promise.resolve([] as Tables<'api_key_metadata'>[]),
-    content ? listAdminContentRevisions() : Promise.resolve([] as Tables<'content_revisions'>[]),
-    analytics ? listAdminActivityLogs() : Promise.resolve([] as Tables<'admin_activity_logs'>[]),
-    analytics ? fetchAdminAnalytics() : Promise.resolve(null),
-  ]);
-  return { courses, modules, lessons, vocabulary, assessments, questions, documents, audio, lessonAssets, lessonExercises, lessonVocabulary, reviewQuestions, reviewOptions, grammarTopics, grammarRules, grammarExamples, grammarTopicCourses, speakingPrompts, packages, packageCourses, prompts, sitePages, dashboardHero, students, enrollments, announcements, staff, alerts, apiKeys, revisions, activity, analytics: analyticsData };
+type AdminTableName = keyof Database['public']['Tables'];
+
+function tablePage<T extends AdminTableName>(table: T, page: number, query: string, orderBy: string, searchColumns: readonly string[], options?: { ascending?: boolean; filters?: readonly { column: string; value: string }[] }) {
+  return listAdminTablePage(table, { page, pageSize: PAGE_SIZE, search: query, orderBy, searchColumns, ...options });
+}
+
+async function loadProductionData(role: AdminStaffRole, section: SectionId, page: number, query: string): Promise<ProductionData> {
+  const data = emptyData();
+  if (!sectionsFor(role).some((item) => item.id === section)) return data;
+  switch (section) {
+    case 'overview': {
+      const [analytics, alerts, activity] = await Promise.all([fetchAdminAnalytics(), listAdminAlerts(), listAdminActivityLogs()]);
+      data.analytics = analytics; data.alerts = alerts; data.activity = activity; data.counts.alerts = alerts.length; data.counts.activity = activity.length; return data;
+    }
+    case 'courses': { const result = await tablePage('courses', page, query, 'order_index', ['slug', 'title', 'level', 'description', 'status'], { ascending: true }); data.courses = result.rows; data.counts.courses = result.total; return data; }
+    case 'modules': { const [courses, result] = await Promise.all([listAdminCourses(), tablePage('course_modules', page, query, 'order_index', ['title', 'description', 'level', 'status'], { ascending: true })]); data.courses = courses; data.modules = result.rows; data.counts.modules = result.total; return data; }
+    case 'lessons': { const [courses, modules, result] = await Promise.all([listAdminCourses(), listAdminModules(), tablePage('lessons', page, query, 'order_index', ['title', 'description', 'lesson_type', 'status'], { ascending: true })]); data.courses = courses; data.modules = modules; data.lessons = result.rows; data.counts.lessons = result.total; return data; }
+    case 'vocabulary': { const result = await tablePage('vocabulary_items', page, query, 'term', ['term', 'reading', 'translation', 'level', 'pronunciation'], { ascending: true }); data.vocabulary = result.rows; data.counts.vocabulary = result.total; return data; }
+    case 'assessments': { const [courses, result] = await Promise.all([listAdminCourses(), tablePage('assessments', page, query, 'order_index', ['title', 'assessment_type', 'status'], { ascending: true })]); data.courses = courses; data.assessments = result.rows; data.counts.assessments = result.total; return data; }
+    case 'questions': { const [assessments, result] = await Promise.all([listAdminAssessments(), tablePage('assessment_questions', page, query, 'order_index', ['prompt', 'correct_answer', 'explanation'], { ascending: true })]); data.assessments = assessments; data.questions = result.rows as unknown as AssessmentQuestion[]; data.counts.questions = result.total; return data; }
+    case 'documents': { const [courses, result] = await Promise.all([listAdminCourses(), tablePage('documents', page, query, 'created_at', ['title', 'summary', 'document_type', 'status'])]); data.courses = courses; data.documents = result.rows; data.counts.documents = result.total; return data; }
+    case 'audio': { const [courses, lessons, result] = await Promise.all([listAdminCourses(), listAdminLessons(), tablePage('podcast_episodes', page, query, 'created_at', ['title', 'summary', 'status'])]); data.courses = courses; data.lessons = lessons; data.audio = result.rows; data.counts.audio = result.total; return data; }
+    case 'lessonAssets': { const [lessons, result] = await Promise.all([listAdminLessons(), tablePage('lesson_assets', page, query, 'created_at', ['title', 'description', 'asset_type'])]); data.lessons = lessons; data.lessonAssets = result.rows; data.counts.lessonAssets = result.total; return data; }
+    case 'lessonExercises': { const [lessons, result] = await Promise.all([listAdminLessons(), tablePage('lesson_exercises', page, query, 'order_index', ['prompt', 'exercise_type', 'answer'], { ascending: true })]); data.lessons = lessons; data.lessonExercises = result.rows as unknown as AdminLessonExercise[]; data.counts.lessonExercises = result.total; return data; }
+    case 'lessonVocabulary': { const [lessons, vocabulary, lessonVocabulary] = await Promise.all([listAdminLessons(), listAdminVocabulary(), listAdminLessonVocabulary()]); data.lessons = lessons; data.vocabulary = vocabulary; data.lessonVocabulary = lessonVocabulary; data.counts.lessonVocabulary = lessons.length; return data; }
+    case 'reviewQuestions': { const [lessons, reviewOptions, result] = await Promise.all([listAdminLessons(), listAdminReviewOptions(), tablePage('review_questions', page, query, 'order_index', ['prompt', 'explanation'], { ascending: true })]); data.lessons = lessons; data.reviewOptions = reviewOptions; data.reviewQuestions = result.rows; data.counts.reviewQuestions = result.total; return data; }
+    case 'grammarTopics': { const [courses, topicCourses, result] = await Promise.all([listAdminCourses(), listAdminGrammarTopicCourses(), tablePage('grammar_topics', page, query, 'order_index', ['slug', 'title', 'level', 'category', 'summary', 'status'], { ascending: true })]); data.courses = courses; data.grammarTopicCourses = topicCourses; data.grammarTopics = result.rows; data.counts.grammarTopics = result.total; return data; }
+    case 'grammarRules': { const [topics, result] = await Promise.all([listAdminGrammarTopics(), tablePage('grammar_rules', page, query, 'order_index', ['title', 'body_markdown'], { ascending: true })]); data.grammarTopics = topics; data.grammarRules = result.rows; data.counts.grammarRules = result.total; return data; }
+    case 'grammarExamples': { const [topics, result] = await Promise.all([listAdminGrammarTopics(), tablePage('grammar_examples', page, query, 'order_index', ['japanese_text', 'vietnamese_text', 'explanation'], { ascending: true })]); data.grammarTopics = topics; data.grammarExamples = result.rows; data.counts.grammarExamples = result.total; return data; }
+    case 'speakingPrompts': { const [courses, result] = await Promise.all([listAdminCourses(), tablePage('speaking_prompts', page, query, 'order_index', ['title', 'instructions', 'status'], { ascending: true })]); data.courses = courses; data.speakingPrompts = result.rows; data.counts.speakingPrompts = result.total; return data; }
+    case 'packages': { const [courses, packageCourses, result] = await Promise.all([listAdminCourses(), listAdminPackageCourses(), tablePage('packages', page, query, 'created_at', ['name', 'description', 'status'])]); data.courses = courses; data.packageCourses = packageCourses; data.packages = result.rows; data.counts.packages = result.total; return data; }
+    case 'prompts': { const result = await tablePage('ai_prompts', page, query, 'created_at', ['name', 'provider', 'purpose', 'prompt_body', 'status']); data.prompts = result.rows; data.counts.prompts = result.total; return data; }
+    case 'sitePages': { const result = await tablePage('site_pages', page, query, 'slug', ['slug', 'title', 'body_markdown', 'status'], { ascending: true }); data.sitePages = result.rows; data.counts.sitePages = result.total; return data; }
+    case 'dashboardHero': { const result = await tablePage('dashboard_hero_slots', page, query, 'sort_order', ['label', 'asset_key', 'alt_text'], { ascending: true }); data.dashboardHero = result.rows; data.counts.dashboardHero = result.total; return data; }
+    case 'students': { const [courses, packages, enrollments, result] = await Promise.all([listAdminCourses(), listAdminPackages(), listAdminEnrollments(), tablePage('profiles', page, query, 'created_at', ['display_name', 'email'], { filters: [{ column: 'profile_role', value: 'learner' }] })]); data.courses = courses; data.packages = packages; data.enrollments = enrollments; data.students = result.rows; data.counts.students = result.total; return data; }
+    case 'announcements': { const [courses, result] = await Promise.all([listAdminCourses(), tablePage('announcements', page, query, 'published_at', ['title', 'body', 'audience'])]); data.courses = courses; data.announcements = result.rows; data.counts.announcements = result.total; return data; }
+    case 'staff': { const staff = await listAdminStaff(); data.staff = staff; data.counts.staff = staff.length; return data; }
+    case 'alerts': { const result = await tablePage('admin_alerts', page, query, 'created_at', ['severity', 'title', 'body', 'status']); data.alerts = result.rows; data.counts.alerts = result.total; return data; }
+    case 'apiKeys': { const result = await tablePage('api_key_metadata', page, query, 'provider', ['provider', 'owner_name', 'masked_key', 'status'], { ascending: true }); data.apiKeys = result.rows; data.counts.apiKeys = result.total; return data; }
+    case 'revisions': { const result = await tablePage('content_revisions', page, query, 'created_at', ['entity_type', 'action']); data.revisions = result.rows; data.counts.revisions = result.total; return data; }
+    case 'activity': { const result = await tablePage('admin_activity_logs', page, query, 'occurred_at', ['action', 'entity_type', 'entity_id']); data.activity = result.rows; data.counts.activity = result.total; return data; }
+    default: return data;
+  }
 }
 
 function text(value: unknown): string {
@@ -390,8 +394,7 @@ function rowsFor(data: ProductionData, section: SectionId): Row[] {
 
 function sectionCount(data: ProductionData, section: SectionId): number | null {
   if (section === 'overview') return null;
-  if (section === 'students') return data.students.length;
-  return rowsFor(data, section).length;
+  return data.counts[section] ?? (section === 'students' ? data.students.length : rowsFor(data, section).length);
 }
 
 function fieldsFor(section: SectionId, data: ProductionData): CmsField[] {
@@ -506,20 +509,39 @@ export default function AdminProductionDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const roleRef = useRef<AdminStaffRole | null>(null);
+  const loadRequestRef = useRef(0);
 
-  async function reload(): Promise<void> {
+  async function loadSection(nextRole: AdminStaffRole, nextSection: SectionId, nextPage: number, nextQuery: string): Promise<void> {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
     setError(null);
     try {
-      const nextRole = await getCurrentAdminRole();
-      const nextData = await loadProductionData(nextRole);
-      setRole(nextRole);
+      const nextData = await loadProductionData(nextRole, nextSection, nextPage, nextQuery);
+      if (requestId !== loadRequestRef.current) return;
       setData(nextData);
-      const firstSection = sectionsFor(nextRole)[0]?.id ?? 'overview';
-      setSection((current) => sectionsFor(nextRole).some((item) => item.id === current) ? current : firstSection);
+    } catch (nextError: unknown) {
+      if (requestId === loadRequestRef.current) setError(nextError instanceof Error ? nextError.message : 'Không tải được CMS production.');
+    } finally {
+      if (requestId === loadRequestRef.current) setLoading(false);
+    }
+  }
+
+  async function reload(): Promise<void> {
+    try {
+      const nextRole = await getCurrentAdminRole();
+      roleRef.current = nextRole;
+      setRole(nextRole);
+      const availableSections = sectionsFor(nextRole);
+      const nextSection = availableSections.some((item) => item.id === section) ? section : availableSections[0]?.id ?? 'overview';
+      const nextPage = nextSection === section ? page : 0;
+      const nextQuery = nextSection === section ? query : '';
+      setSection(nextSection);
+      setPage(nextPage);
+      setQuery(nextQuery);
+      await loadSection(nextRole, nextSection, nextPage, nextQuery);
     } catch (nextError: unknown) {
       setError(nextError instanceof Error ? nextError.message : 'Không tải được CMS production.');
-    } finally {
       setLoading(false);
     }
   }
@@ -549,7 +571,7 @@ export default function AdminProductionDashboard() {
     if (!needle) return rawRows;
     return rawRows.filter((row) => Object.values(row).some((value) => text(value).toLocaleLowerCase('vi-VN').includes(needle)));
   }, [query, rawRows]);
-  const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil((data.counts[section] ?? filteredRows.length) / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);
   const pageRows = filteredRows.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const selectedStudent = data.students.find((student) => student.user_id === selectedStudentId) ?? null;
@@ -564,6 +586,21 @@ export default function AdminProductionDashboard() {
     setAssetFile(null);
     setSelectedRevision(null);
     setNotice(null);
+    const currentRole = roleRef.current;
+    if (currentRole) void loadSection(currentRole, nextSection, 0, '');
+  }
+
+  function searchSection(nextQuery: string): void {
+    setQuery(nextQuery);
+    setPage(0);
+    const currentRole = roleRef.current;
+    if (currentRole) void loadSection(currentRole, section, 0, nextQuery);
+  }
+
+  function changePage(nextPage: number): void {
+    setPage(nextPage);
+    const currentRole = roleRef.current;
+    if (currentRole) void loadSection(currentRole, section, nextPage, query);
   }
 
   function editRow(row: Row): void {
@@ -878,7 +915,7 @@ export default function AdminProductionDashboard() {
           {section !== 'overview' && section !== 'students' && section !== 'staff' && (
             <>
               {canEditSection && <form onSubmit={(event) => { event.preventDefault(); void saveForm(); }} className="rounded-3xl border border-[#E4D8C9] bg-[#FFFCF7] p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[#C96A1B]">{editingId ? 'Chỉnh sửa dữ liệu thật' : 'Tạo dữ liệu thật'}</p><p className="mt-1 text-sm text-[#5F6B7C]">Form có kiểm tra bắt buộc; không có JSON editor hoặc thao tác giả.</p></div><button type="button" onClick={startNew} className="rounded-xl border border-[#E4D8C9] px-3 py-2 text-xs font-bold text-[#315C73]">Bản ghi mới</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2">{fields.map((field) => <div key={field.key}><FieldControl field={field} value={form[field.key] ?? ''} onChange={(value) => setForm((current) => ({ ...current, [field.key]: value }))} /></div>)}</div>{(section === 'documents' || section === 'audio' || section === 'lessonAssets') && <label className="mt-4 block"><span className="text-xs font-bold text-[#5F6B7C]">Tệp private (tối đa 50 MB)</span><input type="file" accept={section === 'documents' ? '.pdf,text/markdown,text/plain' : section === 'audio' ? 'audio/*' : '.pdf,audio/*,image/*,text/markdown,text/plain'} onChange={(event) => setAssetFile(event.currentTarget.files?.[0] ?? null)} className="mt-1 block w-full text-sm" />{assetFile && <span className="mt-1 block text-xs text-[#5F6B7C]">Sẽ tải lên bucket private: {assetFile.name}</span>}</label>}<button type="submit" disabled={saving} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#C96A1B] px-4 py-2.5 text-sm font-black text-white disabled:opacity-60"><Send size={15} />{saving ? 'Đang lưu…' : editingId ? 'Lưu thay đổi' : section === 'announcements' ? 'Gửi thông báo' : 'Tạo bản ghi'}</button></form>}
-              <div className="rounded-3xl border border-[#E4D8C9] bg-[#FFFCF7] p-5 shadow-sm"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-black">{navigation.find((item) => item.id === section)?.label}</h2><p className="mt-1 text-sm text-[#5F6B7C]">{filteredRows.length} bản ghi theo quyền hiện tại.</p></div><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm kiếm…" className="rounded-xl border border-[#E4D8C9] bg-white px-3 py-2 text-sm outline-none focus:border-[#315C73]" /></div>{loading ? <p className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#5F6B7C]"><Loader2 size={16} className="animate-spin" /> Đang đồng bộ…</p> : <div className="mt-4 divide-y divide-[#EDE4D8]">{pageRows.map((row) => <article key={rowId(row)} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate font-black text-[#172033]">{rowTitle(row)}</p><p className="mt-1 truncate text-sm text-[#5F6B7C]">{rowMeta(row)}</p><p className="mt-1 text-xs text-[#8A95A3]">{formatDate(row.updated_at ?? row.created_at ?? row.published_at ?? row.occurred_at)}</p></div><div className="flex flex-wrap gap-2">{section === 'revisions' && <button type="button" onClick={() => setSelectedRevision(row as unknown as Tables<'content_revisions'>)} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Xem snapshot</button>}{section === 'revisions' && role === 'owner' && <button type="button" onClick={() => void rollbackRevision(row as unknown as Tables<'content_revisions'>)} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Rollback</button>}{canEditSection && section !== 'announcements' && <button type="button" onClick={() => editRow(row)} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Sửa</button>}{hasContentWorkflow && text(row.status) !== 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'in_review')} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Gửi duyệt</button>}{role === 'owner' && hasContentWorkflow && text(row.status) !== 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'published')} disabled={saving} className="rounded-xl bg-[#315C73] px-3 py-1.5 text-xs font-bold text-white">Publish</button>}{role === 'owner' && hasContentWorkflow && text(row.status) === 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'archived')} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Archive</button>}{section === 'announcements' && isAnnouncementRole(role) && !row.archived_at && <button type="button" onClick={() => void archiveAnnouncement(rowId(row))} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Archive</button>}{canDelete && <button type="button" onClick={() => void deleteRow(row)} disabled={saving} className="inline-flex items-center gap-1 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700"><Trash2 size={13} /> Xóa</button>}</div></article>)}{pageRows.length === 0 && <p className="py-10 text-center text-sm font-semibold text-[#7B8796]">Không có dữ liệu phù hợp.</p>}</div>}<div className="mt-4 flex items-center justify-between border-t border-[#EDE4D8] pt-4 text-sm"><span className="text-[#5F6B7C]">Trang {currentPage + 1}/{pageCount}</span><div className="flex gap-2"><button type="button" disabled={currentPage === 0} onClick={() => setPage((value) => Math.max(0, value - 1))} className="rounded-lg border border-[#E4D8C9] p-2 disabled:opacity-40"><ChevronLeft size={16} /></button><button type="button" disabled={currentPage + 1 >= pageCount} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))} className="rounded-lg border border-[#E4D8C9] p-2 disabled:opacity-40"><ChevronRight size={16} /></button></div></div></div>
+              <div className="rounded-3xl border border-[#E4D8C9] bg-[#FFFCF7] p-5 shadow-sm"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-black">{navigation.find((item) => item.id === section)?.label}</h2><p className="mt-1 text-sm text-[#5F6B7C]">{data.counts[section] ?? filteredRows.length} bản ghi theo quyền hiện tại.</p></div><input value={query} onChange={(event) => searchSection(event.target.value)} placeholder="Tìm kiếm…" className="rounded-xl border border-[#E4D8C9] bg-white px-3 py-2 text-sm outline-none focus:border-[#315C73]" /></div>{loading ? <p className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#5F6B7C]"><Loader2 size={16} className="animate-spin" /> Đang đồng bộ…</p> : <div className="mt-4 divide-y divide-[#EDE4D8]">{pageRows.map((row) => <article key={rowId(row)} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate font-black text-[#172033]">{rowTitle(row)}</p><p className="mt-1 truncate text-sm text-[#5F6B7C]">{rowMeta(row)}</p><p className="mt-1 text-xs text-[#8A95A3]">{formatDate(row.updated_at ?? row.created_at ?? row.published_at ?? row.occurred_at)}</p></div><div className="flex flex-wrap gap-2">{section === 'revisions' && <button type="button" onClick={() => setSelectedRevision(row as unknown as Tables<'content_revisions'>)} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Xem snapshot</button>}{section === 'revisions' && role === 'owner' && <button type="button" onClick={() => void rollbackRevision(row as unknown as Tables<'content_revisions'>)} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Rollback</button>}{canEditSection && section !== 'announcements' && <button type="button" onClick={() => editRow(row)} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Sửa</button>}{hasContentWorkflow && text(row.status) !== 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'in_review')} disabled={saving} className="rounded-xl border border-[#E4D8C9] px-3 py-1.5 text-xs font-bold text-[#315C73]">Gửi duyệt</button>}{role === 'owner' && hasContentWorkflow && text(row.status) !== 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'published')} disabled={saving} className="rounded-xl bg-[#315C73] px-3 py-1.5 text-xs font-bold text-white">Publish</button>}{role === 'owner' && hasContentWorkflow && text(row.status) === 'published' && <button type="button" onClick={() => void changeContentStatus(row, 'archived')} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Archive</button>}{section === 'announcements' && isAnnouncementRole(role) && !row.archived_at && <button type="button" onClick={() => void archiveAnnouncement(rowId(row))} disabled={saving} className="rounded-xl border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700">Archive</button>}{canDelete && <button type="button" onClick={() => void deleteRow(row)} disabled={saving} className="inline-flex items-center gap-1 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700"><Trash2 size={13} /> Xóa</button>}</div></article>)}{pageRows.length === 0 && <p className="py-10 text-center text-sm font-semibold text-[#7B8796]">Không có dữ liệu phù hợp.</p>}</div>}<div className="mt-4 flex items-center justify-between border-t border-[#EDE4D8] pt-4 text-sm"><span className="text-[#5F6B7C]">Trang {currentPage + 1}/{pageCount}</span><div className="flex gap-2"><button type="button" disabled={currentPage === 0} onClick={() => changePage(Math.max(0, currentPage - 1))} className="rounded-lg border border-[#E4D8C9] p-2 disabled:opacity-40"><ChevronLeft size={16} /></button><button type="button" disabled={currentPage + 1 >= pageCount} onClick={() => changePage(Math.min(pageCount - 1, currentPage + 1))} className="rounded-lg border border-[#E4D8C9] p-2 disabled:opacity-40"><ChevronRight size={16} /></button></div></div></div>
             </>
           )}
         </section>
