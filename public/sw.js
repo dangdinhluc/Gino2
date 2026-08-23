@@ -24,8 +24,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body || undefined,
-      icon: new URL('assets/games/game-tanuki.png', self.registration.scope).href,
-      badge: new URL('assets/games/game-tanuki.png', self.registration.scope).href,
+      icon: new URL('assets/games/game-tanuki.webp', self.registration.scope).href,
+      badge: new URL('assets/games/game-tanuki.webp', self.registration.scope).href,
       data: { url },
     }),
   );
