@@ -1,8 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, FileText, Lock, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, Clock3, FileText, Lock, Send } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { fetchAssessmentPaper, fetchAssessmentUnlockState, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
+
+const deadlineKey = (assessmentId: string) => `gino2:assessment-deadline:${assessmentId}`;
+
+function formatRemainingTime(totalSeconds: number): string {
+  const safeSeconds = Math.max(0, totalSeconds);
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+  return hours > 0
+    ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 export default function ExamRunner() {
   const navigate = useNavigate();
@@ -14,6 +26,8 @@ export default function ExamRunner() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
   const [lockState, setLockState] = useState<{ locked: boolean; label?: string } | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,6 +36,8 @@ export default function ExamRunner() {
     setActiveIndex(0);
     setSelectedAnswers({});
     setLockState(null);
+    setRemainingSeconds(null);
+    submittingRef.current = false;
 
     if (!assessmentId) {
       setLoadError('Thiếu mã đề thi. Vui lòng chọn đề từ trung tâm luyện thi.');
@@ -50,6 +66,61 @@ export default function ExamRunner() {
 
     return () => { cancelled = true; };
   }, [assessmentId]);
+
+  useEffect(() => {
+    if (!paper || !assessmentId || !paper.config.durationMinutes) {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    const key = deadlineKey(assessmentId);
+    const durationMs = paper.config.durationMinutes * 60_000;
+    const savedDeadline = Number(window.localStorage.getItem(key));
+    const deadline = Number.isFinite(savedDeadline) && savedDeadline > 0
+      ? savedDeadline
+      : Date.now() + durationMs;
+
+    if (!Number.isFinite(savedDeadline) || savedDeadline <= 0) {
+      window.localStorage.setItem(key, String(deadline));
+    }
+
+    const tick = () => setRemainingSeconds(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    tick();
+    const intervalId = window.setInterval(tick, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [assessmentId, paper]);
+
+  const submitCurrentAnswers = async (forced = false) => {
+    if (submittingRef.current || !assessmentId || !paper) return;
+
+    const unanswered = paper.questions.length - Object.keys(selectedAnswers).length;
+    if (!forced && unanswered > 0) {
+      const shouldSubmit = window.confirm(
+        `Bạn còn ${unanswered} câu chưa trả lời. Bạn vẫn muốn nộp bài ngay bây giờ?`,
+      );
+      if (!shouldSubmit) return;
+    }
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    try {
+      const result = await submitAssessment(assessmentId, selectedAnswers);
+      window.localStorage.removeItem(deadlineKey(assessmentId));
+      navigate(`/app/exams/${assessmentId}/result`, { state: { result } });
+    } catch (error: unknown) {
+      submittingRef.current = false;
+      setLoadError(error instanceof Error ? error.message : 'Không thể nộp bài.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (remainingSeconds !== 0 || !paper || submittingRef.current) return;
+    void submitCurrentAnswers(true);
+    // Auto-submit is intentionally triggered only when the countdown reaches zero.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingSeconds]);
 
   if (loadError) {
     return <PageState tone="error" message={loadError} />;
@@ -80,22 +151,12 @@ export default function ExamRunner() {
   const selectedAnswer = selectedAnswers[activeQuestion.id];
   const answeredCount = Object.keys(selectedAnswers).length;
   const progress = Math.round((answeredCount / paper.questions.length) * 100);
+  const questionContext = [activeQuestion.metadata.domain, activeQuestion.metadata.section, activeQuestion.metadata.kind]
+    .filter(Boolean)
+    .join(' · ');
 
   const handleAnswer = (option: string) => {
     setSelectedAnswers((currentAnswers) => ({ ...currentAnswers, [activeQuestion.id]: option }));
-  };
-
-  const handleSubmit = async () => {
-    if (isSubmitting || !assessmentId) return;
-    setIsSubmitting(true);
-    try {
-      const result = await submitAssessment(assessmentId, selectedAnswers);
-      navigate(`/app/exams/${assessmentId}/result`, { state: { result } });
-    } catch (error: unknown) {
-      setLoadError(error instanceof Error ? error.message : 'Không thể nộp bài.');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -115,10 +176,18 @@ export default function ExamRunner() {
             Câu {activeIndex + 1}/{paper.questions.length}
             <ChevronDown className={cn('transition-transform', isQuestionListOpen && 'rotate-180')} size={16} />
           </button>
-          <span className="inline-flex h-10 max-w-[10rem] shrink-0 items-center gap-1.5 truncate rounded-xl bg-[#fffaf3] px-2.5 text-xs font-bold text-[#5f6b7c]" title={paper.title}>
+          {remainingSeconds !== null && (
+            <span className={cn(
+              'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-xs font-black tabular-nums',
+              remainingSeconds <= 300 ? 'bg-red-50 text-red-700' : 'bg-[#fffaf3] text-[#5f6b7c]',
+            )} aria-label={`Thời gian còn lại ${formatRemainingTime(remainingSeconds)}`}>
+              <Clock3 size={15} /> {formatRemainingTime(remainingSeconds)}
+            </span>
+          )}
+          <span className="hidden h-10 max-w-[9rem] shrink-0 items-center gap-1.5 truncate rounded-xl bg-[#fffaf3] px-2.5 text-xs font-bold text-[#5f6b7c] sm:inline-flex" title={paper.title}>
             <FileText size={15} /> <span className="truncate">{paper.type}</span>
           </span>
-          <button type="button" onClick={() => void handleSubmit()} disabled={isSubmitting} className="flex h-10 shrink-0 items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800 transition-colors hover:border-orange-700 hover:bg-orange-700 hover:text-white disabled:opacity-50">
+          <button type="button" onClick={() => void submitCurrentAnswers()} disabled={isSubmitting} className="flex h-10 shrink-0 items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 text-xs font-bold text-orange-800 transition-colors hover:border-orange-700 hover:bg-orange-700 hover:text-white disabled:opacity-50">
             {isSubmitting ? 'Đang chấm…' : 'Nộp'} <Send size={14} />
           </button>
         </div>
@@ -136,7 +205,7 @@ export default function ExamRunner() {
                   aria-label={`Câu ${index + 1}${isAnswered ? ' (đã làm)' : ''}`}
                   className={cn(
                     'flex h-10 items-center justify-center rounded-xl border text-sm font-bold transition-colors',
-                    isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300'
+                    isActive ? 'border-orange-700 bg-orange-700 text-white' : isAnswered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#e8dccb] bg-[#fffdf8] text-[#95a0af] hover:border-orange-300',
                   )}
                 >
                   {isAnswered && !isActive ? <CheckCircle2 size={15} /> : index + 1}
@@ -153,7 +222,7 @@ export default function ExamRunner() {
 
       <main className="mx-auto w-full max-w-[680px] px-5 pb-28 pt-7 sm:px-7">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-700">{paper.type}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-orange-700">{questionContext || paper.type}</p>
           <span className="text-xs font-bold text-[#95a0af]">{answeredCount}/{paper.questions.length} đã làm</span>
         </div>
         <h1 className="mt-3 font-[var(--font-heading)] text-[clamp(1.5rem,5vw,2rem)] font-bold leading-[1.25] tracking-[-0.03em] text-[#172033]">{activeQuestion.prompt}</h1>
@@ -163,13 +232,13 @@ export default function ExamRunner() {
             const isSelected = selectedAnswer === option;
             return (
               <button
-                key={option}
+                key={`${activeQuestion.id}-${index}`}
                 type="button"
                 onClick={() => handleAnswer(option)}
                 aria-pressed={isSelected}
                 className={cn(
                   'flex min-h-15 items-center gap-4 rounded-2xl border bg-white px-4 py-3.5 text-left transition-colors',
-                  isSelected ? 'border-orange-700 bg-orange-50 text-orange-800 shadow-[0_0_0_1px_#c2410c]' : 'border-[#e8dccb] text-[#172033] hover:border-orange-300 hover:bg-[#fffaf3]'
+                  isSelected ? 'border-orange-700 bg-orange-50 text-orange-800 shadow-[0_0_0_1px_#c2410c]' : 'border-[#e8dccb] text-[#172033] hover:border-orange-300 hover:bg-[#fffaf3]',
                 )}
               >
                 <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-bold', isSelected ? 'border-orange-700 bg-orange-700 text-white' : 'border-[#e8dccb] bg-[#fffaf3] text-[#5f6b7c]')}>
@@ -188,7 +257,7 @@ export default function ExamRunner() {
             <ChevronLeft size={17} /> Câu trước
           </button>
           {activeIndex === paper.questions.length - 1 ? (
-            <button type="button" onClick={() => void handleSubmit()} disabled={isSubmitting} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800 disabled:opacity-50">
+            <button type="button" onClick={() => void submitCurrentAnswers()} disabled={isSubmitting} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-700 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-800 disabled:opacity-50">
               Nộp bài <Send size={16} />
             </button>
           ) : (
