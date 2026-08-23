@@ -8,9 +8,9 @@
   "theme_color": "#d83a00",
   "icons": [
     {
-      "src": "/Gino2/assets/shared/mascots/brand-mascot.png",
+      "src": "/Gino2/assets/shared/mascots/brand-mascot.webp",
       "sizes": "any",
-      "type": "image/png"
+      "type": "image/webp"
     }
   ]
 }
