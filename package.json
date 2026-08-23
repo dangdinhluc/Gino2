@@ -8,11 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
     "test": "tsx src/test/run-tests.ts",
     "seed:cloud-demo": "tsx scripts/seed-cloud-demo.ts seed",
     "verify:cloud-demo": "tsx scripts/seed-cloud-demo.ts verify",
-    "cleanup:cloud-demo": "tsx scripts/seed-cloud-demo.ts cleanup"
+    "cleanup:cloud-demo": "tsx scripts/seed-cloud-demo.ts cleanup",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",

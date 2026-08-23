@@ -43,7 +43,7 @@ jobs:
         run: npm run test
 
       - name: Type check
-        run: npm run lint
+        run: npm run typecheck
 
       - name: Build (base /Gino2/)
         run: npm run build
