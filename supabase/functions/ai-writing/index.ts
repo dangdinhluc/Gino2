@@ -8,19 +8,19 @@ interface WritingResult {
   rewritten: string;
 }
 
-function geminiEndpoint(): string {
-  const key = Deno.env.get('GEMINI_API_KEY');
+function geminiRequest(): { endpoint: string; apiKey: string } {
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
   const model = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
-  if (!key) throw new Error('SERVICE_CONFIG_MISSING');
-  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  if (!apiKey) throw new Error('SERVICE_CONFIG_MISSING');
+  return { endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, apiKey };
 }
 
-async function generate(endpoint: string, payload: unknown): Promise<Response> {
+async function generate(endpoint: string, apiKey: string, payload: unknown): Promise<Response> {
   let response: Response | null = null;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify(payload),
     });
     if (response.ok || attempt === 1) return response;
@@ -61,7 +61,7 @@ Deno.serve(async (request) => {
     const courseId = optionalString(body, 'courseId', 160);
     const promptId = optionalString(body, 'promptId', 160);
     await assertEnrollment(client, user.id, courseId);
-    const endpoint = geminiEndpoint();
+    const { endpoint, apiKey } = geminiRequest();
     const { error: rateLimitError } = await client.rpc('consume_ai_rate_limit', { target_feature: 'writing' });
     if (rateLimitError) throw new Error(rateLimitError.message);
 
@@ -74,7 +74,7 @@ Deno.serve(async (request) => {
       'Trả về JSON hợp lệ, không markdown, theo schema: score (0-100), summary (string), corrections (array of {original, corrected, explanation}), strengths (string[]), rewritten (string).',
       `Bài viết của học viên:\n${text}`,
     ].join('\n\n');
-    const upstream = await generate(endpoint, {
+    const upstream = await generate(endpoint, apiKey, {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.2, maxOutputTokens: 1400, responseMimeType: 'application/json' },
     });
