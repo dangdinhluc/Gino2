@@ -1,48 +1,13 @@
-import React from 'react';
-import { BookOpen } from 'lucide-react';
-import { assets } from '@/src/shared/lib/assets';
-
 interface DocumentHeroProps {
   totalCount: number;
 }
 
+/**
+ * Course workspace already provides the page title in its sticky header.
+ * Keep this component intentionally empty so the document screen matches
+ * the compact mobile mock instead of rendering a second hero banner.
+ */
 export function DocumentHero({ totalCount }: DocumentHeroProps) {
-  return (
-    <section className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] p-5 shadow-2xs sm:p-6">
-      {/* Background Japanese Watermark */}
-      <div
-        className="pointer-events-none absolute left-4 top-2 select-none text-4xl font-extrabold text-[#f7c297]/20"
-        aria-hidden="true"
-      >
-        書
-      </div>
-
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="font-[var(--font-heading)] text-xl font-extrabold tracking-[-0.02em] text-[#172033] sm:text-2xl">
-              Tài liệu
-            </h1>
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500 text-white shadow-xs">
-              <BookOpen size={14} />
-            </span>
-          </div>
-          <p className="text-xs font-semibold text-[#5f6b7c] sm:text-sm">
-            {totalCount} tài liệu học tập & hướng dẫn
-          </p>
-        </div>
-
-        {/* Right 3D Mascot Illustration */}
-        <div className="relative shrink-0 -my-2 -mr-2">
-          <img
-            src={assets.documents.mascot}
-            alt="Tokutei Documents Tanuki Mascot"
-            loading="lazy"
-            decoding="async"
-            className="h-22 w-auto object-contain transition-transform duration-300 hover:scale-105 sm:h-28 md:h-32 drop-shadow-md"
-          />
-        </div>
-      </div>
-    </section>
-  );
+  void totalCount;
+  return null;
 }
