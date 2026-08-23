@@ -1,448 +1,110 @@
-import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  Search,
-  BookOpen,
-  BriefcaseBusiness,
-  GraduationCap,
-  Loader2,
-  SlidersHorizontal,
-  Sparkles,
-  X,
-  AlertTriangle,
-  PlayCircle,
-  Flame,
-  ArrowRight,
-} from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Bell, BookOpen, ChevronRight, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn } from '@/src/lib/utils';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
-import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
-import { assets } from '@/src/shared/lib/assets';
 
-const ALL_LEVELS = 'Tất cả';
+const PURPLE = '#6f45d8';
+const ALL = 'Tất cả';
 
-export default function CourseList() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [activeLevel, setActiveLevel] = useState(ALL_LEVELS);
-  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [view, setView] = useState<'all' | 'mine'>('all');
+export default function CourseListPage() {
   const courseList = useCourseList();
-  const courses = courseList.data;
-  const isLoadingFromSupabase = courseList.status === 'loading';
-  const levels = useMemo(
-    () => [ALL_LEVELS, ...Array.from(new Set(courses.map((course) => course.level)))],
-    [courses]
-  );
+  const [query, setQuery] = useState('');
+  const [level, setLevel] = useState(ALL);
 
-  useEffect(() => {
-    if (searchQuery.trim() !== '') {
-      setIsSearching(true);
-      const timer = setTimeout(() => {
-        setIsSearching(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-    setIsSearching(false);
-  }, [searchQuery]);
-
-  const filteredCourses = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
-    return courses.filter((course) => {
-      const matchesView = view === 'all' || course.isEnrolled !== false;
-      const matchesQuery =
-        !query ||
-        course.title.toLowerCase().includes(query) ||
-        course.description.toLowerCase().includes(query);
-      const matchesLevel = activeLevel === ALL_LEVELS || course.level === activeLevel;
-      return matchesView && matchesQuery && matchesLevel;
+  const enrolled = useMemo(() => courseList.data.filter((course) => course.isEnrolled !== false), [courseList.data]);
+  const discover = useMemo(() => courseList.data.filter((course) => course.isEnrolled === false), [courseList.data]);
+  const levels = useMemo(() => [ALL, ...Array.from(new Set(courseList.data.map((course) => course.level).filter(Boolean)))], [courseList.data]);
+  const filteredDiscover = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return discover.filter((course) => {
+      const matchesLevel = level === ALL || course.level === level;
+      const matchesQuery = !normalized || course.title.toLowerCase().includes(normalized) || course.description.toLowerCase().includes(normalized);
+      return matchesLevel && matchesQuery;
     });
-  }, [searchQuery, activeLevel, view, courses]);
-
-  const hasActiveLevelFilter = activeLevel !== ALL_LEVELS;
-  const isFiltering = hasActiveLevelFilter || searchQuery.trim() !== '';
+  }, [discover, query, level]);
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] space-y-5 px-4 md:px-8 py-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] md:pb-20">
-      {/* 1. Hero Header Banner */}
-      <section className="relative overflow-hidden rounded-[24px] border border-[#fde6d2] bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] px-4 py-4.5 shadow-2xs sm:px-6 sm:py-6">
-        {/* Watermark Kanji */}
-        <div
-          className="pointer-events-none absolute left-4 top-1 select-none text-4xl font-extrabold text-[#f7c297]/15 sm:text-5xl"
-          aria-hidden="true"
-        >
-          学
-        </div>
-
-        <div className="relative flex items-center justify-between gap-4">
-          <div className="min-w-0 max-w-lg">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.1em] text-[#d83a00] shadow-2xs">
-              <Sparkles size={13} className="text-amber-500 fill-amber-400" /> Khóa học Tokutei
-            </div>
-            <h1 className="mt-2 font-[var(--font-heading)] text-2xl font-black tracking-[-0.03em] text-[#0f172a] sm:text-3xl">
-              Chương trình Học tập
-            </h1>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5f6b7c] sm:text-sm">
-              Luyện tiếng Nhật sống còn, phản xạ ca làm & đề thi mô phỏng Tokutei chuẩn hóa.
-            </p>
-            <Link to="/app/enrollments" className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#d83a00] px-3.5 py-2 text-xs font-black text-white">
-              Xem gói & đăng ký <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          {/* Right 3D Illustration */}
-          <div className="relative shrink-0 hidden sm:block">
-            <img
-              src={assets.shared.navigation.courses}
-              alt="Tokutei Courses"
-              className="h-16 w-auto object-contain drop-shadow-md sm:h-20"
-            />
-          </div>
-        </div>
-      </section>
-
-      <CourseListErrorNotice result={courseList} />
-
-      {/* 1b. Toggle: Tất cả khóa / Khóa học của tôi */}
-      <div className="flex gap-2" role="tablist" aria-label="Phạm vi khóa học">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={view === 'all'}
-          onClick={() => setView('all')}
-          className={cn(
-            'rounded-xl px-4 py-2 text-sm font-extrabold transition-all duration-200 shadow-2xs',
-            view === 'all'
-              ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
-              : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
-          )}
-        >
-          Tất cả khóa
+    <div className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6">
+      <header className="mb-5 flex items-center justify-between">
+        <h1 className="text-[21px] font-extrabold tracking-[-0.02em] text-[#17181d]">Khóa học của tôi</h1>
+        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ececf2] bg-white text-[#34353b] shadow-[0_2px_8px_rgba(25,25,40,.04)]" aria-label="Thông báo">
+          <Bell size={17} />
         </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={view === 'mine'}
-          onClick={() => setView('mine')}
-          className={cn(
-            'rounded-xl px-4 py-2 text-sm font-extrabold transition-all duration-200 shadow-2xs',
-            view === 'mine'
-              ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
-              : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
-          )}
-        >
-          Khóa của tôi
-        </button>
-      </div>
+      </header>
 
-      {/* 2. Search & Filter Bar */}
-      <section className="sticky top-[68px] z-30 rounded-[22px] border border-[#eee3d5] bg-white/95 backdrop-blur-md p-2.5 shadow-2xs space-y-2">
-        <div className="flex items-center gap-2">
-          {/* Search Input */}
-          <div className="group relative flex-1 min-w-0">
-            {isSearching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#d83a00]" size={18} strokeWidth={2} />
-            ) : (
-              <Search
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#95a0af] transition-colors group-focus-within:text-[#d83a00]"
-                size={18}
-                strokeWidth={2}
-              />
-            )}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm khóa học, bài học hoặc nội dung..."
-              className="w-full rounded-2xl border border-[#eee3d5] bg-[#fffcf9] py-2.5 pl-10 pr-9 text-xs font-bold text-[#0f172a] outline-none transition-all placeholder:text-[#95a0af] focus:border-[#d83a00] focus:bg-white focus:ring-2 focus:ring-[#d83a00]/15 sm:text-sm"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
+      {courseList.status === 'error' && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">{courseList.error}</div>
+      )}
 
-          {/* Filter Button (Mobile Sheet Trigger) */}
-          <button
-            type="button"
-            onClick={() => setIsFilterSheetOpen(true)}
-            className={cn(
-              'relative flex h-10 px-3 shrink-0 items-center justify-center gap-1.5 rounded-2xl border text-xs font-extrabold transition-all duration-200 shadow-2xs md:hidden active:scale-95',
-              hasActiveLevelFilter
-                ? 'border-[#d83a00] bg-orange-50 text-[#d83a00]'
-                : 'border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:text-[#0f172a]'
-            )}
-            aria-label="Mở bộ lọc khóa học"
-            aria-haspopup="dialog"
-            aria-expanded={isFilterSheetOpen}
-          >
-            <SlidersHorizontal size={15} strokeWidth={2} />
-            <span>Lọc</span>
-            {hasActiveLevelFilter && (
-              <span className="h-2 w-2 rounded-full bg-[#d83a00] animate-pulse" />
-            )}
-          </button>
-        </div>
-
-        {/* Level Category Pills (Desktop & Tablet) */}
-        <div className="hidden flex-wrap items-center gap-1.5 pt-1 md:flex">
-          {levels.map((level) => {
-            const isActive = activeLevel === level;
+      <section>
+        <h2 className="mb-2.5 text-[10px] font-extrabold uppercase tracking-[.06em] text-[#3f4148]">Đang học</h2>
+        <div className="space-y-2.5">
+          {courseList.status === 'loading' && [0, 1, 2].map((item) => <div key={item} className="h-[86px] animate-pulse rounded-[14px] border border-[#ececf2] bg-white" />)}
+          {enrolled.map((course, index) => {
+            const thumbTones = ['from-[#f0d2b6] to-[#8b5b38]', 'from-[#d8e3e8] to-[#6f8792]', 'from-[#efdcb8] to-[#9b7745]', 'from-[#d7ead2] to-[#6c8d68]'];
             return (
-              <button
-                key={level}
-                type="button"
-                onClick={() => setActiveLevel(level)}
-                className={cn(
-                  'rounded-xl px-3.5 py-1.5 text-xs font-extrabold transition-all duration-200 shadow-2xs',
-                  isActive
-                    ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
-                    : 'border border-[#eee3d5] bg-[#fffcf9] text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]'
-                )}
-              >
-                {level === ALL_LEVELS ? level : `Cấp độ: ${level}`}
-              </button>
+              <Link key={course.id} to={`/app/courses/${course.id}/learn`} className="flex min-h-[86px] overflow-hidden rounded-[14px] border border-[#e8e8ef] bg-white shadow-[0_3px_12px_rgba(20,20,35,.04)]">
+                <div className={`flex w-[88px] shrink-0 items-center justify-center bg-gradient-to-br ${thumbTones[index % thumbTones.length]}`}>
+                  <BookOpen size={25} className="text-white/90" />
+                </div>
+                <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <strong className="block truncate text-[12px] font-extrabold text-[#25262c]">{course.title}</strong>
+                    <span className="mt-1 block truncate text-[9px] font-medium text-[#898c96]">Bài tiếp theo: {course.level || 'Tiếp tục lộ trình'}</span>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#efeff4]"><div className="h-full rounded-full" style={{ width: `${course.progress}%`, background: PURPLE }} /></div>
+                      <span className="text-[9px] font-extrabold text-[#595c66]">{course.progress}%</span>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-lg bg-[#6f45d8] px-2.5 py-1.5 text-[9px] font-extrabold text-white">TIẾP TỤC</span>
+                </div>
+              </Link>
             );
           })}
+          {courseList.status === 'ready' && enrolled.length === 0 && (
+            <div className="rounded-[14px] border border-dashed border-[#dcdce5] bg-white p-4 text-center text-[11px] font-medium text-[#8a8d96]">Bạn chưa tham gia khóa học nào.</div>
+          )}
         </div>
       </section>
 
-      {/* Filter Bottom Sheet (Mobile) */}
-      <AnimatePresence>
-        {isFilterSheetOpen && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-end bg-black/60 p-3 pb-[calc(5.8rem+env(safe-area-inset-bottom))] backdrop-blur-xs md:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsFilterSheetOpen(false)}
-          >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="course-filter-title"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              onClick={(event) => event.stopPropagation()}
-              className="w-full rounded-[28px] border border-[#eee3d5] bg-white p-5 shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3">
-                <h3 id="course-filter-title" className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
-                  Chọn cấp độ khóa học
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsFilterSheetOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  aria-label="Đóng bộ lọc"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+      <section className="mt-7">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[11px] font-extrabold uppercase tracking-[.05em] text-[#34353b]">Khám phá khóa học</h2>
+          <Link to="/app/enrollments" className="text-[10px] font-semibold text-[#858893]">Xem tất cả ›</Link>
+        </div>
 
-              <div className="flex flex-wrap gap-2 pt-1">
-                {levels.map((level) => {
-                  const isActive = activeLevel === level;
-                  return (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => {
-                        setActiveLevel(level);
-                        setIsFilterSheetOpen(false);
-                      }}
-                      className={cn(
-                        'rounded-xl px-4 py-2 text-xs font-extrabold transition-all duration-200',
-                        isActive
-                          ? 'bg-gradient-to-r from-[#d83a00] to-[#e65100] text-white shadow-xs'
-                          : 'border border-[#eee3d5] bg-slate-50 text-[#5f6b7c]'
-                      )}
-                    >
-                      {level === ALL_LEVELS ? level : `Cấp độ: ${level}`}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 3. Course Cards Grid */}
-      {isSearching || isLoadingFromSupabase ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2].map((index) => (
-            <div
-              key={index}
-              className="flex h-72 animate-pulse flex-col space-y-3 rounded-[24px] border border-[#eee3d5] bg-white p-5 shadow-2xs"
-            >
-              <div className="h-32 w-full rounded-2xl bg-slate-100" />
-              <div className="h-5 w-2/3 rounded-lg bg-slate-100" />
-              <div className="h-4 w-full rounded-lg bg-slate-100" />
-              <div className="mt-auto h-11 w-full rounded-2xl bg-slate-100" />
-            </div>
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {levels.slice(0, 5).map((item) => (
+            <button key={item} type="button" onClick={() => setLevel(item)} className={`shrink-0 rounded-full border px-3 py-1.5 text-[9px] font-bold ${level === item ? 'border-[#bca8ee] bg-[#f5f1ff] text-[#6840ce]' : 'border-[#e5e5ec] bg-white text-[#6d7079]'}`}>
+              {item}
+            </button>
           ))}
         </div>
-      ) : filteredCourses.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {filteredCourses.map((course) => (
-              <motion.div
-                key={course.id}
-                layout
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link
-                  to={course.isEnrolled === false ? '/app/enrollments' : `/app/courses/${course.id}/learn`}
-                  className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-[#f5ece1] bg-white shadow-[0_6px_20px_rgba(217,74,19,0.05)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)]"
-                >
-                  {/* Top Stylized Banner with 3D Badge */}
-                  <div className="relative flex h-36 w-full items-center justify-between overflow-hidden bg-gradient-to-br from-[#fff7f0] via-[#ffeedd] to-[#ffe5cf] p-4.5">
-                    {/* Background Pattern */}
-                    <div
-                      className="pointer-events-none absolute -right-4 -top-6 select-none text-7xl font-black text-[#f7c297]/15"
-                      aria-hidden="true"
-                    >
-                      {course.level.includes('Workplace') ? '職' : '基'}
-                    </div>
 
-                    {/* Level Pill */}
-                    <div className="z-10 flex flex-col items-start gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200/80 bg-white/95 px-3 py-1 text-[11px] font-extrabold text-[#c2410c] shadow-2xs backdrop-blur-xs">
-                        {course.level.includes('Workplace') ? <BriefcaseBusiness size={13} /> : <GraduationCap size={13} />}
-                        {course.level}
-                      </span>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9a3412] bg-orange-100/70 px-2 py-0.5 rounded-md">
-                        Tokutei Gino
-                      </span>
-                    </div>
-
-                    {/* Same five workspace illustrations used inside the course. */}
-                    <div className="z-10 flex shrink-0 items-center gap-1 rounded-2xl border border-white/80 bg-white/70 p-1.5 shadow-2xs backdrop-blur-xs transition-transform duration-300 group-hover:scale-105">
-                      {courseWorkspaceTabs.map((tab) => (
-                        <span
-                          key={tab.id}
-                          title={tab.label}
-                          className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/85 p-1 sm:h-9 sm:w-9"
-                        >
-                          <img src={tab.imageIcon} alt="" className="h-full w-full object-contain drop-shadow-2xs" />
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Course Info */}
-                  <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 space-y-3">
-                    <div>
-                      <h4 className="font-[var(--font-heading)] text-lg font-black leading-snug text-[#0f172a] transition-colors group-hover:text-[#d83a00]">
-                        {course.title}
-                      </h4>
-                      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-relaxed text-[#5f6b7c]">
-                        {course.description}
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 border-t border-[#f5ece1] pt-3">
-                      {/* Lesson Count & Status */}
-                      <div className="flex items-center justify-between text-xs font-bold text-[#717d8f]">
-                        <span className="flex items-center gap-1">
-                          <BookOpen size={14} className="text-[#d83a00]" />
-                          <span>{course.totalLessons > 0 ? `${course.totalLessons} bài học` : 'Đang phát triển'}</span>
-                        </span>
-                        <span className="font-extrabold text-[#d83a00]">{course.isEnrolled === false ? 'Chưa đăng ký' : `${course.progress}% Hoàn thành`}</span>
-                      </div>
-
-                      {/* Progress Line */}
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eee5da]">
-                        <div className="h-full bg-gradient-to-r from-[#d83a00] to-[#f27427]" style={{ width: `${course.isEnrolled === false ? 0 : course.progress}%` }} />
-                      </div>
-
-                      {/* Primary CTA Button */}
-                      <button
-                        type="button"
-                        className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] text-xs font-extrabold text-white shadow-xs transition-all duration-200 group-hover:shadow-md group-hover:from-[#c23400] group-hover:to-[#d84800] active:scale-98"
-                      >
-                        <span>{course.isEnrolled === false ? 'Đăng ký khóa học' : 'Học tiếp ngay'}</span>
-                        <ArrowRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div className="relative mb-3">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a3ac]" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm khóa học..." className="h-9 w-full rounded-xl border border-[#e5e5ec] bg-white pl-9 pr-3 text-[11px] font-medium text-[#33343a] outline-none focus:border-[#b9a4ec]" />
         </div>
-      ) : (
-        <div className="rounded-[24px] border border-[#eee3d5] bg-white p-8 text-center space-y-4 shadow-2xs">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 text-[#d83a00]">
-            <BookOpen size={36} strokeWidth={2} />
-          </div>
-          <div>
-            <p className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
-              {view === 'mine' ? 'Chưa có khóa học nào trong gói của bạn' : 'Chưa thấy khóa học phù hợp'}
-            </p>
-            <p className="mt-1 text-xs font-semibold text-[#5f6b7c]">
-              {view === 'mine'
-                ? 'Đăng ký gói học miễn phí để bắt đầu, hoặc chuyển sang xem tất cả khóa.'
-                : 'Thử từ khóa khác hoặc xóa lọc cấp độ để xem toàn bộ danh sách.'}
-            </p>
-          </div>
-          {view === 'mine' ? (
-            <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
-              <Link
-                to="/app/enrollments"
-                className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
-              >
-                Xem gói & đăng ký
+
+        <div className="space-y-2.5">
+          {filteredDiscover.slice(0, 4).map((course, index) => {
+            const colors = ['bg-[#e9eef8] text-[#6079b2]', 'bg-[#eef3e6] text-[#6f8b55]', 'bg-[#f7ece6] text-[#b97950]', 'bg-[#eee9f8] text-[#795eac]'];
+            return (
+              <Link key={course.id} to="/app/enrollments" className="flex min-h-[94px] items-center gap-3 rounded-[14px] border border-[#e8e8ef] bg-white p-3 shadow-[0_3px_12px_rgba(20,20,35,.035)]">
+                <span className={`flex h-[66px] w-[82px] shrink-0 items-center justify-center rounded-xl ${colors[index % colors.length]}`}><BookOpen size={24} /></span>
+                <span className="min-w-0 flex-1">
+                  <strong className="block truncate text-[12px] font-extrabold text-[#25262c]">{course.title}</strong>
+                  <small className="mt-1 block line-clamp-1 text-[9px] font-medium text-[#8f929c]">{course.description || `${course.totalLessons} bài học`}</small>
+                  <span className="mt-2 inline-flex items-center rounded-md border border-[#d9cff4] bg-[#faf8ff] px-2 py-1 text-[9px] font-extrabold text-[#7048d4]">XEM CHI TIẾT <ChevronRight size={11} /></span>
+                </span>
               </Link>
-              <button
-                type="button"
-                onClick={() => setView('all')}
-                className="rounded-2xl border border-[#eee3d5] bg-[#fffcf9] px-5 py-2.5 text-xs font-extrabold text-[#5f6b7c] hover:border-orange-200 hover:text-[#0f172a]"
-              >
-                Xem tất cả khóa
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveLevel(ALL_LEVELS);
-              }}
-              className="rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:shadow-md transition-all active:scale-95"
-            >
-              Bỏ lọc & Hiển thị tất cả
-            </button>
+            );
+          })}
+          {courseList.status === 'ready' && filteredDiscover.length === 0 && (
+            <div className="rounded-[14px] border border-[#e8e8ef] bg-white p-4 text-center text-[11px] text-[#90929a]">Không có khóa phù hợp bộ lọc hiện tại.</div>
           )}
         </div>
-      )}
-    </div>
-  );
-}
-
-interface CourseListErrorNoticeProps {
-  result: ReturnType<typeof useCourseList>;
-}
-
-function CourseListErrorNotice({ result }: CourseListErrorNoticeProps) {
-  if (result.status !== 'error') return null;
-
-  return (
-    <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800">
-      <AlertTriangle size={15} className="shrink-0 text-amber-600" />
-      <span>{result.error || 'Không tải được danh sách khóa học. Vui lòng thử lại.'}</span>
+      </section>
     </div>
   );
 }

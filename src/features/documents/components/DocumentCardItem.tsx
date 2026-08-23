@@ -1,6 +1,9 @@
-import React from 'react';
-import { Bookmark, CheckCircle2, ChevronRight, Clock3, MoreVertical } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ArrowLeft, Bookmark, CheckCircle2, ExternalLink, FileText, Headphones, MoreVertical } from 'lucide-react';
 import type { CourseDocumentItem } from '@/src/features/courses/courseLearning.types';
+import { MarkdownViewer } from '@/src/features/documents/components/MarkdownViewer';
+import { createSignedDocumentUrl } from '@/src/features/documents/repositories/documentAnnotationRepository';
 
 interface DocumentCardItemProps {
   key?: React.Key;
@@ -20,82 +23,165 @@ export function DocumentCardItem({
   onSelect,
   onMenu,
 }: DocumentCardItemProps) {
-  return (
-    <article
-      onClick={() => onSelect(document.id)}
-      className={`group relative overflow-hidden rounded-[24px] border bg-white p-4 shadow-2xs transition-all duration-200 cursor-pointer hover:shadow-md ${
-        isSelected
-          ? 'border-[#d83a00] ring-2 ring-[#d83a00]/15'
-          : 'border-[#f5ece1] hover:border-orange-300'
-      }`}
-    >
-      {/* Top Accent Line if selected */}
-      {isSelected && (
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#d83a00] to-[#f27427]" />
-      )}
+  const [isReaderOpen, setIsReaderOpen] = useState(false);
+  const [readerUrl, setReaderUrl] = useState<string | null>(null);
+  const [readerError, setReaderError] = useState<string | null>(null);
+  const [isReaderLoading, setIsReaderLoading] = useState(false);
 
-      <div className="space-y-2">
-        {/* Header Row: Kind, Module, ReadTime & 3-dots Menu */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            {isRead && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700">
-                <CheckCircle2 size={11} /> Đã đọc
-              </span>
-            )}
-            <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-black text-[#c2410c]">
-              {document.kind === 'PDF' ? 'PDF' : 'Bài đọc'}
-            </span>
-            <span className="font-bold text-[#8c97a8]">·</span>
-            <span className="font-bold text-[#475467]">{document.module}</span>
-            <span className="font-bold text-[#8c97a8]">·</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[#64748b]">
-              <Clock3 size={12} className="text-[#d83a00]" /> {document.readTime}
-            </span>
-          </div>
+  const isAudio = document.kind !== 'PDF' && /audio|nghe|podcast/i.test(`${document.module} ${document.title}`);
+  const Icon = isAudio ? Headphones : FileText;
 
-          <div className="flex shrink-0 items-center gap-1">
-            {isBookmarked && <Bookmark size={14} className="fill-amber-500 text-amber-600" aria-label="Đã lưu" />}
+  const openReader = () => {
+    onSelect(document.id);
+    setIsReaderOpen(true);
+  };
+
+  useEffect(() => {
+    if (!isReaderOpen) return;
+
+    const previousOverflow = window.document.body.style.overflow;
+    window.document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsReaderOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isReaderOpen]);
+
+  useEffect(() => {
+    if (!isReaderOpen) return;
+
+    setReaderError(null);
+    setReaderUrl(document.externalUrl ?? null);
+    if (!document.storagePath) return;
+
+    let cancelled = false;
+    setIsReaderLoading(true);
+    createSignedDocumentUrl(document.storagePath)
+      .then((url) => {
+        if (!cancelled) setReaderUrl(url);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setReaderError(error instanceof Error ? error.message : 'Không mở được tài liệu.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsReaderLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [document.externalUrl, document.storagePath, isReaderOpen]);
+
+  const reader = isReaderOpen && typeof window !== 'undefined'
+    ? createPortal(
+        <div className="fixed inset-0 z-[120] flex flex-col bg-[#f8f8fb]" role="dialog" aria-modal="true" aria-label={`Trình đọc ${document.title}`}>
+          <header className="sticky top-0 z-10 flex min-h-[56px] items-center gap-2 border-b border-[#e8e8ef] bg-white/98 px-3 backdrop-blur-xl">
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMenu?.(document.id);
-              }}
-              aria-label="Tùy chọn tài liệu"
-              className="flex h-7 w-7 items-center justify-center rounded-xl text-[#8c97a8] transition-colors hover:bg-slate-100 hover:text-[#0f172a]"
+              onClick={() => setIsReaderOpen(false)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#34353b] hover:bg-[#f4f2f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
+              aria-label="Quay lại danh sách tài liệu"
             >
-              <MoreVertical size={16} />
+              <ArrowLeft size={18} />
             </button>
-          </div>
-        </div>
 
-        {/* Title */}
-        <h3 className="font-[var(--font-heading)] text-base font-black leading-snug text-[#0f172a] transition-colors group-hover:text-[#d83a00]">
-          {document.title}
-        </h3>
+            <div className="min-w-0 flex-1">
+              <strong className="block truncate text-[12px] font-extrabold text-[#292a30]">{document.title}</strong>
+              <span className="mt-0.5 block truncate text-[9px] font-medium text-[#9698a1]">{document.module} · {document.kind}</span>
+            </div>
 
-        {/* Short Summary */}
-        <p className="text-xs font-semibold leading-relaxed text-[#5f6b7c] line-clamp-2">
-          {document.summary}
-        </p>
+            {readerUrl && (
+              <a
+                href={readerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6f45d8] hover:bg-[#f4f0ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
+                aria-label="Mở tài liệu ở tab mới"
+              >
+                <ExternalLink size={16} />
+              </a>
+            )}
+          </header>
 
-        <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#f5ece1]">
+          <main className="min-h-0 flex-1 overflow-hidden">
+            {isReaderLoading ? (
+              <div className="flex h-full items-center justify-center px-6 text-center text-[11px] font-semibold text-[#858893]">Đang mở tài liệu…</div>
+            ) : readerError ? (
+              <div className="flex h-full items-center justify-center px-6 text-center text-[11px] font-semibold text-red-600">{readerError}</div>
+            ) : document.kind === 'PDF' && readerUrl ? (
+              <iframe
+                title={`Trình xem PDF: ${document.title}`}
+                src={readerUrl}
+                className="h-full w-full border-0 bg-white"
+              />
+            ) : document.kind !== 'PDF' && document.contentMarkdown ? (
+              <div className="h-full overflow-y-auto bg-white px-4 py-5 sm:px-6">
+                <div className="mx-auto w-full max-w-[760px] rounded-[14px] border border-[#e9e9ef] bg-white p-4 sm:p-6">
+                  <MarkdownViewer source={document.contentMarkdown} />
+                </div>
+              </div>
+            ) : readerUrl ? (
+              <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+                <FileText size={28} className="text-[#6f45d8]" />
+                <strong className="text-[12px] font-extrabold text-[#303138]">Tài liệu mở bằng trình xem ngoài</strong>
+                <a href={readerUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#6f45d8] px-4 text-[11px] font-extrabold text-white">
+                  MỞ TÀI LIỆU <ExternalLink size={13} />
+                </a>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center px-6 text-center text-[11px] font-semibold text-[#858893]">Tài liệu này chưa có bản xem trực tuyến.</div>
+            )}
+          </main>
+        </div>,
+        window.document.body
+      )
+    : null;
 
+  return (
+    <>
+      <article
+        onClick={openReader}
+        className={`flex min-h-[72px] cursor-pointer items-center gap-3 rounded-[13px] border bg-white px-3 py-2.5 transition-all ${
+          isSelected ? 'border-[#cfc2ee] shadow-[0_0_0_1px_rgba(111,69,216,.08)]' : 'border-[#e9e9ef] hover:border-[#d9d2e8]'
+        }`}
+      >
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] ${isAudio ? 'bg-[#eaf5ff] text-[#4c86c6]' : 'bg-[#f5f2fb] text-[#7652cc]'}`}>
+          <Icon size={18} />
+        </span>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            openReader();
+          }}
+          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
+        >
+          <strong className="block truncate text-[11px] font-extrabold text-[#303138]">{document.title}</strong>
+          <span className="mt-1 flex items-center gap-1.5 text-[9px] font-medium text-[#92949d]">
+            <span>{document.module}</span><span>·</span><span>{document.kind}</span>
+          </span>
+          {isRead && <span className="mt-1 inline-flex items-center gap-1 text-[8px] font-bold text-[#43a56d]"><CheckCircle2 size={10} /> Đã xem</span>}
+        </button>
+
+        <div className="flex shrink-0 items-center gap-1">
+          {isBookmarked && <Bookmark size={13} className="fill-[#8a6ad5] text-[#8a6ad5]" aria-label="Đã lưu" />}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(document.id);
-            }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] px-4 text-xs font-extrabold text-white shadow-xs transition-all duration-200 hover:shadow-md hover:brightness-110 active:scale-95"
+            onClick={(event) => { event.stopPropagation(); onMenu?.(document.id); }}
+            aria-label="Tùy chọn tài liệu"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9b9da5] hover:bg-[#f5f4f8]"
           >
-            <span>Xem ngay</span>
-            <ChevronRight size={14} />
+            <MoreVertical size={15} />
           </button>
         </div>
-      </div>
-
-    </article>
+      </article>
+      {reader}
+    </>
   );
 }

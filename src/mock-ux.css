@@ -1,0 +1,111 @@
+/* Approved 2026-08 mobile-first mock visual layer. Kept isolated so the old theme remains recoverable. */
+
+.course-learning-workspace {
+  background: #f7f7fb;
+  color: #25262c;
+}
+
+.course-workspace-header {
+  margin-inline: 0 !important;
+  border-color: #e8e8ef !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: none !important;
+}
+
+.course-workspace-header button[aria-label='Mở menu khóa học'] {
+  width: 2.35rem;
+  height: 2.35rem;
+  justify-content: center;
+  padding: 0.15rem !important;
+  border-color: #e5e5ec !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.course-workspace-header button[aria-label='Mở menu khóa học'] > span,
+.course-workspace-header button[aria-label='Mở menu khóa học'] > svg {
+  display: none !important;
+}
+
+.course-workspace-header button[aria-label='Mở menu khóa học'] > div {
+  width: 1.9rem !important;
+  height: 1.9rem !important;
+  background: #f3efff !important;
+  color: #6f45d8 !important;
+  box-shadow: none !important;
+}
+
+.course-workspace-header [role='status'] {
+  display: none !important;
+}
+
+.course-workspace-mobile-nav {
+  border-color: #e8e8ef !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 -6px 18px rgba(30, 25, 50, 0.04);
+}
+
+.course-workspace-desktop-tabs {
+  border-color: #e8e8ef !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 3px 12px rgba(20, 20, 35, 0.035) !important;
+}
+
+.course-workspace-desktop-tab {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #686b75 !important;
+}
+
+.course-workspace-desktop-tab:hover {
+  border-color: #ddd4f2 !important;
+  background: #faf8ff !important;
+  color: #4d356f !important;
+}
+
+.course-workspace-desktop-tab.is-active {
+  border-color: #cfc0f1 !important;
+  background: #f5f1ff !important;
+  color: #6f45d8 !important;
+  box-shadow: none !important;
+}
+
+.course-workspace-desktop-tab-icon {
+  background: #f7f5fc !important;
+}
+
+.course-workspace-desktop-tab.is-active .course-workspace-desktop-tab-icon {
+  background: #fff !important;
+}
+
+.course-workspace-desktop-tab-arrow,
+.course-workspace-desktop-tab.is-active .course-workspace-desktop-tab-arrow {
+  color: #8a72c7 !important;
+}
+
+.course-workspace-panel {
+  color: #292a30;
+}
+
+[data-course-workspace-background] input,
+[data-course-workspace-background] select,
+[data-course-workspace-background] textarea {
+  border-color: #e5e5ec;
+}
+
+[data-course-workspace-background] input:focus,
+[data-course-workspace-background] select:focus,
+[data-course-workspace-background] textarea:focus {
+  border-color: #bca8ee;
+  outline-color: #bca8ee;
+}
+
+@media (max-width: 767px) {
+  .course-learning-workspace {
+    padding-inline: 0.35rem;
+  }
+
+  .course-workspace-header {
+    padding-inline: 0.5rem !important;
+  }
+}

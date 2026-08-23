@@ -3,8 +3,10 @@ import { Navigate, Route } from 'react-router-dom';
 import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 
+const TodayPage = lazy(() => import('@/src/features/dashboard/pages/TodayPage'));
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
 const CourseListPage = lazy(() => import('@/src/features/courses/pages/CourseListPage'));
+const CourseHomePage = lazy(() => import('@/src/features/courses/pages/CourseHomePage'));
 const CourseLearningPage = lazy(() => import('@/src/features/courses/pages/CourseLearningPage'));
 const PackageCatalogPage = lazy(() => import('@/src/features/enrollments/pages/PackageCatalogPage'));
 const ExamCenterPage = lazy(() => import('@/src/features/exams/pages/ExamCenterPage'));
@@ -13,6 +15,7 @@ const ExamResultPage = lazy(() => import('@/src/features/exams/pages/ExamResultP
 const GrammarLibraryPage = lazy(() => import('@/src/features/grammar/pages/GrammarLibraryPage'));
 const GrammarTopicDetailPage = lazy(() => import('@/src/features/grammar/pages/GrammarTopicDetailPage'));
 const VocabularyDetailPage = lazy(() => import('@/src/features/grammar/pages/VocabularyDetailPage'));
+const PracticeHubPage = lazy(() => import('@/src/features/review/pages/PracticeHubPage'));
 const ReviewCenterPage = lazy(() => import('@/src/features/review/pages/ReviewCenterPage'));
 const FlashcardSessionPage = lazy(() => import('@/src/features/review/pages/FlashcardSessionPage'));
 const AIWritingLabPage = lazy(() => import('@/src/features/ai/pages/AIWritingLabPage'));
@@ -40,11 +43,13 @@ export function AppRoutes() {
       }
     >
       <Route index element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="dashboard" element={screen(<DashboardPage />)} />
+      <Route path="dashboard" element={screen(<TodayPage />)} />
+      <Route path="progress" element={screen(<DashboardPage />)} />
       <Route path="courses" element={screen(<CourseListPage />)} />
       <Route path="enrollments" element={screen(<PackageCatalogPage />)} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
-      <Route path="courses/:id/learn" element={screen(<CourseLearningPage />)} />
+      <Route path="courses/:id/learn" element={screen(<CourseHomePage />)} />
+      <Route path="courses/:id/workspace" element={screen(<CourseLearningPage />)} />
       <Route path="exams" element={screen(<ExamCenterPage />)} />
       <Route path="exams/:id/start" element={screen(<ExamRunnerPage />)} />
       <Route path="exams/:id/result" element={screen(<ExamResultPage />)} />
@@ -64,8 +69,9 @@ export function AppRoutes() {
       <Route path="settings" element={screen(<SettingsPage />)} />
       <Route path="review" element={<Navigate to="/app/practice" replace />} />
       <Route path="review/flashcards" element={screen(<FlashcardSessionPage />)} />
-      <Route path="practice" element={screen(<ReviewCenterPage />)} />
-      <Route path="practice/custom" element={<Navigate to="/app/practice" replace />} />
+      <Route path="practice" element={screen(<PracticeHubPage />)} />
+      <Route path="practice/review" element={screen(<ReviewCenterPage />)} />
+      <Route path="practice/custom" element={<Navigate to="/app/practice/review" replace />} />
       <Route path="hub" element={screen(<LearningHubPage />)} />
       <Route path="profile" element={screen(<ProfilePage />)} />
     </Route>

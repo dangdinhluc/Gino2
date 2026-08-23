@@ -32,26 +32,29 @@ export function TabButton<T extends string>({ tab, activeTab, compact = false, o
       onKeyDown={(event) => onKeyDown(event, tab.id)}
       onClick={() => onSelect(tab.id)}
       className={cn(
-        'flex items-center rounded-2xl transition-all duration-200',
+        'flex items-center transition-all duration-150',
         compact
-          ? 'min-h-[3.35rem] w-full min-w-0 flex-col justify-center gap-0.5 px-0.5 py-1 text-[10px] sm:text-xs'
-          : 'w-full gap-3 px-4 py-3 text-sm',
-        isActive ? 'font-black text-[#d83a00]' : 'text-[#7b8796] hover:text-[#172033]',
+          ? 'min-h-[3.35rem] w-full min-w-0 flex-col justify-center gap-0.5 px-0.5 py-1 text-[9px] sm:text-[10px]'
+          : 'w-full gap-3 rounded-xl px-4 py-3 text-sm',
+        isActive ? 'font-extrabold text-[#6f45d8]' : 'font-semibold text-[#6f727c] hover:text-[#303138]',
         focusRing
       )}
     >
-      {tab.imageIcon ? (
-        <img
-          src={tab.imageIcon}
-          alt=""
-          className={cn(
-            'h-7 w-7 object-contain transition-transform duration-200 drop-shadow-2xs',
-            isActive ? 'scale-110' : 'filter grayscale-[20%] opacity-85'
-          )}
-        />
-      ) : (
-        <Icon size={20} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
-      )}
+      <span className={cn('flex items-center justify-center transition-colors', compact ? 'h-8 w-9 rounded-xl' : 'h-10 w-10 rounded-xl', isActive ? 'bg-[#f3efff]' : 'bg-transparent')}>
+        {tab.imageIcon ? (
+          <img
+            src={tab.imageIcon}
+            alt=""
+            className={cn(
+              'object-contain transition-all duration-150 drop-shadow-2xs',
+              compact ? 'h-7 w-7' : 'h-8 w-8',
+              isActive ? 'scale-110 opacity-100' : 'opacity-70 grayscale-[15%]'
+            )}
+          />
+        ) : (
+          <Icon size={compact ? 18 : 20} strokeWidth={isActive ? 2.2 : 1.7} aria-hidden="true" focusable="false" />
+        )}
+      </span>
       <span className="max-w-full truncate">{tab.label}</span>
     </button>
   );

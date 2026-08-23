@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, Volume2 } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Volume2 } from 'lucide-react';
 import type { CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 import { VocabularyHeadword } from '@/src/features/courses/components/CourseVocabularyPanel';
 
@@ -21,65 +21,52 @@ export function VocabularyListItemRow({
   onAudio,
   onToggleDetail,
 }: VocabularyListItemRowProps) {
-  const subtitle = showRomaji
-    ? `${item.pronunciation} · ${item.meaning}`
-    : item.meaning;
+  const isLearned = item.status === 'remembered';
+  const needsReview = item.status === 'learning' || item.status === 'due';
+  const statusLabel = isLearned ? 'Đã học' : needsReview ? 'Ôn lại' : 'Chưa học';
+  const statusClass = isLearned
+    ? 'text-[#42a36c]'
+    : needsReview
+      ? 'text-[#5c80d3]'
+      : 'text-[#e26868]';
 
   return (
-    <li className="group relative flex items-center justify-between gap-3 rounded-xl px-3 py-3.5 transition-colors hover:bg-orange-50/40 lg:rounded-2xl lg:border lg:border-[#efe5d7] lg:bg-[#fffaf5] lg:px-4 lg:py-4 lg:shadow-2xs">
-      {/* Left Main Content Clickable */}
+    <li className="flex min-h-[62px] items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-[#faf9fd] lg:rounded-xl lg:border lg:border-[#ececf2] lg:bg-white">
       <button
         type="button"
         onClick={() => onToggleDetail(item.id)}
         aria-haspopup="dialog"
-        className="flex min-w-0 flex-1 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-lg p-1"
+        className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
       >
-        {/* Furigana + Kanji / Japanese Headword */}
-        <div className="min-w-0">
-          <VocabularyHeadword
-            item={item}
-            showFurigana={showFurigana}
-            align="left"
-            className="text-lg font-extrabold text-[#172033] leading-tight tracking-[-0.01em]"
-            rtClassName="text-[0.62em] font-extrabold text-[#c2410c]"
-          />
-        </div>
-
-        {/* Romaji & Vietnamese Subtitle */}
-        <p className="mt-1 truncate text-xs font-semibold text-[#5f6b7c]">
-          {subtitle}
+        <VocabularyHeadword
+          item={item}
+          showFurigana={showFurigana}
+          align="left"
+          className="text-[15px] font-extrabold leading-tight text-[#27282e]"
+          rtClassName="text-[0.56em] font-bold text-[#8a6ec8]"
+        />
+        <p className="mt-1 truncate text-[10px] font-medium text-[#8d9099]">
+          {showRomaji ? `${item.pronunciation} · ${item.meaning}` : item.meaning}
         </p>
       </button>
 
-      {/* Right Actions: Audio Button + Chevron */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {/* Audio Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAudio(item.id);
-          }}
-          aria-label={`Nghe phát âm ${item.word}`}
-          className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
-            isPlayingAudio
-              ? 'bg-[#d83a00] text-white shadow-sm scale-105 animate-pulse'
-              : 'bg-orange-50/80 text-orange-600 hover:bg-orange-100/90 active:scale-95'
-          }`}
-        >
-          <Volume2 size={20} strokeWidth={2} />
-        </button>
+      <span className={`hidden shrink-0 items-center gap-1 text-[9px] font-bold sm:inline-flex ${statusClass}`}>
+        {isLearned ? <CheckCircle2 size={12} /> : needsReview ? <RotateCcw size={12} /> : null}
+        {statusLabel}
+      </span>
 
-        {/* Chevron Right */}
-        <button
-          type="button"
-          onClick={() => onToggleDetail(item.id)}
-          aria-label={`Xem chi tiết ${item.word}`}
-          className="flex h-9 w-7 items-center justify-center text-[#95a0af] hover:text-[#172033]"
-        >
-          <ChevronRight size={18} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => onAudio(item.id)}
+        aria-label={`Nghe phát âm ${item.word}`}
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8] ${
+          isPlayingAudio
+            ? 'bg-[#6f45d8] text-white'
+            : 'bg-[#f5f2fb] text-[#756b8d] hover:bg-[#eee8fb]'
+        }`}
+      >
+        <Volume2 size={14} />
+      </button>
     </li>
   );
 }
