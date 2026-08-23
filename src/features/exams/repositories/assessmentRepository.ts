@@ -94,11 +94,7 @@ export interface AssessmentResultDetail {
 }
 
 type JsonObject = { [key: string]: Json | undefined };
-
-type RpcResponse<T> = {
-  data: T | null;
-  error: { message: string } | null;
-};
+type RpcResponse<T> = { data: T | null; error: { message: string } | null };
 
 function isJsonObject(value: Json | undefined | null): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -112,10 +108,6 @@ function asNumber(value: Json | undefined): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) return Number(value);
   return undefined;
-}
-
-function asBoolean(value: Json | undefined, fallback: boolean): boolean {
-  return typeof value === 'boolean' ? value : fallback;
 }
 
 function asStringArray(value: Json | undefined): string[] {
@@ -133,7 +125,7 @@ function parseAssessmentConfig(value: Json | undefined | null): AssessmentConfig
     totalPoints: asNumber(config.totalPoints) ?? null,
     passingPoints: asNumber(config.passingPoints) ?? null,
     scoringMode: asString(config.scoringMode) ?? 'equal_percentage',
-    showStrategyAfterSubmit: asBoolean(config.showStrategyAfterSubmit, true),
+    showStrategyAfterSubmit: typeof config.showStrategyAfterSubmit === 'boolean' ? config.showStrategyAfterSubmit : true,
   };
 }
 
@@ -161,17 +153,16 @@ function parseVocabClues(value: Json | undefined): AssessmentVocabClue[] {
   });
 }
 
-function parseStrategy(metadataValue: Json | undefined | null): AssessmentStrategy {
-  const metadata = isJsonObject(metadataValue) ? metadataValue : {};
+function parseStrategy(value: Json | undefined | null): AssessmentStrategy {
+  const metadata = isJsonObject(value) ? value : {};
   const nested = isJsonObject(metadata.strategy) ? metadata.strategy : {};
-  const source = { ...metadata, ...nested };
+  const source: JsonObject = { ...metadata, ...nested };
   const trapValue = source.trap ?? source.traps;
   const trap = typeof trapValue === 'string'
     ? trapValue
     : Array.isArray(trapValue)
       ? trapValue.filter((item): item is string => typeof item === 'string').join(' · ')
       : undefined;
-
   return {
     questionPattern: asString(source.questionPattern) ?? asString(source.pattern),
     signalWords: asStringArray(source.signalWords),
@@ -202,7 +193,7 @@ function parseSectionBreakdown(value: Json | undefined | null): AssessmentSectio
 
 async function callUntypedRpc<T>(name: string, args: Record<string, unknown>): Promise<RpcResponse<T>> {
   const client = requireSupabase();
-  const rpc = client.rpc as unknown as (fn: string, params: Record<string, unknown>) => Promise<RpcResponse<T>>;
+  const rpc = client.rpc.bind(client) as unknown as (fn: string, params: Record<string, unknown>) => Promise<RpcResponse<T>>;
   return rpc(name, args);
 }
 
@@ -224,7 +215,6 @@ type AssessmentListRow = {
 export async function fetchPublishedAssessments(): Promise<Exam[]> {
   const client = requireSupabase();
   const userId = await requireUserId(client);
-
   const [{ data, error }, { data: attempts, error: attemptsError }] = await Promise.all([
     client.from('assessments').select('*').eq('status', 'published').order('order_index'),
     client.from('assessment_attempts').select('assessment_id, passed').eq('user_id', userId),
@@ -236,7 +226,6 @@ export async function fetchPublishedAssessments(): Promise<Exam[]> {
     a.course_id === b.course_id ? a.order_index - b.order_index : a.course_id.localeCompare(b.course_id)
   ));
   const passedIds = new Set((attempts ?? []).filter((attempt) => attempt.passed).map((attempt) => attempt.assessment_id));
-
   const byCourse = new Map<string, AssessmentListRow[]>();
   for (const row of rows) {
     const list = byCourse.get(row.course_id) ?? [];
@@ -255,7 +244,6 @@ export async function fetchPublishedAssessments(): Promise<Exam[]> {
         : `Đạt từ ${assessment.passing_score}%`;
       const skills = [passLabel];
       if (config.durationMinutes) skills.push(`${config.durationMinutes} phút`);
-
       exams.push({
         id: assessment.id,
         title: assessment.title,
@@ -269,7 +257,6 @@ export async function fetchPublishedAssessments(): Promise<Exam[]> {
       });
     });
   }
-
   return exams;
 }
 
@@ -281,17 +268,10 @@ export interface AssessmentUnlockState {
 export async function fetchAssessmentUnlockState(assessmentId: string): Promise<AssessmentUnlockState> {
   const client = requireSupabase();
   const userId = await requireUserId(client);
-
   const [{ data: assessment, error: assessmentError }, { data: attempts, error: attemptsError }] = await Promise.all([
-    client
-      .from('assessments')
-      .select('id, course_id, title, order_index')
-      .eq('id', assessmentId)
-      .eq('status', 'published')
-      .maybeSingle(),
+    client.from('assessments').select('id, course_id, title, order_index').eq('id', assessmentId).eq('status', 'published').maybeSingle(),
     client.from('assessment_attempts').select('assessment_id, passed').eq('user_id', userId),
   ]);
-
   if (assessmentError) throw new Error(assessmentError.message);
   if (attemptsError) throw new Error(attemptsError.message);
   if (!assessment) return { locked: false };
@@ -303,16 +283,14 @@ export async function fetchAssessmentUnlockState(assessmentId: string): Promise<
     .eq('status', 'published')
     .order('order_index');
   if (siblingsError) throw new Error(siblingsError.message);
-
   const ordered = (siblings ?? []).sort((a, b) => a.order_index - b.order_index);
   const index = ordered.findIndex((item) => item.id === assessmentId);
   if (index <= 0) return { locked: false };
-
   const previous = ordered[index - 1];
   const passedIds = new Set((attempts ?? []).filter((attempt) => attempt.passed).map((attempt) => attempt.assessment_id));
-  if (passedIds.has(previous.id)) return { locked: false };
-
-  return { locked: true, unlockLabel: `Vượt "${previous.title}" để mở khóa đề này` };
+  return passedIds.has(previous.id)
+    ? { locked: false }
+    : { locked: true, unlockLabel: `Vượt "${previous.title}" để mở khóa đề này` };
 }
 
 type PaperV2Row = {
@@ -342,11 +320,11 @@ export async function fetchAssessmentPaper(assessmentId: string): Promise<Assess
         if (!isJsonObject(item)) return [];
         const id = asString(item.id);
         const prompt = asString(item.prompt);
-        const assessmentQuestionId = asString(item.assessmentId);
-        if (!id || !prompt || !assessmentQuestionId) return [];
+        const questionAssessmentId = asString(item.assessmentId);
+        if (!id || !prompt || !questionAssessmentId) return [];
         return [{
           id,
-          assessmentId: assessmentQuestionId,
+          assessmentId: questionAssessmentId,
           prompt,
           options: asOptions(item.options ?? []),
           orderIndex: asNumber(item.orderIndex) ?? 0,
@@ -355,10 +333,8 @@ export async function fetchAssessmentPaper(assessmentId: string): Promise<Assess
       }),
     };
   }
-
   if (!isMissingV2Rpc(v2.error.message)) throw new Error(v2.error.message);
 
-  // Backward-compatible fallback while the V2 migration is rolling out.
   const client = requireSupabase();
   const [{ data: assessment, error: assessmentError }, { data: questions, error: questionError }] = await Promise.all([
     client.from('assessments').select('id, course_id, title, assessment_type, passing_score').eq('id', assessmentId).maybeSingle(),
@@ -367,7 +343,6 @@ export async function fetchAssessmentPaper(assessmentId: string): Promise<Assess
   if (assessmentError) throw new Error(assessmentError.message);
   if (questionError) throw new Error(questionError.message);
   if (!assessment) return null;
-
   return {
     id: assessment.id,
     courseId: assessment.course_id,
@@ -400,27 +375,54 @@ type ResultV2Row = {
   section_breakdown: Json;
 };
 
-function mapResultV2(result: ResultV2Row): AssessmentResult {
+function mapResultV2(row: ResultV2Row): AssessmentResult {
   return {
-    attemptId: result.attempt_id,
-    assessmentId: result.assessment_id,
-    score: result.score,
-    passed: result.passed,
-    totalQuestions: result.total_questions,
-    correctAnswers: result.correct_answers,
-    attemptedAt: result.attempted_at,
-    pointsEarned: result.points_earned,
-    totalPoints: result.total_points,
-    passingPoints: result.passing_points,
-    sectionBreakdown: parseSectionBreakdown(result.section_breakdown),
+    attemptId: row.attempt_id,
+    assessmentId: row.assessment_id,
+    score: row.score,
+    passed: row.passed,
+    totalQuestions: row.total_questions,
+    correctAnswers: row.correct_answers,
+    attemptedAt: row.attempted_at,
+    pointsEarned: row.points_earned,
+    totalPoints: row.total_points,
+    passingPoints: row.passing_points,
+    sectionBreakdown: parseSectionBreakdown(row.section_breakdown),
+  };
+}
+
+async function getLegacyPassingScore(assessmentId: string): Promise<number> {
+  const { data, error } = await requireSupabase().from('assessments').select('passing_score').eq('id', assessmentId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.passing_score ?? 0;
+}
+
+function mapLegacyResult(row: {
+  attempt_id: string;
+  assessment_id: string;
+  score: number;
+  passed: boolean;
+  total_questions: number;
+  correct_answers: number;
+  attempted_at: string;
+}, passingScore: number): AssessmentResult {
+  return {
+    attemptId: row.attempt_id,
+    assessmentId: row.assessment_id,
+    score: row.score,
+    passed: row.passed,
+    totalQuestions: row.total_questions,
+    correctAnswers: row.correct_answers,
+    attemptedAt: row.attempted_at,
+    pointsEarned: row.correct_answers,
+    totalPoints: row.total_questions,
+    passingPoints: Math.ceil(row.total_questions * passingScore / 100),
+    sectionBreakdown: [],
   };
 }
 
 export async function submitAssessment(assessmentId: string, answers: Record<string, string>): Promise<AssessmentResult> {
-  const v2 = await callUntypedRpc<ResultV2Row[]>('submit_assessment_v2', {
-    target_assessment_id: assessmentId,
-    target_answers: answers,
-  });
+  const v2 = await callUntypedRpc<ResultV2Row[]>('submit_assessment_v2', { target_assessment_id: assessmentId, target_answers: answers });
   if (!v2.error) {
     const result = v2.data?.[0];
     if (!result) throw new Error('Không nhận được kết quả chấm điểm từ máy chủ.');
@@ -428,53 +430,27 @@ export async function submitAssessment(assessmentId: string, answers: Record<str
   }
   if (!isMissingV2Rpc(v2.error.message)) throw new Error(v2.error.message);
 
-  const { data, error } = await requireSupabase().rpc('submit_assessment', {
-    target_assessment_id: assessmentId,
-    target_answers: answers,
-  });
+  const [{ data, error }, passingScore] = await Promise.all([
+    requireSupabase().rpc('submit_assessment', { target_assessment_id: assessmentId, target_answers: answers }),
+    getLegacyPassingScore(assessmentId),
+  ]);
   if (error) throw new Error(error.message);
   const result = data?.[0];
   if (!result) throw new Error('Không nhận được kết quả chấm điểm từ máy chủ.');
-  return {
-    attemptId: result.attempt_id,
-    assessmentId: result.assessment_id,
-    score: result.score,
-    passed: result.passed,
-    totalQuestions: result.total_questions,
-    correctAnswers: result.correct_answers,
-    attemptedAt: result.attempted_at,
-    pointsEarned: result.correct_answers,
-    totalPoints: result.total_questions,
-    passingPoints: Math.ceil(result.total_questions * result.score / 100),
-    sectionBreakdown: [],
-  };
+  return mapLegacyResult(result, passingScore);
 }
 
 export async function fetchLatestAssessmentResult(assessmentId: string): Promise<AssessmentResult | null> {
   const v2 = await callUntypedRpc<ResultV2Row[]>('get_latest_assessment_result_v2', { target_assessment_id: assessmentId });
-  if (!v2.error) {
-    const result = v2.data?.[0];
-    return result ? mapResultV2(result) : null;
-  }
+  if (!v2.error) return v2.data?.[0] ? mapResultV2(v2.data[0]) : null;
   if (!isMissingV2Rpc(v2.error.message)) throw new Error(v2.error.message);
 
-  const { data, error } = await requireSupabase().rpc('get_latest_assessment_result', { target_assessment_id: assessmentId });
+  const [{ data, error }, passingScore] = await Promise.all([
+    requireSupabase().rpc('get_latest_assessment_result', { target_assessment_id: assessmentId }),
+    getLegacyPassingScore(assessmentId),
+  ]);
   if (error) throw new Error(error.message);
-  const result = data?.[0];
-  if (!result) return null;
-  return {
-    attemptId: result.attempt_id,
-    assessmentId: result.assessment_id,
-    score: result.score,
-    passed: result.passed,
-    totalQuestions: result.total_questions,
-    correctAnswers: result.correct_answers,
-    attemptedAt: result.attempted_at,
-    pointsEarned: result.correct_answers,
-    totalPoints: result.total_questions,
-    passingPoints: Math.ceil(result.total_questions * result.score / 100),
-    sectionBreakdown: [],
-  };
+  return data?.[0] ? mapLegacyResult(data[0], passingScore) : null;
 }
 
 type ResultDetailV2Row = {
@@ -526,11 +502,6 @@ export async function fetchAssessmentResultDetail(attemptId: string): Promise<As
     orderIndex: item.order_index,
     points: 1,
     pointsEarned: item.is_correct ? 1 : 0,
-    strategy: {
-      signalWords: [],
-      vocabClues: [],
-      eliminationTips: [],
-      examSteps: [],
-    },
+    strategy: { signalWords: [], vocabClues: [], eliminationTips: [], examSteps: [] },
   }));
 }
