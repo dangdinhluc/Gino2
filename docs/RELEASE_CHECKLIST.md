@@ -5,11 +5,19 @@
 - [ ] Scoped diff reviewed; no unrelated WIP staged.
 - [ ] `npm ci`
 - [ ] `npm run typecheck`
+- [ ] `npm run lint`
 - [ ] `npm run test`
 - [ ] `npm run build`
 - [ ] `git diff --check`
 - [ ] New migrations reviewed for RLS, grants, rollback and data impact.
 - [ ] New Edge Function errors sanitized.
+
+## GitHub repository settings
+
+- [ ] Protect `main`: require a pull request, require the Quality Gate workflow, dismiss stale reviews, and block direct pushes.
+- [ ] Do not deploy preview/UX branches from the production Pages workflow.
+- [ ] Close or rebase stale PRs before they drift from `main`.
+- [ ] Delete merged feature branches after the PR lands.
 
 ## Database change
 
