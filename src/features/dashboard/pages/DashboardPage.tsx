@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { BookOpen, ChevronRight, GraduationCap, Layers, Target } from 'lucide-react';
 import type { DashboardTask } from '@/src/features/dashboard/components/DashboardQuestsModal';
 import { fetchDailyLearningPlan, fetchDashboardHeroSlots, fetchLearnerDashboard, type DailyLearningPlan, type DashboardHeroSlot, type LearnerDashboardSnapshot } from '@/src/features/dashboard/repositories/learnerDashboardRepository';
@@ -18,6 +18,7 @@ import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepo
 
 const XP_PER_LEVEL = 500;
 const DAILY_XP_GOAL = 60;
+type LoadStatus = 'loading' | 'ready' | 'error';
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState<LearnerDashboardSnapshot | null>(null);
@@ -28,7 +29,13 @@ export default function Dashboard() {
   const [heroSlots, setHeroSlots] = useState<DashboardHeroSlot[]>([]);
   const [now, setNow] = useState(() => new Date());
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardStatus, setDashboardStatus] = useState<LoadStatus>('loading');
+  const [statsStatus, setStatsStatus] = useState<LoadStatus>('loading');
+  const [profileStatus, setProfileStatus] = useState<LoadStatus>('loading');
+  const [planStatus, setPlanStatus] = useState<LoadStatus>('loading');
+  const [notificationStatus, setNotificationStatus] = useState<LoadStatus>('loading');
+  const [heroStatus, setHeroStatus] = useState<LoadStatus>('loading');
+  const [statsRetryCount, setStatsRetryCount] = useState(0);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [rewardState, setRewardState] = useState<{ claimed: boolean; rewardXp: number } | null>(null);
   const [rewardError, setRewardError] = useState<string | null>(null);
@@ -36,34 +43,97 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
     setLoadErrors([]);
-    Promise.allSettled([
-      fetchLearnerDashboard(),
-      fetchLearnerStats(),
-      fetchLearnerProfile(),
-      fetchDailyLearningPlan(),
-      listLearnerNotifications().catch(() => [] as LearnerNotification[]),
-      fetchDashboardHeroSlots(),
-    ])
-      .then(([nextDashboard, nextStats, nextProfile, nextPlan, nextNotifications, nextHeroSlots]) => {
+
+    fetchLearnerDashboard()
+      .then((value) => {
         if (cancelled) return;
-        const failures: string[] = [];
-        const nextDashboardValue = settledValue(nextDashboard, failures, 'kế hoạch học tập');
-        const nextStatsValue = settledValue(nextStats, failures, 'chỉ số học tập');
-        const nextProfileValue = settledValue(nextProfile, failures, 'hồ sơ cá nhân');
-        const nextPlanValue = settledValue(nextPlan, failures, 'nhiệm vụ hôm nay');
-        const nextNotificationsValue = settledValue(nextNotifications, failures, 'thông báo');
-        const nextHeroSlotsValue = settledValue(nextHeroSlots, failures, 'hình nền');
-        setDashboard(nextDashboardValue);
-        setStats(nextStatsValue);
-        setProfile(nextProfileValue);
-        setPlan(nextPlanValue);
-        setAnnouncement(pickRandomDashboardAnnouncement(nextNotificationsValue ?? []));
-        setHeroSlots(nextHeroSlotsValue ?? []);
-        if (failures.length > 0) setLoadErrors(failures);
+        setDashboard(value);
+        setDashboardStatus('ready');
+        clearLoadError(setLoadErrors, 'kế hoạch học tập');
       })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
+      .catch(() => {
+        if (cancelled) return;
+        setDashboardStatus('error');
+        addLoadError(setLoadErrors, 'kế hoạch học tập');
+      });
+
+    fetchLearnerProfile()
+      .then((value) => {
+        if (cancelled) return;
+        setProfile(value);
+        setProfileStatus('ready');
+        clearLoadError(setLoadErrors, 'hồ sơ cá nhân');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setProfileStatus('error');
+        addLoadError(setLoadErrors, 'hồ sơ cá nhân');
+      });
+
+    fetchDailyLearningPlan()
+      .then((value) => {
+        if (cancelled) return;
+        setPlan(value);
+        setPlanStatus('ready');
+        clearLoadError(setLoadErrors, 'nhiệm vụ hôm nay');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPlanStatus('error');
+        addLoadError(setLoadErrors, 'nhiệm vụ hôm nay');
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setStatsStatus('loading');
+
+    fetchLearnerStats()
+      .then((value) => {
+        if (cancelled) return;
+        setStats(value);
+        setStatsStatus('ready');
+        clearLoadError(setLoadErrors, 'chỉ số học tập');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setStatsStatus('error');
+        addLoadError(setLoadErrors, 'chỉ số học tập');
+      });
+
+    return () => { cancelled = true; };
+  }, [statsRetryCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    listLearnerNotifications()
+      .then((value) => {
+        if (cancelled) return;
+        setAnnouncement(pickRandomDashboardAnnouncement(value));
+        setNotificationStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setNotificationStatus('error');
+        addLoadError(setLoadErrors, 'thông báo');
+      });
+
+    fetchDashboardHeroSlots()
+      .then((value) => {
+        if (cancelled) return;
+        setHeroSlots(value);
+        setHeroStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setHeroStatus('error');
+        addLoadError(setLoadErrors, 'hình nền');
+      });
+
     return () => { cancelled = true; };
   }, []);
 
@@ -88,8 +158,10 @@ export default function Dashboard() {
       const result = await claimDailyReward();
       setRewardState({ claimed: result.claimed, rewardXp: result.rewardXp });
       if (result.claimed) {
+        setStatsStatus('loading');
         const refreshed = await fetchLearnerStats();
         setStats(refreshed);
+        setStatsStatus('ready');
       }
     } catch (reason) {
       setRewardError(reason instanceof Error ? reason.message : 'Không nhận được phần thưởng hôm nay.');
@@ -118,11 +190,21 @@ export default function Dashboard() {
 
   const heroSlot = selectDashboardHeroSlot(heroSlots, now);
   const announcementTarget = announcement?.actionUrl?.startsWith('/') ? announcement.actionUrl : '/app/notifications';
+  const hasCriticalData = dashboard !== null || profile !== null || plan !== null;
+  const criticalLoading = dashboardStatus === 'loading' || profileStatus === 'loading' || planStatus === 'loading';
 
-  if (isLoading) return <PageState message="Đang tải kế hoạch học tập…" />;
+  if (!hasCriticalData && criticalLoading) return <DashboardSkeleton />;
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-4 pb-24 sm:px-6 md:px-8 md:py-6">
+    <div
+      className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-4 pb-24 sm:px-6 md:px-8 md:py-6"
+      data-dashboard-status={dashboardStatus}
+      data-profile-status={profileStatus}
+      data-plan-status={planStatus}
+      data-stats-status={statsStatus}
+      data-notifications-status={notificationStatus}
+      data-hero-status={heroStatus}
+    >
       {loadErrors.length > 0 && (
         <p role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">
           Không tải được: {loadErrors.join(', ')} — các phần còn lại vẫn hiển thị.
@@ -177,24 +259,31 @@ export default function Dashboard() {
         </button>
       </Reveal>
 
-      <Reveal delay={0.08}>
-        <DashboardStatCards
-          dailyGoalProgress={dailyGoalProgress}
-          displayStreak={displayStreak}
-          displayDueCount={displayDueCount}
-          displayReviewedToday={displayReviewedToday}
-          totalXp={totalXp}
-          level={level}
-          levelProgress={levelProgress}
-          effectiveDailyXp={effectiveDailyXp}
+      {statsStatus === 'ready' && stats ? (
+        <Reveal delay={0.08}>
+          <DashboardStatCards
+            dailyGoalProgress={dailyGoalProgress}
+            displayStreak={displayStreak}
+            displayDueCount={displayDueCount}
+            displayReviewedToday={displayReviewedToday}
+            totalXp={totalXp}
+            level={level}
+            levelProgress={levelProgress}
+            effectiveDailyXp={effectiveDailyXp}
+          />
+        </Reveal>
+      ) : (
+        <DashboardSectionState
+          message={statsStatus === 'error' ? 'Không tải được chỉ số học tập.' : 'Đang tải chỉ số học tập…'}
+          retry={statsStatus === 'error' ? () => setStatsRetryCount((value) => value + 1) : undefined}
         />
-      </Reveal>
+      )}
 
       <Reveal delay={0.04}>
         <DailyRewardBanner claiming={claimingReward} rewardState={rewardState} rewardError={rewardError} onClaim={() => void handleClaimReward()} />
       </Reveal>
 
-      {weeklyActivity.length > 0 && (
+      {statsStatus === 'ready' && weeklyActivity.length > 0 && (
         <Reveal delay={0.06}>
           <WeeklyActivity
             today={weeklyActivity[weeklyActivity.length - 1]?.date ?? ''}
@@ -208,7 +297,7 @@ export default function Dashboard() {
         </Reveal>
       )}
 
-      {topicMastery.length > 0 && (
+      {statsStatus === 'ready' && topicMastery.length > 0 && (
         <Reveal delay={0.08}>
           <CourseMastery topicMastery={topicMastery} />
         </Reveal>
@@ -227,12 +316,33 @@ export default function Dashboard() {
   );
 }
 
-function settledValue<T>(result: PromiseSettledResult<T>, failures: string[], label: string): T | null {
-  if (result.status === 'fulfilled') return result.value;
-  failures.push(label);
-  return null;
+function addLoadError(setLoadErrors: Dispatch<SetStateAction<string[]>>, label: string): void {
+  setLoadErrors((current) => current.includes(label) ? current : [...current, label]);
 }
 
-function PageState({ message, tone }: { message: string; tone?: 'error' }) {
-  return <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-5"><div className={tone === 'error' ? 'w-full rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-700' : 'w-full rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 text-sm font-semibold text-[#5f6b7c]'}>{message}</div></div>;
+function clearLoadError(setLoadErrors: Dispatch<SetStateAction<string[]>>, label: string): void {
+  setLoadErrors((current) => current.filter((item) => item !== label));
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-4 pb-24 sm:px-6 md:px-8 md:py-6" aria-busy="true" aria-label="Đang tải Dashboard">
+      <div className="h-44 animate-pulse rounded-[28px] border border-[#f5ece1] bg-white" />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => <div key={index} className="h-36 animate-pulse rounded-[22px] border border-[#f5ece1] bg-white" />)}
+      </div>
+      <div className="h-24 animate-pulse rounded-[28px] border border-[#f5ece1] bg-white" />
+    </div>
+  );
+}
+
+function DashboardSectionState({ message, retry }: { message: string; retry?: () => void }) {
+  return (
+    <section className="rounded-[22px] border border-[#f5ece1] bg-white px-4 py-5 text-sm font-semibold text-[#7b8796]" role={retry ? 'alert' : undefined}>
+      <div className="flex items-center justify-between gap-3">
+        <span>{message}</span>
+        {retry && <button type="button" onClick={retry} className="rounded-xl border border-[#e8dccb] px-3 py-2 text-xs font-black text-[#d83a00]">Thử lại</button>}
+      </div>
+    </section>
+  );
 }
