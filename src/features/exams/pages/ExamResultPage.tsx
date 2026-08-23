@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, CircleAlert, KeyRound, Lightbulb, ListChecks, RotateCcw, Target, TriangleAlert } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -177,7 +177,7 @@ function StrategyPanel({ strategy }: { strategy: AssessmentStrategy }) {
   );
 }
 
-function StrategyCard({ icon, title, tone, children }: { icon: React.ReactNode; title: string; tone?: 'warning'; children: React.ReactNode }) {
+function StrategyCard({ icon, title, tone, children }: { icon: ReactNode; title: string; tone?: 'warning'; children: ReactNode }) {
   return (
     <div className={cn('rounded-xl border p-3 text-sm leading-6', tone === 'warning' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-[#eadfce] bg-[#fffaf3] text-[#5f493e]')}>
       <div className="mb-1.5 flex items-center gap-2 font-bold text-[#172033]">{icon}{title}</div>
