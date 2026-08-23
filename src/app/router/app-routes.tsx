@@ -14,6 +14,7 @@ const ExamResultPage = lazy(() => import('@/src/features/exams/pages/ExamResultP
 const GrammarLibraryPage = lazy(() => import('@/src/features/grammar/pages/GrammarLibraryPage'));
 const GrammarTopicDetailPage = lazy(() => import('@/src/features/grammar/pages/GrammarTopicDetailPage'));
 const VocabularyDetailPage = lazy(() => import('@/src/features/grammar/pages/VocabularyDetailPage'));
+const PracticeHubPage = lazy(() => import('@/src/features/review/pages/PracticeHubPage'));
 const ReviewCenterPage = lazy(() => import('@/src/features/review/pages/ReviewCenterPage'));
 const FlashcardSessionPage = lazy(() => import('@/src/features/review/pages/FlashcardSessionPage'));
 const AIWritingLabPage = lazy(() => import('@/src/features/ai/pages/AIWritingLabPage'));
@@ -66,8 +67,9 @@ export function AppRoutes() {
       <Route path="settings" element={screen(<SettingsPage />)} />
       <Route path="review" element={<Navigate to="/app/practice" replace />} />
       <Route path="review/flashcards" element={screen(<FlashcardSessionPage />)} />
-      <Route path="practice" element={screen(<ReviewCenterPage />)} />
-      <Route path="practice/custom" element={<Navigate to="/app/practice" replace />} />
+      <Route path="practice" element={screen(<PracticeHubPage />)} />
+      <Route path="practice/review" element={screen(<ReviewCenterPage />)} />
+      <Route path="practice/custom" element={<Navigate to="/app/practice/review" replace />} />
       <Route path="hub" element={screen(<LearningHubPage />)} />
       <Route path="profile" element={screen(<ProfilePage />)} />
     </Route>
