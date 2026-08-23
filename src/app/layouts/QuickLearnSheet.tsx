@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Sparkles, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
 
 interface QuickLearnSheetProps {
@@ -13,58 +13,44 @@ interface QuickLearnSheetProps {
   onNavigate: (path: string) => void;
 }
 
-export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNavigate }: QuickLearnSheetProps) {
-  const suggestion = dueCount > 0
-    ? {
-        title: `${dueCount} từ đang chờ ôn`,
-        subtitle: 'Khoảng 5 phút',
-        path: '/app/practice/review',
-        icon: assets.shared.navigation.vocabulary,
-      }
-    : currentCourse
-      ? {
-          title: 'Tiếp tục bài đang học',
-          subtitle: currentCourse.title,
-          path: `/app/courses/${currentCourse.id}/learn`,
-          icon: assets.courses.workspace.documents,
-        }
-      : {
-          title: 'Luyện nhanh 5 câu',
-          subtitle: 'Ngữ pháp & Từ vựng',
-          path: '/app/practice',
-          icon: assets.shared.navigation.practice,
-        };
+export function QuickLearnSheet({
+  isOpen,
+  dueCount,
+  currentCourse,
+  onClose,
+  onNavigate,
+}: QuickLearnSheetProps) {
+  const courseTitle = currentCourse?.title || 'Chưa chọn khóa học';
+  const coursePath = currentCourse ? `/app/courses/${currentCourse.id}/learn` : '/app/courses';
 
-  const quickActions = [
-    ...(currentCourse
-      ? [{
-          label: 'Tiếp tục bài đang học',
-          hint: currentCourse.title,
-          path: `/app/courses/${currentCourse.id}/learn`,
-          icon: assets.courses.workspace.documents,
-          iconClass: 'bg-[#eef4ff] text-[#4f79d4]',
-        }]
-      : []),
+  const quickOptions = [
     {
-      label: 'Luyện nhanh 5 câu',
-      hint: 'Ngữ pháp & Từ vựng',
+      id: 'continue-course',
+      title: 'Tiếp tục bài đang học',
+      subtitle: courseTitle,
+      icon: assets.courses.workspace.documents,
+      path: coursePath,
+    },
+    {
+      id: 'quick-practice',
+      title: 'Luyện nhanh',
+      subtitle: '5 câu hỏi ngắn',
+      icon: assets.courses.workspace.practice,
       path: '/app/practice',
-      icon: assets.shared.navigation.practice,
-      iconClass: 'bg-[#fff2d9] text-[#e49a13]',
     },
     {
-      label: 'Thi thử nhanh',
-      hint: '10 câu · 10 phút',
-      path: '/app/exams',
-      icon: assets.shared.navigation.exams,
-      iconClass: 'bg-[#ffe9ef] text-[#df4f78]',
-    },
-    {
-      label: 'Chơi game học tập',
-      hint: 'Vừa học vừa vui',
-      path: '/app/hub',
+      id: 'play-game',
+      title: 'Chơi game',
+      subtitle: 'Học mà vui',
       icon: assets.courses.workspace.games,
-      iconClass: 'bg-[#fff0dc] text-[#b96a18]',
+      path: '/app/hub',
+    },
+    {
+      id: 'mock-exam',
+      title: 'Thi thử',
+      subtitle: 'Kiểm tra trình độ',
+      icon: assets.courses.workspace.exam,
+      path: '/app/exams',
     },
   ];
 
@@ -72,7 +58,7 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-40 bg-[#17131f]/35 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[#130f24]/40 p-0 backdrop-blur-[3px] lg:hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -82,89 +68,147 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
             role="dialog"
             aria-modal="true"
             aria-label="Học nhanh"
-            initial={{ y: '100%', opacity: 0.96 }}
+            initial={{ y: '100%', opacity: 0.95 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0.96 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            exit={{ y: '100%', opacity: 0.95 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 36 }}
             onClick={(event) => event.stopPropagation()}
-            className="absolute inset-x-0 bottom-[calc(4.6rem+env(safe-area-inset-bottom))] mx-auto w-full max-w-[760px] rounded-t-[28px] border border-[#e9e3f4] bg-white px-4 pb-5 pt-3 shadow-[0_-18px_50px_rgba(32,22,58,.16)]"
+            className="relative flex max-h-[90dvh] w-full max-w-[500px] flex-col overflow-hidden rounded-t-[32px] border-t border-[#ebe3fa] bg-white shadow-[0_-16px_50px_rgba(25,15,50,0.2)]"
           >
-            <div className="mx-auto h-1.5 w-12 rounded-full bg-[#d9d5e5]" />
+            {/* Header với nền gradient tím pastel & mascot vẫy tay */}
+            <div className="relative overflow-hidden bg-gradient-to-b from-[#eadefc] via-[#f4efff] to-white px-5 pb-3 pt-2.5">
+              {/* Thanh kéo sheet */}
+              <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-[#c8bde3]/70" />
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f5fb] text-[#777482] transition-colors hover:bg-[#eee9f8]"
-              aria-label="Đóng Học nhanh"
-            >
-              <X size={18} />
-            </button>
+              {/* Nút đóng tròn mờ góc trên phải */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/80 bg-white/85 text-[#636573] shadow-xs backdrop-blur-xs transition-all hover:bg-white hover:text-[#1e1f26] active:scale-95"
+                aria-label="Đóng Học nhanh"
+              >
+                <X size={17} strokeWidth={2.4} />
+              </button>
 
-            <div className="mt-4 flex items-center gap-3 pr-11">
-              <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded4f4] bg-[#faf8ff] p-1 shadow-[0_5px_16px_rgba(111,69,216,.12)]">
-                <img src={assets.shared.mascots.quickLearn} alt="" className="absolute left-1/2 top-0 h-auto w-[72px] max-w-none -translate-x-1/2" />
-              </span>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={15} className="text-[#7a50dc]" />
-                  <h2 className="text-[20px] font-black tracking-[-0.03em] text-[#22232a]">Học nhanh</h2>
+              {/* Phần mascot và bong bóng thoại */}
+              <div className="relative flex items-center justify-between pr-8 pt-1">
+                {/* Speech Bubble "一緒に勉強しよう!" */}
+                <div className="relative flex items-center">
+                  <img
+                    src={assets.shared.mascots.speechBubble}
+                    alt="一緒に勉強しよう!"
+                    className="h-auto w-[130px] drop-shadow-[0_4px_10px_rgba(111,69,216,0.12)] sm:w-[145px]"
+                  />
+                  <span className="absolute -right-3 -top-1 text-base animate-pulse">✨</span>
                 </div>
-                <p className="mt-1 text-[12px] font-medium text-[#7c7e88]">Để Tanuki dẫn anh đến việc phù hợp nhất nhé!</p>
+
+                {/* Mascot Tanuki vẫy tay */}
+                <div className="relative flex h-[100px] w-[100px] items-end justify-center sm:h-[110px] sm:w-[110px]">
+                  <img
+                    src={assets.shared.mascots.tanukiWaving}
+                    alt="Tanuki"
+                    className="h-full w-full object-contain drop-shadow-[0_6px_16px_rgba(111,69,216,0.16)]"
+                  />
+                </div>
+              </div>
+
+              {/* Tiêu đề & phụ đề */}
+              <div className="mt-1 text-center">
+                <h2 className="flex items-center justify-center gap-1.5 text-[22px] font-black tracking-tight text-[#1e1e24]">
+                  <span className="text-[#7144e8]">⚡</span>
+                  <span>Học nhanh</span>
+                </h2>
+                <p className="mt-0.5 text-[12.5px] font-medium text-[#646675]">
+                  Tanuki sẽ giúp bạn chọn việc học phù hợp nhất!
+                </p>
               </div>
             </div>
 
-            <div className="mt-4 rounded-[18px] border border-[#d9cafa] bg-[linear-gradient(135deg,#fbf9ff_0%,#f2ebff_100%)] p-3 shadow-[0_6px_18px_rgba(111,69,216,.08)]">
-              <p className="mb-2 flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[.08em] text-[#6f45d8]">
-                <Sparkles size={12} /> Gợi ý cho anh
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#e9f8ef] text-[#26a562]">
-                  <img src={suggestion.icon} alt="" className="h-9 w-9 object-contain" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <strong className="block truncate text-[14px] font-extrabold text-[#292a31]">{suggestion.title}</strong>
-                  <span className="mt-1 block truncate text-[11px] font-medium text-[#8a8c96]">{suggestion.subtitle}</span>
+            {/* Nội dung danh sách các tác vụ */}
+            <div className="flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-4 pb-6 pt-1">
+              {/* Card gợi ý chính: Ôn từ vựng */}
+              <div className="relative flex items-center justify-between rounded-[22px] border border-[#d8c7fa] bg-gradient-to-r from-[#f7f3ff] to-[#f0e7ff] p-3.5 shadow-[0_4px_16px_rgba(111,69,216,0.06)]">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+                    <img
+                      src={assets.shared.navigation.vocabulary}
+                      alt="Ôn từ vựng"
+                      className="h-full w-full object-contain drop-shadow-xs"
+                    />
+                  </span>
+                  <div className="min-w-0">
+                    <strong className="block text-[15px] font-extrabold text-[#1c1d24]">
+                      Ôn từ vựng
+                    </strong>
+                    <span className="mt-0.5 block text-[11.5px] font-medium text-[#6e707e]">
+                      {dueCount} từ đang chờ ôn
+                    </span>
+                    <span className="block text-[10.5px] font-medium text-[#8d8f9c]">
+                      Khoảng 5 phút
+                    </span>
+                  </div>
                 </div>
+
                 <button
                   type="button"
-                  onClick={() => onNavigate(suggestion.path)}
-                  className="h-10 shrink-0 rounded-[13px] bg-[linear-gradient(135deg,#7650e6,#5f31d5)] px-4 text-[11px] font-extrabold text-white shadow-[0_6px_16px_rgba(111,69,216,.24)] active:scale-[.98]"
+                  onClick={() => onNavigate('/app/practice/review')}
+                  className="flex h-9 shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#6e46e6] to-[#582dd7] px-4 text-[12px] font-extrabold text-white shadow-[0_4px_14px_rgba(110,70,230,0.35)] transition-all hover:shadow-[0_6px_18px_rgba(110,70,230,0.45)] active:scale-95"
                 >
-                  Bắt đầu
+                  <span>Bắt đầu</span>
+                  <span className="text-[14px]">›</span>
                 </button>
               </div>
-            </div>
 
-            <p className="mb-2 mt-4 text-[11px] font-extrabold text-[#494a52]">Hoặc chọn nhanh</p>
-            <div className="overflow-hidden rounded-[18px] border border-[#e8e8ef] bg-white">
-              {quickActions.map((action, index) => {
-                return (
-                  <button
-                    key={`${action.label}-${action.path}`}
-                    type="button"
-                    onClick={() => onNavigate(action.path)}
-                    className={`flex min-h-[62px] w-full items-center gap-3 px-3 text-left transition-colors hover:bg-[#faf9fd] ${index ? 'border-t border-[#eeeeF3]' : ''}`}
-                  >
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${action.iconClass}`}>
-                      <img src={action.icon} alt="" className="h-8 w-8 object-contain" />
+              {/* Danh sách 4 tác vụ nhanh dạng card trắng */}
+              {quickOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => onNavigate(option.path)}
+                  className="flex w-full items-center justify-between rounded-[20px] border border-[#eae6f4] bg-white p-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.025)] transition-all hover:border-[#ded6f3] hover:bg-[#faf9fe] active:scale-[0.99]"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+                      <img
+                        src={option.icon}
+                        alt=""
+                        className="h-full w-full object-contain drop-shadow-2xs"
+                      />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <strong className="block truncate text-[12px] font-extrabold text-[#303138]">{action.label}</strong>
-                      <small className="mt-0.5 block truncate text-[10px] font-medium text-[#9597a0]">{action.hint}</small>
-                    </span>
-                    <span className="text-[22px] font-light leading-none text-[#7b5bd4]">›</span>
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="min-w-0 flex-1">
+                      <strong className="block truncate text-[14px] font-extrabold text-[#202128]">
+                        {option.title}
+                      </strong>
+                      <span className="mt-0.5 block truncate text-[11.5px] font-medium text-[#7d7f8d]">
+                        {option.subtitle}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="pl-2 text-[20px] font-light leading-none text-[#989aa6]">
+                    ›
+                  </span>
+                </button>
+              ))}
 
-            <button
-              type="button"
-              onClick={() => onNavigate(suggestion.path)}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[15px] border border-[#d8cdf0] bg-[#fbf9ff] text-[12px] font-extrabold text-[#6f45d8] transition-colors hover:bg-[#f5f0ff]"
-            >
-              <span className="text-base">🎲</span> Để Tanuki quyết định
-            </button>
+              {/* Banner mẹo nhỏ từ Tanuki ở dưới cùng */}
+              <div className="flex items-center gap-3 rounded-[20px] border border-[#e8dffc] bg-[#f5efff] p-3.5 shadow-2xs">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                  <img
+                    src={assets.shared.mascots.lightbulb}
+                    alt="Mẹo"
+                    className="h-full w-full object-contain"
+                  />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11.5px] font-black text-[#6f45d8]">
+                    Mẹo nhỏ từ Tanuki:
+                  </p>
+                  <p className="mt-0.5 text-[11px] font-medium italic text-[#4a4c58]">
+                    &quot;Học 5 phút mỗi ngày cũng tạo nên sự khác biệt lớn!&quot;
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.section>
         </motion.div>
       )}
