@@ -3,6 +3,7 @@ import { Navigate, Route } from 'react-router-dom';
 import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 
+const TodayPage = lazy(() => import('@/src/features/dashboard/pages/TodayPage'));
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
 const CourseListPage = lazy(() => import('@/src/features/courses/pages/CourseListPage'));
 const CourseHomePage = lazy(() => import('@/src/features/courses/pages/CourseHomePage'));
@@ -42,7 +43,8 @@ export function AppRoutes() {
       }
     >
       <Route index element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="dashboard" element={screen(<DashboardPage />)} />
+      <Route path="dashboard" element={screen(<TodayPage />)} />
+      <Route path="progress" element={screen(<DashboardPage />)} />
       <Route path="courses" element={screen(<CourseListPage />)} />
       <Route path="enrollments" element={screen(<PackageCatalogPage />)} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
