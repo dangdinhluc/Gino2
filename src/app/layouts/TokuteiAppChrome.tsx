@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import {
   Flame,
@@ -7,8 +7,9 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { LearningSearchPopover } from '@/src/features/search/components/LearningSearchPopover';
 import { assets } from '@/src/shared/lib/assets';
+
+const LazyLearningSearchPopover = lazy(() => import('@/src/features/search/components/LearningSearchPopover').then(({ LearningSearchPopover }) => ({ default: LearningSearchPopover })));
 
 const desktopNavItems = [
   { label: 'Trang chủ', path: '/app/dashboard', imageIcon: assets.shared.navigation.home },
@@ -22,6 +23,12 @@ export function TokuteiAppChrome() {
   const streak = useProgressStore((state) => state.streak);
   const weeklyXp = useProgressStore((state) => state.weeklyXp);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [hasOpenedSearch, setHasOpenedSearch] = useState(false);
+
+  function openSearch(): void {
+    setHasOpenedSearch(true);
+    setIsSearchOpen(true);
+  }
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -88,7 +95,7 @@ export function TokuteiAppChrome() {
 
             <button
               type="button"
-              onClick={() => setIsSearchOpen(true)}
+        onClick={openSearch}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-[#f5ece1] bg-white text-[#5f6b7c] hover:border-orange-200 hover:text-[#d83a00] hover:shadow-2xs transition-all"
               title="Tìm nội dung học"
               aria-label="Tìm nội dung học"
@@ -137,13 +144,17 @@ export function TokuteiAppChrome() {
               <span>{weeklyXp} XP</span>
             </span>
 
-            <button type="button" onClick={() => setIsSearchOpen(true)} aria-label="Tìm nội dung học" aria-haspopup="dialog" aria-expanded={isSearchOpen} className="flex h-7 w-7 items-center justify-center rounded-full border border-orange-200 bg-white text-[#d83a00]">
+            <button type="button" onClick={openSearch} aria-label="Tìm nội dung học" aria-haspopup="dialog" aria-expanded={isSearchOpen} className="flex h-7 w-7 items-center justify-center rounded-full border border-orange-200 bg-white text-[#d83a00]">
               <Search size={14} />
             </button>
           </div>
         </div>
       </header>
-      <LearningSearchPopover open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      {hasOpenedSearch && (
+        <Suspense fallback={null}>
+          <LazyLearningSearchPopover open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
