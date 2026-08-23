@@ -151,4 +151,4 @@ The original PNGs remain in the repository as source/fallback material. Runtime 
 - Production schema lint still reports two pre-existing ambiguity errors in `public.report_community_content` and `public.upsert_community_profile`; they were outside this performance scope and were not changed.
 - A later linked-schema-lint retry was blocked by Supabase CLI login-role password authentication; the earlier successful lint run produced the two errors above.
 - No TTL cache was added. Dashboard stats/rewards are freshness-sensitive, and no authenticated revisit measurement justified introducing cache invalidation complexity yet.
-- GitHub Pages path validation passed at build level with `/Gino2/assets/...`; the code push that triggers the Pages deployment is still the final external step.
+- GitHub Pages deployment completed successfully from `main`; the live root `https://dangdinhluc.github.io/Gino2/` returns HTTP 200 and serves the `/Gino2/assets/...` build.
