@@ -1,54 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
-import {
-  BookOpen,
-  CheckCircle2,
-  ChevronRight,
-  Bell,
-  Gift,
-  Flame,
-  GraduationCap,
-  Layers,
-  Rocket,
-  Sparkles,
-  Sprout,
-  Target,
-  X,
-  Zap,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, Layers, Target } from 'lucide-react';
+import type { DashboardTask } from '@/src/features/dashboard/components/DashboardQuestsModal';
 import { fetchDailyLearningPlan, fetchDashboardHeroSlots, fetchLearnerDashboard, type DailyLearningPlan, type DashboardHeroSlot, type LearnerDashboardSnapshot } from '@/src/features/dashboard/repositories/learnerDashboardRepository';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { listLearnerNotifications, type LearnerNotification } from '@/src/features/notifications/repositories/notificationRepository';
-import { pickRandomDashboardAnnouncement, resolveDashboardHeroAsset, selectDashboardHeroSlot } from '@/src/features/dashboard/lib/dashboardHero';
-import { assets } from '@/src/shared/lib/assets';
+import { pickRandomDashboardAnnouncement, selectDashboardHeroSlot } from '@/src/features/dashboard/lib/dashboardHero';
 import { Reveal } from '@/src/shared/components/Reveal';
-import { cn } from '@/src/lib/utils';
+import { DashboardHero } from '@/src/features/dashboard/components/DashboardHero';
+import { DashboardStatCards } from '@/src/features/dashboard/components/DashboardStatCards';
+import { DailyRewardBanner } from '@/src/features/dashboard/components/DailyRewardBanner';
+import { WeeklyActivity } from '@/src/features/dashboard/components/WeeklyActivity';
+import { CourseMastery } from '@/src/features/dashboard/components/CourseMastery';
+import { DashboardShortcuts } from '@/src/features/dashboard/components/DashboardShortcuts';
+import { DashboardQuestsModal } from '@/src/features/dashboard/components/DashboardQuestsModal';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 
 const XP_PER_LEVEL = 500;
 const DAILY_XP_GOAL = 60;
-
-interface DashboardTask {
-  title: string;
-  status: string;
-  action: string;
-  icon: LucideIcon;
-  path: string;
-}
-
-const sakuraPetals = [
-  ['4%', 12, '-2s', '16s'],
-  ['15%', 9, '-9s', '19s'],
-  ['27%', 14, '-5s', '15s'],
-  ['39%', 10, '-12s', '20s'],
-  ['51%', 13, '-3s', '17s'],
-  ['64%', 9, '-11s', '21s'],
-  ['76%', 15, '-6s', '18s'],
-  ['89%', 11, '-14s', '22s'],
-] as const;
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState<LearnerDashboardSnapshot | null>(null);
@@ -148,7 +117,6 @@ export default function Dashboard() {
   if (taskItems.length === 0) taskItems.push({ title: 'Chọn khóa học để bắt đầu', status: `Mục tiêu ${plan?.goalMinutes ?? 20} phút hôm nay`, action: 'Xem khóa học', icon: BookOpen, path: '/app/courses' });
 
   const heroSlot = selectDashboardHeroSlot(heroSlots, now);
-  const heroAsset = resolveDashboardHeroAsset(heroSlot?.assetKey);
   const announcementTarget = announcement?.actionUrl?.startsWith('/') ? announcement.actionUrl : '/app/notifications';
 
   if (isLoading) return <PageState message="Đang tải kế hoạch học tập…" />;
@@ -161,540 +129,100 @@ export default function Dashboard() {
         </p>
       )}
 
-      {/* 1. Hero Section (Japanese Fuji & Sakura Background Aesthetic) */}
-      <motion.section
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[28px] border border-[#fde6d2] p-4 shadow-[0_10px_32px_rgba(217,74,19,0.06)] sm:p-8"
-        style={{
-          backgroundImage: `linear-gradient(180deg, rgba(255, 252, 248, 0.45) 0%, rgba(255, 245, 235, 0.88) 100%), url("${assets.shared.backgrounds.englishHero}")`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Sakura Falling Animation */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          {sakuraPetals.map(([left, size, delay, duration], index) => (
-            <span
-              className="dashboard-sakura-petal"
-              key={`${left}-${index}`}
-              style={{ left, width: size, height: size, animationDelay: delay, animationDuration: duration }}
-            />
-          ))}
-        </div>
+      <DashboardHero
+        displayName={displayName}
+        streak={displayStreak}
+        totalXp={totalXp}
+        level={level}
+        heroSlot={heroSlot}
+        announcement={announcement}
+        announcementTarget={announcementTarget}
+      />
 
-        <div className="relative z-10 grid gap-6 md:grid-cols-[1.25fr_0.75fr] items-center">
-          <div className="space-y-3.5">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-white/95 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-[#d83a00] shadow-2xs backdrop-blur-xs">
-              <Sparkles size={13} className="text-amber-500 fill-amber-400" /> TOKUTEI GINO • TIẾNG NHẬT ĐI LÀM
-            </div>
-
-            <h1 className="font-[var(--font-heading)] text-2xl font-black tracking-tight text-[#0f172a] sm:text-4xl leading-tight">
-              Chào mừng trở lại,<br className="sm:hidden" />{' '}
-              <span className="inline-block whitespace-nowrap bg-gradient-to-r from-[#d83a00] via-[#f26522] to-[#ff8c42] bg-clip-text text-transparent">
-                <span className="inline-flex items-center gap-1.5">
-                  {displayName}
-                  <Rocket aria-hidden="true" className="shrink-0 text-[#f26522]" size={28} strokeWidth={2.5} />
-                </span>
-              </span>
-            </h1>
-
-            <p className="text-xs font-semibold leading-relaxed text-[#5f6b7c] sm:text-sm max-w-md">
-              Nhiệm vụ Tokutei hôm nay đang chờ. Hành trình chinh phục tiếng Nhật vẫn tiếp tục!
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-black text-[#c2410c] shadow-2xs">
-                <Flame size={14} className="text-[#d83a00] fill-[#d83a00]" /> Chuỗi {displayStreak} ngày
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-black text-[#b45309] shadow-2xs">
-                <Zap size={14} className="text-amber-500 fill-amber-400" /> {totalXp} XP
-              </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-black text-[#059669] shadow-2xs">
-                <Sprout aria-hidden="true" size={14} /> Cấp {level}
-              </span>
-            </div>
-          </div>
-
-          {/* Admin announcement & time-based mascot */}
-          <div className="relative flex flex-col items-center justify-center text-center">
-            <div className="mb-2 max-w-xs rounded-2xl border border-orange-200/80 bg-white/95 p-3 text-left shadow-md backdrop-blur-xs sm:mb-2.5 sm:p-3.5">
-              <div className="flex items-center gap-1 text-[10px] font-black uppercase text-[#d83a00]">
-                <Bell aria-hidden="true" size={12} />
-                <span>【 THÔNG BÁO ADMIN 】</span>
-              </div>
-              {announcement ? <Link to={announcementTarget} className="group mt-1 block">
-                <strong className="block truncate text-xs font-black text-[#0f172a] group-hover:text-[#d83a00]">{announcement.title}</strong>
-                <span className="mt-0.5 hidden line-clamp-3 text-xs font-extrabold leading-relaxed text-[#5f6b7c] sm:block">{announcement.body}</span>
-                <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-black text-[#d83a00] sm:mt-2">Xem thông báo <ChevronRight aria-hidden="true" size={13} /></span>
-              </Link> : <Link to="/app/notifications" className="group mt-1 block">
-                <strong className="block truncate text-xs font-black text-[#0f172a]">Chưa có thông báo mới</strong>
-                <span className="mt-0.5 hidden text-xs font-semibold leading-relaxed text-[#5f6b7c] sm:block">Thông báo từ quản trị viên sẽ hiển thị tại đây.</span>
-                <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-black text-[#d83a00] sm:mt-2">Mở trung tâm thông báo <ChevronRight aria-hidden="true" size={13} /></span>
-              </Link>}
-            </div>
-
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative h-24 w-24 shrink-0 sm:h-44 sm:w-44"
-            >
-              <img
-                src={heroAsset.src}
-                alt={heroSlot?.altText || heroAsset.alt}
-                className="h-full w-full object-contain drop-shadow-[0_12px_24px_rgba(217,74,19,0.22)]"
-              />
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* 2. Nhiệm Vụ Hôm Nay — nút bấm mở popup, không chiếm chỗ màn hình */}
       <Reveal delay={0.04}>
-      <button
-        type="button"
-        onClick={() => setIsQuestsOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={isQuestsOpen}
-        className="group flex w-full items-center gap-3.5 rounded-[28px] border border-orange-200/80 bg-gradient-to-r from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-4 text-left shadow-[0_8px_20px_rgba(217,74,19,0.07)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)] gino-hover-lift sm:p-5"
-      >
-        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs group-hover:scale-105 transition-transform">
-          <Target size={22} />
-          {taskItems.length > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#d83a00] px-1 text-[10px] font-black text-white shadow-2xs">
-              {taskItems.length}
+        <button
+          type="button"
+          onClick={() => setIsQuestsOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={isQuestsOpen}
+          className="group flex w-full items-center gap-3.5 rounded-[28px] border border-orange-200/80 bg-gradient-to-r from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-4 text-left shadow-[0_8px_20px_rgba(217,74,19,0.07)] transition-all duration-200 hover:border-orange-300 hover:shadow-[0_12px_28px_rgba(217,74,19,0.11)] gino-hover-lift sm:p-5"
+        >
+          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs group-hover:scale-105 transition-transform">
+            <Target size={22} />
+            {taskItems.length > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#d83a00] px-1 text-[10px] font-black text-white shadow-2xs">
+                {taskItems.length}
+              </span>
+            )}
+          </span>
+
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-black uppercase tracking-wider text-[#d83a00]">
+              GIỮ NHỊP MỖI NGÀY
             </span>
-          )}
-        </span>
+            <span className="block font-[var(--font-heading)] text-base font-black text-[#0f172a] sm:text-lg">
+              Nhiệm vụ Tokutei hôm nay ⚔️
+            </span>
+            <span className="mt-0.5 block truncate text-xs font-semibold text-[#717d8f]">
+              {taskItems.length > 0
+                ? `${taskItems.length} nhiệm vụ đang chờ — nhấn để xem chi tiết`
+                : 'Xem kế hoạch học hôm nay'}
+            </span>
+          </span>
 
-        <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-black uppercase tracking-wider text-[#d83a00]">
-            GIỮ NHỊP MỖI NGÀY
+          <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-orange-200/80 bg-white/85 px-3.5 py-2 text-xs font-black text-[#c2410c] shadow-2xs">
+            <span className="hidden sm:inline">Xem nhiệm vụ</span>
+            <ChevronRight size={15} className="text-[#95a0af] transition-transform group-hover:translate-x-0.5" />
           </span>
-          <span className="block font-[var(--font-heading)] text-base font-black text-[#0f172a] sm:text-lg">
-            Nhiệm vụ Tokutei hôm nay ⚔️
-          </span>
-          <span className="mt-0.5 block truncate text-xs font-semibold text-[#717d8f]">
-            {taskItems.length > 0
-              ? `${taskItems.length} nhiệm vụ đang chờ — nhấn để xem chi tiết`
-              : 'Xem kế hoạch học hôm nay'}
-          </span>
-        </span>
-
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-orange-200/80 bg-white/85 px-3.5 py-2 text-xs font-black text-[#c2410c] shadow-2xs">
-          <Bell size={14} className="text-[#d83a00]" />
-          <span className="hidden sm:inline">Xem nhiệm vụ</span>
-          <ChevronRight size={15} className="text-[#95a0af] transition-transform group-hover:translate-x-0.5" />
-        </span>
-      </button>
+        </button>
       </Reveal>
 
-      {/* 3. 3 Stat Cards — hàng ngang trên mobile, đầy đủ trên desktop */}
       <Reveal delay={0.08}>
-      <section className="grid grid-cols-3 gap-2 sm:gap-4" aria-label="Tiến độ hôm nay">
-        {/* Card 1: Chuỗi Streak */}
-        <article className="flex flex-col justify-between gap-2 overflow-hidden rounded-[20px] border border-orange-200/80 bg-gradient-to-br from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-2.5 shadow-[0_8px_20px_rgba(217,74,19,0.07)] sm:gap-3 sm:rounded-[28px] sm:p-5">
-          <div className="flex items-center justify-between gap-1 sm:gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs sm:h-10 sm:w-10 sm:rounded-2xl">
-              <Flame size={16} className="fill-white sm:h-5 sm:w-5" />
-            </div>
-            <span className="hidden rounded-full bg-white/80 border border-orange-200/60 px-2.5 py-0.5 text-[10px] font-black text-[#c2410c] sm:inline-block">
-              Đang theo dõi
-            </span>
-          </div>
-
-          <div className="min-w-0">
-            <span className="block truncate text-[9px] font-black uppercase tracking-wider text-[#d83a00] sm:text-[10px]">CHUỖI STREAK</span>
-            <div className="font-[var(--font-heading)] text-lg font-black leading-tight text-[#0f172a] sm:text-xl">
-              {displayStreak}<span className="hidden text-xs font-bold text-[#717d8f] sm:inline"> ngày liên tiếp</span>
-            </div>
-          </div>
-
-          <div className="hidden space-y-1 sm:block">
-            <div className="flex items-center justify-between text-[11px] font-extrabold text-[#717d8f]">
-              <span>Chuỗi hiện tại</span>
-              <span className="font-black text-[#d83a00]">{displayStreak} ngày</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[#eee3d5] p-0.5">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522]"
-                style={{ width: `${Math.min(100, Math.max(10, displayStreak * 20))}%` }}
-              />
-            </div>
-          </div>
-
-          {displayDueCount > 0 ? (
-            <Link
-              to="/app/review/flashcards?mode=due"
-              className="hidden items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] py-2.5 text-xs font-black text-white shadow-xs hover:brightness-110 active:scale-95 transition-all sm:flex"
-            >
-              <Layers size={15} />
-              <span>Ôn {displayDueCount} thẻ giữ chuỗi (+10 XP)</span>
-            </Link>
-          ) : (
-            <Link
-              to="/app/courses"
-              className="hidden items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#e65100] py-2.5 text-xs font-black text-white shadow-xs hover:brightness-110 active:scale-95 transition-all sm:flex"
-            >
-              <BookOpen size={15} />
-              <span>Học bài giữ chuỗi (+25 XP)</span>
-            </Link>
-          )}
-          <span className="block truncate text-[10px] font-black text-[#c2410c] sm:hidden">{displayDueCount > 0 ? `${displayDueCount} thẻ tới hạn` : 'Giữ lửa mỗi ngày'}</span>
-        </article>
-
-        {/* Card 2: Điểm XP */}
-        <article className="flex flex-col justify-between gap-2 overflow-hidden rounded-[20px] border border-orange-200/80 bg-gradient-to-br from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-2.5 shadow-[0_8px_20px_rgba(217,74,19,0.07)] sm:gap-3 sm:rounded-[28px] sm:p-5">
-          <div className="flex items-center justify-between gap-1 sm:gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs sm:h-10 sm:w-10 sm:rounded-2xl">
-              <Zap size={16} className="fill-white sm:h-5 sm:w-5" />
-            </div>
-            <span className="hidden rounded-full bg-white/80 border border-orange-200/60 px-2.5 py-0.5 text-[10px] font-black text-[#c2410c] sm:inline-block">
-              Cấp {level}
-            </span>
-          </div>
-
-          <div className="min-w-0">
-            <span className="block truncate text-[9px] font-black uppercase tracking-wider text-[#d83a00] sm:text-[10px]">ĐIỂM XP TÍCH LŨY</span>
-            <div className="font-[var(--font-heading)] text-lg font-black leading-tight text-[#0f172a] sm:text-xl">
-              {totalXp}<span className="hidden text-xs font-bold text-[#717d8f] sm:inline"> XP</span>
-            </div>
-          </div>
-
-          <div className="hidden space-y-1 sm:block">
-            <div className="flex items-center justify-between text-[11px] font-extrabold text-[#717d8f]">
-              <span>Cấp {level} ➔ {level + 1}</span>
-              <span className="font-black text-[#d83a00]">{xpIntoLevel} / {XP_PER_LEVEL} XP</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[#eee3d5] p-0.5">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522]"
-                style={{ width: `${levelProgress}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="hidden items-center justify-between text-xs font-black text-[#d83a00] bg-white/70 rounded-2xl p-2.5 px-3.5 border border-orange-200/50 sm:flex">
-            <span>Tiến độ cấp hiện tại</span>
-            <span className="text-sm font-black">{levelProgress}%</span>
-          </div>
-          <span className="block truncate text-[10px] font-black text-[#c2410c] sm:hidden">Cấp {level} · {levelProgress}%</span>
-        </article>
-
-        {/* Card 3: Mục tiêu hôm nay */}
-        <article className="flex flex-col justify-between gap-2 overflow-hidden rounded-[20px] border border-orange-200/80 bg-gradient-to-br from-[#fffdf9] via-[#fff7ee] to-[#ffedd9] p-2.5 shadow-[0_8px_20px_rgba(217,74,19,0.07)] sm:gap-3 sm:rounded-[28px] sm:p-5">
-          <div className="flex items-center justify-between gap-1 sm:gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#d83a00] to-[#f26522] text-white shadow-2xs sm:h-10 sm:w-10 sm:rounded-2xl">
-              <CheckCircle2 size={16} className="sm:h-5 sm:w-5" />
-            </div>
-            <span className="hidden rounded-full bg-white/80 border border-orange-200/60 px-2.5 py-0.5 text-[10px] font-black text-[#c2410c] sm:inline-block">
-              {dailyGoalProgress}%
-            </span>
-          </div>
-
-          <div className="min-w-0">
-            <span className="block truncate text-[9px] font-black uppercase tracking-wider text-[#d83a00] sm:text-[10px]">MỤC TIÊU HÔM NAY</span>
-            <div className="font-[var(--font-heading)] text-lg font-black leading-tight text-[#0f172a] sm:text-xl">
-              {effectiveDailyXp}<span className="hidden text-xs font-bold text-[#717d8f] sm:inline"> / {DAILY_XP_GOAL} XP</span>
-            </div>
-          </div>
-
-          <div className="hidden space-y-1 sm:block">
-            <div className="flex items-center justify-between text-[11px] font-extrabold text-[#717d8f]">
-              <span>Tiến độ XP hôm nay</span>
-              <span className="font-black text-[#d83a00]">{dailyGoalProgress}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[#eee3d5] p-0.5">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#d83a00] to-[#f26522]"
-                style={{ width: `${dailyGoalProgress}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="hidden items-center justify-between text-xs font-black text-[#d83a00] bg-white/70 rounded-2xl p-2.5 px-3.5 border border-orange-200/50 sm:flex">
-            <span>{displayReviewedToday} hoạt động</span>
-            <span className="font-extrabold">{displayDueCount} thẻ đến hạn</span>
-          </div>
-          <span className="block truncate text-[10px] font-black text-[#c2410c] sm:hidden">{dailyGoalProgress}% hôm nay</span>
-        </article>
-      </section>
+        <DashboardStatCards
+          dailyGoalProgress={dailyGoalProgress}
+          displayStreak={displayStreak}
+          displayDueCount={displayDueCount}
+          displayReviewedToday={displayReviewedToday}
+          totalXp={totalXp}
+          level={level}
+          levelProgress={levelProgress}
+          effectiveDailyXp={effectiveDailyXp}
+        />
       </Reveal>
 
       <Reveal delay={0.04}>
-        <section className="flex flex-col gap-3 rounded-[24px] border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" aria-label="Phần thưởng mỗi ngày">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-600 shadow-sm"><Gift size={20} /></span>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Phần thưởng mỗi ngày</p><p className="mt-1 text-sm font-bold text-[#172033]">Mở app, nhận 15 XP và giữ nhịp học.</p>{rewardState && <p className="mt-1 text-xs font-semibold text-emerald-700">{rewardState.claimed ? `Đã nhận +${rewardState.rewardXp} XP hôm nay.` : 'Đã nhận phần thưởng hôm nay.'}</p>}{rewardError && <p role="alert" className="mt-1 text-xs font-semibold text-red-700">{rewardError}</p>}</div>
-          </div>
-          <button type="button" onClick={() => void handleClaimReward()} disabled={claimingReward || rewardState?.claimed === false} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d83a00] px-4 py-2.5 text-sm font-black text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"><Gift size={16} />{claimingReward ? 'Đang nhận…' : rewardState?.claimed === false ? 'Đã nhận hôm nay' : 'Nhận phần thưởng'}</button>
-        </section>
+        <DailyRewardBanner claiming={claimingReward} rewardState={rewardState} rewardError={rewardError} onClaim={() => void handleClaimReward()} />
       </Reveal>
 
-      {/* 2.5. Nhịp học 7 ngày + Anticipation */}
       {weeklyActivity.length > 0 && (
-      <Reveal delay={0.06}>
-      <section className="rounded-[28px] border border-[#f5ece1] bg-white p-5 sm:p-6 shadow-2xs space-y-4" aria-label="Nhịp học 7 ngày qua">
-        <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3.5">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#b45309]">
-              GIỮ LỬA MỖI NGÀY
-            </span>
-            <h2 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
-              Nhịp học 7 ngày qua
-            </h2>
-          </div>
-          <span className="rounded-full bg-amber-50 border border-amber-200/70 px-2.5 py-0.5 text-xs font-black text-[#b45309]">
-            {weeklyActivity.filter((day) => day.xp > 0).length}/7 ngày
-          </span>
-        </div>
-
-        <div className="flex items-end justify-between gap-2" role="img" aria-label="Heatmap 7 ngày học gần nhất">
-          {weeklyActivity.map((day) => {
-            const date = new Date(`${day.date}T00:00:00`);
-            const isToday = date.toDateString() === now.toDateString();
-            const label = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()];
-            const xp = day.xp;
-            const cellClass = xp <= 0
-              ? 'bg-[#f3ead9]'
-              : xp < 10
-                ? 'bg-orange-100'
-                : xp < 25
-                  ? 'bg-orange-200'
-                  : xp < 40
-                    ? 'bg-orange-300'
-                    : 'bg-gradient-to-br from-[#d83a00] to-[#f26522]';
-            return (
-              <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5" title={`${day.date}: ${day.xp} XP`}>
-                <span className={`h-9 w-full max-w-12 rounded-xl border ${isToday ? 'border-[#d83a00] ring-2 ring-orange-200' : 'border-[#efe3d2]'} ${cellClass}`} />
-                <span className={`text-[10px] font-black ${isToday ? 'text-[#d83a00]' : 'text-[#95a0af]'}`}>{label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="space-y-1.5 rounded-2xl bg-gradient-to-r from-[#fff7f0] to-[#ffeedd] border border-orange-200/70 p-3.5">
-          {remainingLevelXp > 0 ? (
-            <p className="text-xs font-black text-[#c2410c]">
-              <Zap size={13} className="mr-1 inline text-amber-500 fill-amber-400" />
-              Còn {remainingLevelXp} XP nữa lên Cấp {level + 1} — {xpIntoLevel}/{XP_PER_LEVEL} XP
-            </p>
-          ) : (
-            <p className="text-xs font-black text-[#c2410c]">
-              <Sparkles size={13} className="mr-1 inline text-amber-500" />
-              Đã đạt cấp tối đa hôm nay — giữ phong độ nhé!
-            </p>
-          )}
-          {streakMilestone !== null && (
-            <p className="text-xs font-bold text-[#5f6b7c]">
-              🔥 Thêm {streakMilestone - displayStreak} ngày nữa đạt mốc {streakMilestone} ngày 🏅
-            </p>
-          )}
-        </div>
-      </section>
-      </Reveal>
+        <Reveal delay={0.06}>
+          <WeeklyActivity
+            now={now}
+            weeklyActivity={weeklyActivity}
+            displayStreak={displayStreak}
+            xpIntoLevel={xpIntoLevel}
+            remainingLevelXp={remainingLevelXp}
+            level={level}
+            streakMilestone={streakMilestone}
+          />
+        </Reveal>
       )}
 
-      {/* 3.5. Tiến độ theo khóa học — dữ liệu mastery thật từ RPC */}
       {topicMastery.length > 0 && (
-      <Reveal delay={0.08}>
-      <section className="rounded-[28px] border border-[#f5ece1] bg-white p-5 shadow-2xs sm:p-6" aria-label="Tiến độ theo khóa học">
-        <div className="flex items-end justify-between gap-3 border-b border-[#f5ece1] pb-3.5">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#717d8f]">LỘ TRÌNH CỦA ANH</span>
-            <h2 className="mt-1 font-[var(--font-heading)] text-lg font-black text-[#0f172a]">Tiến độ theo khóa học</h2>
-          </div>
-          <Link to="/app/courses" className="inline-flex items-center gap-1 text-xs font-black text-[#d83a00] hover:text-[#b52f00]">
-            Mở khóa học <ChevronRight size={14} />
-          </Link>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {topicMastery.map((topic) => {
-            const percent = Math.max(0, Math.min(100, Math.round(topic.percent)));
-            const tone = percent >= 80 ? 'emerald' : percent >= 40 ? 'orange' : 'sky';
-            return (
-              <Link
-                key={topic.courseId}
-                to={`/app/courses/${topic.courseId}/learn`}
-                className="group rounded-2xl border border-[#f5ece1] bg-[#fffdf9] p-4 transition-all hover:border-orange-200 hover:shadow-2xs"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="line-clamp-2 text-sm font-black text-[#172033] group-hover:text-[#d83a00]">{topic.courseTitle}</h3>
-                  <span className={cn(
-                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-black',
-                    tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : tone === 'orange' ? 'bg-orange-50 text-[#c2410c]' : 'bg-sky-50 text-sky-700'
-                  )}>{percent}%</span>
-                </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#efe5d7]" role="progressbar" aria-label={`Tiến độ ${topic.courseTitle}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
-                  <div className={cn('h-full rounded-full transition-all', tone === 'emerald' ? 'bg-emerald-500' : tone === 'orange' ? 'bg-gradient-to-r from-[#d83a00] to-[#f26522]' : 'bg-sky-500')} style={{ width: `${percent}%` }} />
-                </div>
-                <p className="mt-2 text-xs font-semibold text-[#7b8796]">{topic.mastered}/{topic.total} từ đã mastery</p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-      </Reveal>
+        <Reveal delay={0.08}>
+          <CourseMastery topicMastery={topicMastery} />
+        </Reveal>
       )}
 
-      {/* 4. Quick Access Shortcuts */}
       <Reveal delay={0.1}>
-      <section className="rounded-[28px] border border-[#f5ece1] bg-white p-5 sm:p-6 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3.5">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#717d8f]">
-              HỌC THÊM • KẾT NỐI
-            </span>
-            <h2 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
-              Lối tắt ứng dụng Tokutei 🚀
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-4">
-          <Link
-            to="/app/courses"
-            className="group flex flex-col justify-between rounded-2xl border border-[#f5ece1] bg-gradient-to-b from-white to-[#fffaf3] p-4 transition-all duration-200 hover:border-sky-300 hover:shadow-md space-y-3 gino-hover-lift"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-200/70 group-hover:scale-105 transition-transform">
-                <BookOpen size={22} />
-              </div>
-              <ChevronRight size={16} className="text-[#95a0af] group-hover:text-sky-600 transition-colors" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-[#0f172a] group-hover:text-sky-600 transition-colors">
-                Khóa học Tokutei
-              </h3>
-              <p className="mt-0.5 text-xs font-semibold text-[#717d8f]">
-                Lộ trình JFT, từ vựng & bài học
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            to="/app/practice"
-            className="group flex flex-col justify-between rounded-2xl border border-[#f5ece1] bg-gradient-to-b from-white to-[#fffaf3] p-4 transition-all duration-200 hover:border-emerald-300 hover:shadow-md space-y-3 gino-hover-lift"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#059669] border border-emerald-200/70 group-hover:scale-105 transition-transform">
-                <Target size={22} />
-              </div>
-              <ChevronRight size={16} className="text-[#95a0af] group-hover:text-[#059669] transition-colors" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-[#0f172a] group-hover:text-[#059669] transition-colors">
-                Ôn tập Flashcards
-              </h3>
-              <p className="mt-0.5 text-xs font-semibold text-[#717d8f]">
-                {displayDueCount > 0 ? `${displayDueCount} thẻ đến hạn hôm nay` : 'Luyện thẻ nhớ tự động SRS'}
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            to="/app/exams"
-            className="group flex flex-col justify-between rounded-2xl border border-[#f5ece1] bg-gradient-to-b from-white to-[#fffaf3] p-4 transition-all duration-200 hover:border-amber-300 hover:shadow-md space-y-3 gino-hover-lift"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-[#b45309] border border-amber-200/70 group-hover:scale-105 transition-transform">
-                <GraduationCap size={22} />
-              </div>
-              <ChevronRight size={16} className="text-[#95a0af] group-hover:text-[#b45309] transition-colors" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-[#0f172a] group-hover:text-[#b45309] transition-colors">
-                Thi thử Tokutei
-              </h3>
-              <p className="mt-0.5 text-xs font-semibold text-[#717d8f]">
-                Đề thi mô phỏng chuẩn hóa
-              </p>
-            </div>
-          </Link>
-        </div>
-      </section>
+        <DashboardShortcuts displayDueCount={displayDueCount} />
       </Reveal>
 
-      {/* Popup Nhiệm vụ hôm nay — chỉ hiện khi người dùng bấm nút */}
-      <AnimatePresence>
-        {isQuestsOpen && (
-          <motion.div
-            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsQuestsOpen(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Nhiệm vụ Tokutei hôm nay"
-          >
-            <motion.section
-              initial={{ y: 24, opacity: 0, scale: 0.98 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 16, opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(event) => event.stopPropagation()}
-              className="relative flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-[#fde6d2] bg-[#fffaf5] shadow-2xl"
-            >
-              {/* Header */}
-              <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#f5ece1] bg-gradient-to-r from-[#fff7f0] to-[#ffeedd] px-5 py-4 sm:px-6">
-                <div className="space-y-1">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#d83a00] shadow-2xs">
-                    <Bell size={11} className="text-[#d83a00]" /> GIỮ NHỊP MỖI NGÀY
-                  </span>
-                  <h2 className="font-[var(--font-heading)] text-lg font-black text-[#0f172a]">
-                    Nhiệm vụ Tokutei hôm nay ⚔️
-                  </h2>
-                  <p className="text-xs font-semibold text-[#717d8f]">
-                    Hoàn thành để giữ chuỗi và tích điểm XP.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsQuestsOpen(false)}
-                  aria-label="Đóng nhiệm vụ"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-[#5f6b7c] transition-colors hover:bg-white hover:text-[#d83a00]"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Danh sách nhiệm vụ */}
-              <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 py-4 sm:px-6">
-                {taskItems.map((task) => {
-                  const Icon = task.icon;
-                  return (
-                    <Link
-                      key={task.title}
-                      to={task.path}
-                      onClick={() => setIsQuestsOpen(false)}
-                      className="group flex items-center justify-between gap-3 rounded-2xl border border-[#f5ece1] bg-white p-3.5 transition-all duration-200 hover:border-orange-200 hover:bg-[#fff7f0] hover:shadow-2xs"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#d83a00] border border-orange-200/60 transition-transform group-hover:scale-105">
-                          <Icon size={18} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="block truncate font-black text-sm text-[#0f172a] transition-colors group-hover:text-[#d83a00]">
-                            {task.title}
-                          </span>
-                          <span className="block truncate text-xs font-semibold text-[#717d8f]">{task.status}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="rounded-full bg-amber-50 border border-amber-200/70 px-2.5 py-0.5 text-xs font-black text-[#b45309]">{task.action}</span>
-                        <ChevronRight size={16} className="text-[#95a0af] transition-colors group-hover:text-[#d83a00]" />
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </motion.section>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <DashboardQuestsModal
+        open={isQuestsOpen}
+        onClose={() => setIsQuestsOpen(false)}
+        tasks={taskItems}
+      />
     </div>
   );
 }

@@ -1,0 +1,85 @@
+import type { Tables } from '@/src/features/supabase/lib/database.types';
+import {
+  fetchAdminAnalytics,
+  listAdminActivityLogs,
+  listAdminAlerts,
+  listAdminAnnouncements,
+  listAdminApiKeyMetadata,
+  listAdminAssessmentQuestions,
+  listAdminAssessments,
+  listAdminAudio,
+  listAdminContentRevisions,
+  listAdminCourses,
+  listAdminDashboardHeroSlots,
+  listAdminDocuments,
+  listAdminEnrollments,
+  listAdminGrammarExamples,
+  listAdminGrammarRules,
+  listAdminGrammarTopicCourses,
+  listAdminGrammarTopics,
+  listAdminLessonAssets,
+  listAdminLessonExercises,
+  listAdminLessons,
+  listAdminLessonVocabulary,
+  listAdminModules,
+  listAdminPackageCourses,
+  listAdminPackages,
+  listAdminPrompts,
+  listAdminReviewOptions,
+  listAdminReviewQuestions,
+  listAdminSitePages,
+  listAdminSpeakingPrompts,
+  listAdminStaff,
+  listAdminStudents,
+  listAdminVocabulary,
+  type AdminAnalytics,
+  type AdminLessonExercise,
+  type AdminReviewOption,
+  type AdminStaffMember,
+  type AdminStaffRole,
+} from '@/src/features/admin/repositories/adminRepository';
+import type { AssessmentQuestion, ProductionData, ReviewQuestionRow } from './adminProductionTypes';
+import { isAnalyticsRole, isAnnouncementRole, isContentRole, isLearnerRole } from './adminProductionConfig';
+
+export async function loadProductionData(role: AdminStaffRole): Promise<ProductionData> {
+  const content = isContentRole(role);
+  const learner = isLearnerRole(role);
+  const analytics = isAnalyticsRole(role);
+  const owner = role === 'owner';
+  const announcement = isAnnouncementRole(role) || role === 'analyst';
+  const [courses, modules, lessons, vocabulary, assessments, questions, documents, audio, lessonAssets, lessonExercises, lessonVocabulary, reviewQuestions, reviewOptions, grammarTopics, grammarRules, grammarExamples, grammarTopicCourses, speakingPrompts, packages, packageCourses, prompts, sitePages, dashboardHero, students, enrollments, announcements, staff, alerts, apiKeys, revisions, activity, analyticsData] = await Promise.all([
+    content ? listAdminCourses() : Promise.resolve([] as Tables<'courses'>[]),
+    content ? listAdminModules() : Promise.resolve([] as Tables<'course_modules'>[]),
+    content ? listAdminLessons() : Promise.resolve([] as Tables<'lessons'>[]),
+    content ? listAdminVocabulary() : Promise.resolve([] as Tables<'vocabulary_items'>[]),
+    content ? listAdminAssessments() : Promise.resolve([] as Tables<'assessments'>[]),
+    content ? listAdminAssessmentQuestions() : Promise.resolve([] as AssessmentQuestion[]),
+    content ? listAdminDocuments() : Promise.resolve([] as Tables<'documents'>[]),
+    content ? listAdminAudio() : Promise.resolve([] as Tables<'podcast_episodes'>[]),
+    content ? listAdminLessonAssets() : Promise.resolve([] as Tables<'lesson_assets'>[]),
+    content ? listAdminLessonExercises() : Promise.resolve([] as AdminLessonExercise[]),
+    content ? listAdminLessonVocabulary() : Promise.resolve([] as Tables<'lesson_vocabulary'>[]),
+    content ? listAdminReviewQuestions() : Promise.resolve([] as ReviewQuestionRow[]),
+    content ? listAdminReviewOptions() : Promise.resolve([] as AdminReviewOption[]),
+    content ? listAdminGrammarTopics() : Promise.resolve([] as Tables<'grammar_topics'>[]),
+    content ? listAdminGrammarRules() : Promise.resolve([] as Tables<'grammar_rules'>[]),
+    content ? listAdminGrammarExamples() : Promise.resolve([] as Tables<'grammar_examples'>[]),
+    content ? listAdminGrammarTopicCourses() : Promise.resolve([] as Tables<'grammar_topic_courses'>[]),
+    content ? listAdminSpeakingPrompts() : Promise.resolve([] as Tables<'speaking_prompts'>[]),
+    owner ? listAdminPackages() : Promise.resolve([] as Tables<'packages'>[]),
+    owner ? listAdminPackageCourses() : Promise.resolve([] as Tables<'package_courses'>[]),
+    owner ? listAdminPrompts() : Promise.resolve([] as Tables<'ai_prompts'>[]),
+    owner ? listAdminSitePages() : Promise.resolve([] as Tables<'site_pages'>[]),
+    owner ? listAdminDashboardHeroSlots() : Promise.resolve([] as Tables<'dashboard_hero_slots'>[]),
+    learner || owner ? listAdminStudents() : Promise.resolve([] as Tables<'profiles'>[]),
+    learner || owner ? listAdminEnrollments() : Promise.resolve([] as Tables<'enrollments'>[]),
+    announcement ? listAdminAnnouncements() : Promise.resolve([] as Tables<'announcements'>[]),
+    owner ? listAdminStaff() : Promise.resolve([] as AdminStaffMember[]),
+    analytics ? listAdminAlerts() : Promise.resolve([] as Tables<'admin_alerts'>[]),
+    owner ? listAdminApiKeyMetadata() : Promise.resolve([] as Tables<'api_key_metadata'>[]),
+    content ? listAdminContentRevisions() : Promise.resolve([] as Tables<'content_revisions'>[]),
+    analytics ? listAdminActivityLogs() : Promise.resolve([] as Tables<'admin_activity_logs'>[]),
+    analytics ? fetchAdminAnalytics() : Promise.resolve(null),
+  ]);
+  return { courses, modules, lessons, vocabulary, assessments, questions, documents, audio, lessonAssets, lessonExercises, lessonVocabulary, reviewQuestions, reviewOptions, grammarTopics, grammarRules, grammarExamples, grammarTopicCourses, speakingPrompts, packages, packageCourses, prompts, sitePages, dashboardHero, students, enrollments, announcements, staff, alerts, apiKeys, revisions, activity, analytics: analyticsData };
+}
