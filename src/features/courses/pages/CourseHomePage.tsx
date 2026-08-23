@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, FileText, Flame, Gamepad2, GraduationCap, Headphones, Target } from 'lucide-react';
+import { ArrowLeft, Flame, Headphones } from 'lucide-react';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { assets } from '@/src/shared/lib/assets';
-import type { CourseWorkspaceSection } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
 export default function CourseHomePage() {
   const { id } = useParams();
@@ -18,32 +18,33 @@ export default function CourseHomePage() {
     return <div className="mx-auto mt-8 flex min-h-[40vh] max-w-xl items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 text-center text-[11px] font-semibold text-red-700">{workspace.loadError ?? 'Không tải được khóa học.'}</div>;
   }
 
-  const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace.data;
+  const { course, vocabulary, reviewQuestions, documents, exams, podcasts, featureConfig } = workspace.data;
   const progress = Math.max(0, Math.min(100, course.progress));
   const coursePath = `/app/courses/${course.id}/workspace`;
   const learnedVocabulary = vocabulary.filter((item) => item.status === 'remembered' || item.status === 'learning').length;
-
-  const sections: Array<{
-    label: string;
-    hint: string;
-    tab: CourseWorkspaceSection;
-    icon: typeof BookOpen;
-    image: string;
-  }> = [
-    { label: 'Từ vựng', hint: `${vocabulary.length} từ`, tab: 'vocabulary', icon: BookOpen, image: assets.courses.workspace.vocabulary },
-    { label: 'Tài liệu', hint: `${documents.length} tài liệu`, tab: 'documents', icon: FileText, image: assets.courses.workspace.documents },
-    { label: 'Luyện tập', hint: `${reviewQuestions.length} câu hỏi`, tab: 'practice', icon: Target, image: assets.courses.workspace.practice },
-    { label: 'Game', hint: 'Luyện phản xạ', tab: 'games', icon: Gamepad2, image: assets.courses.workspace.games },
-    { label: 'Thi thử', hint: `${exams.length} đề`, tab: 'exams', icon: GraduationCap, image: assets.courses.workspace.exam },
-  ];
-
+  const visibleTabs = getVisibleCourseWorkspaceTabs(featureConfig);
+  const firstTab = visibleTabs[0]?.id ?? 'vocabulary';
+  const countByTab: Record<string, string> = {
+    vocabulary: `${vocabulary.length} từ`,
+    documents: `${documents.length} tài liệu`,
+    practice: `${reviewQuestions.length} câu hỏi`,
+    games: 'Luyện phản xạ',
+    exams: `${exams.length} đề`,
+  };
+  const sections = visibleTabs.map((tab) => ({
+    label: tab.label,
+    hint: countByTab[tab.id] ?? tab.hint,
+    tab: tab.id,
+    image: tab.imageIcon,
+  }));
   const localNav = [
     { label: 'Tổng quan', image: assets.shared.navigation.home, to: `/app/courses/${course.id}/learn`, active: true },
-    { label: 'Từ vựng', image: assets.courses.workspace.vocabulary, to: `${coursePath}?tab=vocabulary` },
-    { label: 'Tài liệu', image: assets.courses.workspace.documents, to: `${coursePath}?tab=documents` },
-    { label: 'Luyện tập', image: assets.courses.workspace.practice, to: `${coursePath}?tab=practice` },
-    { label: 'Game', image: assets.courses.workspace.games, to: `${coursePath}?tab=games` },
-    { label: 'Thi thử', image: assets.courses.workspace.exam, to: `${coursePath}?tab=exams` },
+    ...visibleTabs.map((tab) => ({
+      label: tab.label,
+      image: tab.imageIcon,
+      to: `${coursePath}?tab=${tab.id}`,
+      active: false,
+    })),
   ];
 
   return (
@@ -85,7 +86,7 @@ export default function CourseHomePage() {
         <div className="rounded-[14px] border border-[#e8e8ef] bg-white p-3.5 shadow-[0_3px_12px_rgba(20,20,35,.035)]">
           <strong className="block text-[12px] font-extrabold text-[#292a30]">{course.currentModule || 'Tiếp tục nội dung khóa'}</strong>
           <span className="mt-1 block text-[9px] font-medium text-[#94969f]">Giữ nhịp học từ vị trí gần nhất</span>
-          <Link to={`${coursePath}?tab=vocabulary`} className="mt-3 flex h-9 w-full items-center justify-center rounded-lg bg-[#6f45d8] text-[10px] font-extrabold text-white shadow-[0_5px_12px_rgba(111,69,216,.2)]">TIẾP TỤC HỌC →</Link>
+          <Link to={`${coursePath}?tab=${firstTab}`} className="mt-3 flex h-9 w-full items-center justify-center rounded-lg bg-[#6f45d8] text-[10px] font-extrabold text-white shadow-[0_5px_12px_rgba(111,69,216,.2)]">TIẾP TỤC HỌC →</Link>
         </div>
       </section>
 
@@ -111,7 +112,7 @@ export default function CourseHomePage() {
         </div>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto grid min-h-[66px] max-w-[760px] grid-cols-6 border-t border-[#e8e8ef] bg-white/98 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto grid min-h-[66px] max-w-[760px] border-t border-[#e8e8ef] bg-white/98 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${localNav.length}, minmax(0, 1fr))` }}>
         {localNav.map((item) => (
           <Link key={item.label} to={item.to} className={`flex min-w-0 flex-col items-center justify-center gap-0.5 ${item.active ? 'text-[#6f45d8]' : 'text-[#62656f]'}`}>
             <span className={`flex h-8 w-9 items-center justify-center rounded-xl ${item.active ? 'bg-[#f3efff]' : ''}`}>

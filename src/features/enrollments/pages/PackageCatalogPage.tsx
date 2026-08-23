@@ -21,7 +21,6 @@ export default function PackageCatalogPage() {
   }, []);
 
   async function handleEnroll(item: PackageCatalogItem): Promise<void> {
-    if (item.priceCents !== 0 || !isPaidCheckoutEnabled() && item.priceCents !== 0) return;
     if (item.priceCents !== 0) return;
     setBusyId(item.id);
     setError(null);
@@ -50,13 +49,13 @@ export default function PackageCatalogPage() {
           {packages.map((item) => {
             const paidLocked = item.priceCents !== 0 && !isPaidCheckoutEnabled();
             return (
-            <article key={item.id} className="rounded-3xl border border-[#e8dccb] bg-[#fffaf3] p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-700"><Package size={22} /></span><span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-black text-orange-700">{formatMinorUnitAmount(item.priceCents, item.currency)}</span></div>
-              <h2 className="mt-5 text-xl font-black text-[#172033]">{item.name}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{item.description}</p>
-              <div className="mt-4 space-y-2 text-sm text-[#5f6b7c]">{item.courses.map((course) => <div key={course.id} className="flex items-center gap-2"><CheckCircle2 size={15} className="text-emerald-600" /> {course.title} · {course.level}</div>)}</div>
-              <button type="button" onClick={() => void handleEnroll(item)} disabled={paidLocked || busyId === item.id} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-700 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">{busyId === item.id && <Loader2 size={16} className="animate-spin" />}{item.priceCents === 0 ? 'Đăng ký miễn phí' : 'Thanh toán sẽ mở sau'}</button>
-            </article>
+              <article key={item.id} className="rounded-3xl border border-[#e8dccb] bg-[#fffaf3] p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-700"><Package size={22} /></span><span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-black text-orange-700">{formatMinorUnitAmount(item.priceCents, item.currency)}</span></div>
+                <h2 className="mt-5 text-xl font-black text-[#172033]">{item.name}</h2>
+                <p className="mt-2 text-sm leading-6 text-[#5f6b7c]">{item.description}</p>
+                <div className="mt-4 space-y-2 text-sm text-[#5f6b7c]">{item.courses.map((course) => <div key={course.id} className="flex items-center gap-2"><CheckCircle2 size={15} className="text-emerald-600" /> {course.title} · {course.level}</div>)}</div>
+                <button type="button" onClick={() => void handleEnroll(item)} disabled={paidLocked || busyId === item.id} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-700 px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">{busyId === item.id && <Loader2 size={16} className="animate-spin" />}{item.priceCents === 0 ? 'Đăng ký miễn phí' : 'Thanh toán sẽ mở sau'}</button>
+              </article>
             );
           })}
         </div>
