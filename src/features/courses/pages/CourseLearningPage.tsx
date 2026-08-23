@@ -14,6 +14,7 @@ import {
 import { ArrowLeft, Flame, Headphones } from 'lucide-react';
 import { type CourseLearningWorkspaceData } from '@/src/features/courses/courseLearning.types';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { speakJapanese, stopSpeaking } from '@/src/shared/lib/tts';
 import { assets } from '@/src/shared/lib/assets';
@@ -23,17 +24,15 @@ import {
   type CourseWorkspaceSection,
 } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
-function requestedWorkspaceTab(value: string | null): CourseWorkspaceSection | null {
-  return courseWorkspaceTabs.find((tab) => tab.id === value)?.id ?? null;
-}
-
 function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearningWorkspaceData }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace;
-  const requestedTab = requestedWorkspaceTab(searchParams.get('tab'));
+  const { course, vocabulary, reviewQuestions, documents, exams, podcasts, featureConfig } = workspace;
+  const visibleTabs = getVisibleCourseWorkspaceTabs(featureConfig);
+  const tabs = visibleTabs.length > 0 ? visibleTabs : [...courseWorkspaceTabs];
+  const requestedTab = tabs.find((tab) => tab.id === searchParams.get('tab'))?.id ?? null;
 
-  const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>(requestedTab ?? 'vocabulary');
+  const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>(requestedTab ?? tabs[0]?.id ?? 'vocabulary');
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [vocabularyCategory, setVocabularyCategory] = useState('all');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
@@ -61,7 +60,8 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
 
   useEffect(() => {
     if (requestedTab) setActiveTab(requestedTab);
-  }, [requestedTab]);
+    else if (!tabs.some((tab) => tab.id === activeTab) && tabs[0]) setActiveTab(tabs[0].id);
+  }, [activeTab, requestedTab, tabs]);
 
   const vocabularyCategories = useMemo(() => {
     const categoryCounts = new Map<string, number>();
@@ -102,7 +102,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
 
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? documents[0];
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? podcasts[0];
-  const activeTabDefinition = courseWorkspaceTabs.find((tab) => tab.id === activeTab) ?? courseWorkspaceTabs[0];
+  const activeTabDefinition = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
   useEffect(() => {
     setVocabularySearchQuery('');
@@ -171,23 +171,23 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   };
 
   const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: CourseWorkspaceSection) => {
-    const currentIndex = courseWorkspaceTabs.findIndex((tab) => tab.id === currentTab);
+    const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
     let nextIndex: number;
 
     if (event.key === 'ArrowRight') {
-      nextIndex = (currentIndex + 1) % courseWorkspaceTabs.length;
+      nextIndex = (currentIndex + 1) % tabs.length;
     } else if (event.key === 'ArrowLeft') {
-      nextIndex = (currentIndex - 1 + courseWorkspaceTabs.length) % courseWorkspaceTabs.length;
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
     } else if (event.key === 'Home') {
       nextIndex = 0;
     } else if (event.key === 'End') {
-      nextIndex = courseWorkspaceTabs.length - 1;
+      nextIndex = tabs.length - 1;
     } else {
       return;
     }
 
     event.preventDefault();
-    const nextTab = courseWorkspaceTabs[nextIndex];
+    const nextTab = tabs[nextIndex];
     handleWorkspaceTabSelect(nextTab.id);
     window.requestAnimationFrame(() => {
       document
@@ -215,7 +215,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
           </Link>
 
           <div className="min-w-0 text-center">
-            <h1 className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition.label}</h1>
+            <h1 className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition?.label}</h1>
             <p className="truncate text-[9px] font-medium text-[#9799a3]">{course.title}</p>
           </div>
 
@@ -247,7 +247,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
       </header>
 
       <nav className="course-workspace-desktop-tabs" role="tablist" aria-label="Chọn khu vực học trong khóa">
-        {courseWorkspaceTabs.map((tab) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -317,12 +317,12 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
       </main>
 
       <nav className="course-workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-[#e8e8ef] bg-white/98 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
-        <div className="mx-auto grid w-full max-w-[760px] grid-cols-6 gap-0" role="tablist" aria-label="Điều hướng trong khóa học" aria-orientation="horizontal">
+        <div className="mx-auto grid w-full max-w-[760px] gap-0" role="tablist" aria-label="Điều hướng trong khóa học" aria-orientation="horizontal" style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
           <Link to={courseHomePath} className="flex min-h-[3.35rem] min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[9px] font-semibold text-[#6f727c]">
             <img src={assets.shared.navigation.home} alt="" className="h-6 w-6 object-contain opacity-70 grayscale-[15%]" />
             <span className="max-w-full truncate">Tổng quan</span>
           </Link>
-          {courseWorkspaceTabs.map((tab) => (
+          {tabs.map((tab) => (
             <div key={tab.id} className="min-w-0" role="presentation">
               <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
             </div>
