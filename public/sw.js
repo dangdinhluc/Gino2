@@ -23,8 +23,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body || undefined,
-      icon: new URL('assets/shared/mascots/brand-mascot.png', self.registration.scope).href,
-      badge: new URL('assets/shared/mascots/brand-mascot.png', self.registration.scope).href,
+      icon: new URL('assets/games/game-tanuki.png', self.registration.scope).href,
+      badge: new URL('assets/games/game-tanuki.png', self.registration.scope).href,
       data: { url },
     }),
   );
@@ -38,8 +38,9 @@ self.addEventListener('notificationclick', (event) => {
       const base = self.registration.scope;
       const destination = target ? new URL(target, base).href : base;
       for (const client of windowClients) {
-        if ('focus' in client && client.url.startsWith(base)) {
-          return client.focus();
+        if ('focus' in client && client.url === destination) return client.focus();
+        if ('navigate' in client && client.url.startsWith(base)) {
+          return client.navigate(destination).then(() => client.focus());
         }
       }
       return self.clients.openWindow(destination);
