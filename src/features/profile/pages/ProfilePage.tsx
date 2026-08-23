@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { assets } from '@/src/shared/lib/assets';
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
+import { fetchLearnerDashboard, type LearnerDashboardSnapshot } from '@/src/features/dashboard/repositories/learnerDashboardRepository';
+import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { fetchLearningActivityHeatmap, type StudyHeatmapDay } from '@/src/features/profile/repositories/learningActivityRepository';
 import { StudyHeatmap } from '@/src/features/profile/components/StudyHeatmap';
 import { listLearnerAchievements, listLearnerCertificates, rewardDate, type LearnerAchievement, type LearnerCertificate } from '@/src/features/rewards/repositories/rewardRepository';
@@ -30,6 +32,8 @@ export default function Profile() {
   const auth = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
+  const [dashboard, setDashboard] = useState<LearnerDashboardSnapshot | null>(null);
+  const [statsSnapshot, setStatsSnapshot] = useState<LearnerStatsSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [heatmap, setHeatmap] = useState<StudyHeatmapDay[]>([]);
@@ -38,8 +42,13 @@ export default function Profile() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchLearnerProfile()
-      .then((snapshot) => { if (!cancelled) setProfile(snapshot); })
+    Promise.all([fetchLearnerProfile(), fetchLearnerDashboard(), fetchLearnerStats()])
+      .then(([snapshot, nextDashboard, nextStats]) => {
+        if (cancelled) return;
+        setProfile(snapshot);
+        setDashboard(nextDashboard);
+        setStatsSnapshot(nextStats);
+      })
       .catch((nextError: unknown) => { if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được hồ sơ.'); });
     return () => { cancelled = true; };
   }, []);
@@ -70,7 +79,7 @@ export default function Profile() {
     { icon: Settings, label: 'Cài đặt ứng dụng', hint: 'Điều chỉnh trải nghiệm Tokutei Gino', path: '/app/settings', tone: 'red' },
   ] as const;
 
-  const streakDays = profile?.streakDays ?? 0;
+  const streakDays = statsSnapshot?.currentStreak ?? dashboard?.streakDays ?? 0;
   const streakProgress = Math.min(100, Math.round((streakDays / 7) * 100));
   const profileStatus = profile ? (streakDays > 0 ? 'Đang học đều' : 'Sẵn sàng bắt đầu') : 'Đang đồng bộ…';
   const rhythmMessage = streakDays >= 7
@@ -81,8 +90,8 @@ export default function Profile() {
 
   const stats = [
     { icon: Flame, label: 'Ngày streak', value: profile ? String(streakDays) : '—', note: 'liên tiếp', tone: 'orange' },
-    { icon: CheckCircle2, label: 'Bài học', value: profile ? String(profile.completedLessons) : '—', note: 'đã hoàn thành', tone: 'amber' },
-    { icon: BookOpen, label: 'Từ mastery', value: profile ? String(profile.masteredVocabulary) : '—', note: 'đã ghi nhận', tone: 'green' },
+    { icon: CheckCircle2, label: 'Bài học', value: dashboard ? String(dashboard.completedLessons) : '—', note: 'đã hoàn thành', tone: 'amber' },
+    { icon: BookOpen, label: 'Từ mastery', value: statsSnapshot ? String(statsSnapshot.masteredVocabulary) : '—', note: 'đã ghi nhận', tone: 'green' },
   ];
 
   return (
@@ -136,7 +145,7 @@ export default function Profile() {
 
           <div className="profile-streak-hero">
             <div className="profile-streak-topline">
-              <div className="profile-streak-number"><strong>{profile?.streakDays ?? '—'}</strong><span>ngày liên tiếp</span></div>
+              <div className="profile-streak-number"><strong>{profile ? streakDays : '—'}</strong><span>ngày liên tiếp</span></div>
               <span className="profile-streak-badge"><Zap size={13} /> {streakDays >= 7 ? 'Đủ mục tiêu' : streakDays > 0 ? 'Đang giữ nhịp' : 'Bắt đầu ngay'}</span>
             </div>
             <div className="profile-progress-meta"><span>Tiến độ mục tiêu tuần</span><strong>{profile ? `${streakProgress}%` : '—'}</strong></div>
@@ -147,12 +156,12 @@ export default function Profile() {
           <div className="profile-mini-status-list">
             <div className="profile-mini-status">
               <span className="profile-mini-icon profile-mini-icon-green"><BookOpen size={16} /></span>
-              <div><strong>Khóa học đang theo dõi</strong><small>{profile?.activeCourses ?? '—'} khóa học trên Cloud</small></div>
+              <div><strong>Khóa học đang theo dõi</strong><small>{dashboard?.activeCourses ?? '—'} khóa học trên Cloud</small></div>
               <CheckCircle2 size={17} className="profile-mini-check" />
             </div>
             <div className="profile-mini-status">
               <span className="profile-mini-icon profile-mini-icon-blue"><Target size={16} /></span>
-              <div><strong>Đang theo {profile?.targetLevel || 'Tokutei'}</strong><small>{profile?.masteredVocabulary ?? '—'} từ vựng đã mastery</small></div>
+              <div><strong>Đang theo {profile?.targetLevel || 'Tokutei'}</strong><small>{statsSnapshot?.masteredVocabulary ?? '—'} từ vựng đã mastery</small></div>
               <Link to="/app/courses" className={`profile-mini-action ${focusRing}`} aria-label="Mở danh sách khóa học"><ChevronRight size={17} /></Link>
             </div>
           </div>
