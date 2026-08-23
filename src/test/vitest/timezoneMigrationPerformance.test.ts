@@ -6,6 +6,7 @@ const migrationPath = path.resolve(process.cwd(), 'supabase/migrations/202608230
 const migration = readFileSync(migrationPath, 'utf8');
 const statsFunction = migration.match(/create or replace function public\.get_learner_stats[\s\S]*?\$\$;/i)?.[0] ?? '';
 const normalizedStatsFunction = statsFunction.toLowerCase();
+const remainingMigration = readFileSync(path.resolve(process.cwd(), 'supabase/migrations/20260823053932_optimize_remaining_learner_timezone_reads.sql'), 'utf8').toLowerCase();
 
 describe('learner stats timezone migration contract', () => {
   it('resolves timezone context once and converts event timestamps directly', () => {
@@ -18,5 +19,11 @@ describe('learner stats timezone migration contract', () => {
   it('keeps pg_timezone_names validation at the settings write boundary', () => {
     expect(migration).toContain('validate_learner_settings_timezone');
     expect(migration).toContain('pg_catalog.pg_timezone_names');
+  });
+
+  it('removes row-by-row helper calls from the remaining timezone-sensitive RPCs', () => {
+    expect(remainingMigration).not.toContain('learner_local_date(');
+    expect(remainingMigration).toContain('at time zone learner_timezone');
+    expect(remainingMigration).toContain('at time zone coalesce');
   });
 });
