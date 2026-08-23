@@ -45,6 +45,13 @@ export async function listCommunityGroups(): Promise<CommunityGroup[]> { const {
 export async function joinCommunityGroup(groupId: string): Promise<void> { const { error } = await requireSupabase().rpc('join_community_group', { target_group_id: groupId }); if (error) throw new Error(error.message); }
 export async function leaveCommunityGroup(groupId: string): Promise<void> { const { error } = await requireSupabase().rpc('leave_community_group', { target_group_id: groupId }); if (error) throw new Error(error.message); }
 export async function listCommunityThreads(): Promise<CommunityThread[]> { const { data, error } = await requireSupabase().rpc('list_community_threads'); if (error) throw new Error(error.message); return (data ?? []).map((row) => ({ otherUserId: row.other_user_id, displayName: row.display_name, handle: row.handle, lastBody: row.last_body, lastAt: row.last_at, unreadCount: Number(row.unread_count) })); }
-export async function getCommunityMessages(userId: string): Promise<CommunityMessage[]> { const { data, error } = await requireSupabase().rpc('get_community_messages', { target_user_id: userId, target_limit: 100 }); if (error) throw new Error(error.message); return (data ?? []).map((row) => ({ id: row.id, senderId: row.sender_id, recipientId: row.recipient_id, body: row.body, readAt: row.read_at, createdAt: row.created_at })); }
+export async function getCommunityMessages(userId: string): Promise<CommunityMessage[]> {
+  const client = requireSupabase();
+  const { error: markReadError } = await client.rpc('mark_community_messages_read', { target_user_id: userId });
+  if (markReadError) throw new Error(markReadError.message);
+  const { data, error } = await client.rpc('get_community_messages', { target_user_id: userId, target_limit: 100 });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({ id: row.id, senderId: row.sender_id, recipientId: row.recipient_id, body: row.body, readAt: row.read_at, createdAt: row.created_at }));
+}
 export async function sendCommunityMessage(userId: string, body: string): Promise<void> { const { error } = await requireSupabase().rpc('send_community_message', { target_user_id: userId, target_body: body.trim() }); if (error) throw new Error(error.message); }
 export function formatCommunityDate(value: string): string { return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }

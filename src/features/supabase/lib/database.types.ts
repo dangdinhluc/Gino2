@@ -2659,10 +2659,14 @@ export type Database = {
           body: string
           created_at: string
           id: string
-          read_at: string
+          read_at: string | null
           recipient_id: string
           sender_id: string
         }[]
+      }
+      mark_community_messages_read: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       get_course_review_questions: {
         Args: { target_course_id: string }
