@@ -16,6 +16,8 @@
     "lint": "eslint .",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test --grep @smoke",
+    "check:seed:gaishoku": "tsx scripts/seed-gaishoku.ts --check",
+    "seed:gaishoku": "tsx scripts/seed-gaishoku.ts",
     "seed:cloud-demo": "tsx scripts/seed-cloud-demo.ts seed",
     "verify:cloud-demo": "tsx scripts/seed-cloud-demo.ts verify",
     "cleanup:cloud-demo": "tsx scripts/seed-cloud-demo.ts cleanup",

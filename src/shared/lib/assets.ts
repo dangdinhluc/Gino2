@@ -1,3 +1,14 @@
+import canhanIcon from '@/src/img/canhan.png';
+import cupIcon from '@/src/img/cup.png';
+import gameIcon from '@/src/img/game.png';
+import hocnhanhIcon from '@/src/img/hocnhanh.png';
+import hoctapIcon from '@/src/img/hoctap.png';
+import homeIcon from '@/src/img/home.png';
+import khoahocIcon from '@/src/img/khoahoc.png';
+import luyentapIcon from '@/src/img/luyentap.png';
+import ontapIcon from '@/src/img/ontap.png';
+import tailieuIcon from '@/src/img/tailieu.png';
+
 const assetBaseUrl = import.meta.env?.BASE_URL ?? '/';
 
 export const assetPath = (path: string) => `${assetBaseUrl}${path.replace(/^\/+/, '')}`;
@@ -14,23 +25,25 @@ export const assets = {
       aiTutorTanuki: asset('shared/mascots/ai-tutor-tanuki.webp'),
       brand: asset('shared/mascots/brand-mascot.webp'),
       meow: asset('shared/mascots/meow-mascot.webp'),
+      quickLearn: hocnhanhIcon,
       sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.webp'),
     },
     navigation: {
-      courses: asset('shared/navigation/courses.webp'),
-      exams: asset('shared/navigation/exams.webp'),
-      home: asset('shared/navigation/home.webp'),
-      profile: asset('shared/navigation/profile.webp'),
-      vocabulary: asset('shared/navigation/vocabulary.webp'),
+      courses: khoahocIcon,
+      exams: cupIcon,
+      home: homeIcon,
+      practice: luyentapIcon,
+      profile: canhanIcon,
+      vocabulary: ontapIcon,
     },
   },
   courses: {
     workspace: {
-      documents: asset('courses/workspace/documents.png'),
-      exam: asset('courses/workspace/exam.png'),
-      games: asset('courses/workspace/game.png'),
-      practice: asset('courses/workspace/practice.png'),
-      vocabulary: asset('courses/workspace/vocabulary.png'),
+      documents: tailieuIcon,
+      exam: cupIcon,
+      games: gameIcon,
+      practice: hoctapIcon,
+      vocabulary: ontapIcon,
     },
   },
   practice: {

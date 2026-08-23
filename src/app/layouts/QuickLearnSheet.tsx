@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, Gamepad2, RotateCcw, Sparkles, Trophy, X, Zap } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
 
 interface QuickLearnSheetProps {
@@ -19,30 +19,29 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
         title: `${dueCount} từ đang chờ ôn`,
         subtitle: 'Khoảng 5 phút',
         path: '/app/practice/review',
-        icon: RotateCcw,
+        icon: assets.shared.navigation.vocabulary,
       }
     : currentCourse
       ? {
           title: 'Tiếp tục bài đang học',
           subtitle: currentCourse.title,
           path: `/app/courses/${currentCourse.id}/learn`,
-          icon: BookOpen,
+          icon: assets.courses.workspace.documents,
         }
       : {
           title: 'Luyện nhanh 5 câu',
           subtitle: 'Ngữ pháp & Từ vựng',
           path: '/app/practice',
-          icon: Zap,
+          icon: assets.shared.navigation.practice,
         };
 
-  const SuggestionIcon = suggestion.icon;
   const quickActions = [
     ...(currentCourse
       ? [{
           label: 'Tiếp tục bài đang học',
           hint: currentCourse.title,
           path: `/app/courses/${currentCourse.id}/learn`,
-          icon: BookOpen,
+          icon: assets.courses.workspace.documents,
           iconClass: 'bg-[#eef4ff] text-[#4f79d4]',
         }]
       : []),
@@ -50,21 +49,21 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
       label: 'Luyện nhanh 5 câu',
       hint: 'Ngữ pháp & Từ vựng',
       path: '/app/practice',
-      icon: Zap,
+      icon: assets.shared.navigation.practice,
       iconClass: 'bg-[#fff2d9] text-[#e49a13]',
     },
     {
       label: 'Thi thử nhanh',
       hint: '10 câu · 10 phút',
       path: '/app/exams',
-      icon: Trophy,
+      icon: assets.shared.navigation.exams,
       iconClass: 'bg-[#ffe9ef] text-[#df4f78]',
     },
     {
       label: 'Chơi game học tập',
       hint: 'Vừa học vừa vui',
       path: '/app/hub',
-      icon: Gamepad2,
+      icon: assets.courses.workspace.games,
       iconClass: 'bg-[#fff0dc] text-[#b96a18]',
     },
   ];
@@ -102,8 +101,8 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
             </button>
 
             <div className="mt-4 flex items-center gap-3 pr-11">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#ded4f4] bg-[#faf8ff] p-1 shadow-[0_5px_16px_rgba(111,69,216,.12)]">
-                <img src={assets.shared.mascots.brand} alt="" className="h-full w-full object-contain" />
+              <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded4f4] bg-[#faf8ff] p-1 shadow-[0_5px_16px_rgba(111,69,216,.12)]">
+                <img src={assets.shared.mascots.quickLearn} alt="" className="absolute left-1/2 top-0 h-auto w-[72px] max-w-none -translate-x-1/2" />
               </span>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -120,7 +119,7 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
               </p>
               <div className="flex items-center gap-3">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#e9f8ef] text-[#26a562]">
-                  <SuggestionIcon size={22} />
+                  <img src={suggestion.icon} alt="" className="h-9 w-9 object-contain" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <strong className="block truncate text-[14px] font-extrabold text-[#292a31]">{suggestion.title}</strong>
@@ -139,7 +138,6 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
             <p className="mb-2 mt-4 text-[11px] font-extrabold text-[#494a52]">Hoặc chọn nhanh</p>
             <div className="overflow-hidden rounded-[18px] border border-[#e8e8ef] bg-white">
               {quickActions.map((action, index) => {
-                const Icon = action.icon;
                 return (
                   <button
                     key={`${action.label}-${action.path}`}
@@ -148,7 +146,7 @@ export function QuickLearnSheet({ isOpen, dueCount, currentCourse, onClose, onNa
                     className={`flex min-h-[62px] w-full items-center gap-3 px-3 text-left transition-colors hover:bg-[#faf9fd] ${index ? 'border-t border-[#eeeeF3]' : ''}`}
                   >
                     <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${action.iconClass}`}>
-                      <Icon size={18} />
+                      <img src={action.icon} alt="" className="h-8 w-8 object-contain" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <strong className="block truncate text-[12px] font-extrabold text-[#303138]">{action.label}</strong>

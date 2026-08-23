@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ChevronRight, Flame, PencilLine, RotateCcw } from 'lucide-react';
+import { ChevronRight, Flame } from 'lucide-react';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
 import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
 import { fetchLearnerProfile } from '@/src/features/profile/repositories/profileRepository';
@@ -34,9 +34,9 @@ export default function TodayPage() {
   const currentCourse = enrolledCourses.find((course) => course.progress > 0 && course.progress < 100) ?? enrolledCourses[0];
 
   const tasks = [
-    { icon: RotateCcw, title: `${dueCount} từ cần ôn`, note: 'Khoảng 5 phút', action: 'ÔN NGAY', to: '/app/review/flashcards?mode=due', tone: 'bg-[#e9f8f0] text-[#43a56d]' },
-    { icon: PencilLine, title: 'Bài luyện tập', note: '5 câu hỏi ngắn', action: 'LÀM NGAY', to: '/app/practice', tone: 'bg-[#fff4df] text-[#e5a02d]' },
-    { icon: BookOpen, title: 'Bài học tiếp theo', note: currentCourse?.title ?? 'Chọn khóa học', action: 'HỌC NGAY', to: currentCourse ? `/app/courses/${currentCourse.id}/learn` : '/app/courses', tone: 'bg-[#edf3ff] text-[#5c83d8]' },
+    { icon: assets.shared.navigation.vocabulary, title: `${dueCount} từ cần ôn`, note: 'Khoảng 5 phút', action: 'ÔN NGAY', to: '/app/review/flashcards?mode=due' },
+    { icon: assets.shared.navigation.practice, title: 'Bài luyện tập', note: '5 câu hỏi ngắn', action: 'LÀM NGAY', to: '/app/practice' },
+    { icon: assets.courses.workspace.documents, title: 'Bài học tiếp theo', note: currentCourse?.title ?? 'Chọn khóa học', action: 'HỌC NGAY', to: currentCourse ? `/app/courses/${currentCourse.id}/learn` : '/app/courses' },
   ];
 
   return (
@@ -79,9 +79,9 @@ export default function TodayPage() {
       <section className="mt-6">
         <h2 className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[.05em] text-[#34353b]">Việc cần làm hôm nay</h2>
         <div className="overflow-hidden rounded-[14px] border border-[#e8e8ef] bg-white shadow-[0_3px_12px_rgba(20,20,35,.035)]">
-          {tasks.map(({ icon: Icon, title, note, action, to, tone }, index) => (
+          {tasks.map(({ icon, title, note, action, to }, index) => (
             <Link key={title} to={to} className={`flex min-h-[62px] items-center gap-3 px-3.5 py-2.5 ${index ? 'border-t border-[#eeeeF3]' : ''}`}>
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone}`}><Icon size={16} /></span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]"><img src={icon} alt="" className="h-full w-full object-contain" /></span>
               <span className="min-w-0 flex-1">
                 <strong className="block truncate text-[12px] font-extrabold text-[#25262c]">{title}</strong>
                 <small className="mt-0.5 block truncate text-[10px] font-medium text-[#9799a3]">{note}</small>

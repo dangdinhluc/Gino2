@@ -51,7 +51,7 @@ export function BottomNav() {
   const navItems = [
     { label: 'Hôm nay', path: '/app/dashboard', icon: assets.shared.navigation.home },
     { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
-    { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary },
+    { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.practice },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 
@@ -106,11 +106,11 @@ export function BottomNav() {
               <motion.span
                 animate={isQuickLearnOpen ? { scale: 1.08, y: -2 } : { scale: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 26 }}
-                className={`flex h-[58px] w-[58px] items-center justify-center rounded-full border-[3px] bg-white p-1 shadow-[0_8px_22px_rgba(91,55,177,.2)] transition-all ${isQuickLearnOpen ? 'border-[#7b55e2] ring-4 ring-[#d9cdfa]/65' : 'border-[#ded4f4]'}`}
+                className={`relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[3px] bg-white shadow-[0_8px_22px_rgba(91,55,177,.2)] transition-all ${isQuickLearnOpen ? 'border-[#7b55e2] ring-4 ring-[#d9cdfa]/65' : 'border-[#ded4f4]'}`}
               >
-                <img src={assets.shared.mascots.brand} alt="" className="h-full w-full object-contain" />
+                <img src={assets.shared.mascots.quickLearn} alt="" className="absolute left-1/2 top-0 h-auto w-[78px] max-w-none -translate-x-1/2" />
               </motion.span>
-              <span className={`mt-0.5 truncate text-[10px] font-extrabold ${isQuickLearnOpen ? 'text-[#6f45d8]' : 'text-[#5a5267]'}`}>Học nhanh</span>
+              <span className="sr-only">Học nhanh</span>
             </motion.button>
           </div>
 
