@@ -20,7 +20,7 @@ export default function CourseHomePage() {
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts } = workspace.data;
   const progress = Math.max(0, Math.min(100, course.progress));
   const coursePath = `/app/courses/${course.id}/workspace`;
-  const learnedVocabulary = vocabulary.filter((item) => item.status === 'mastered' || item.status === 'learning').length;
+  const learnedVocabulary = vocabulary.filter((item) => item.status === 'remembered' || item.status === 'learning').length;
 
   const sections = [
     { label: 'Từ vựng', hint: `${vocabulary.length} từ`, icon: BookOpen, image: assets.courses.workspace.vocabulary },
