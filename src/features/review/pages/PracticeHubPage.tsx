@@ -2,83 +2,70 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, ChevronRight, Gamepad2, GraduationCap, MessageCircle, PenLine, RotateCcw, Target } from 'lucide-react';
 import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
+import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { assets } from '@/src/shared/lib/assets';
 
 export default function PracticeHubPage() {
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const streak = useProgressStore((state) => state.streak);
 
   useEffect(() => {
     let cancelled = false;
     getDueVocabularyCards(100)
-      .then((cards) => {
-        if (!cancelled) setDueCount(cards.filter((card) => card.status !== 'new').length);
-      })
-      .catch(() => {
-        if (!cancelled) setDueCount(0);
-      });
+      .then((cards) => { if (!cancelled) setDueCount(cards.filter((card) => card.status !== 'new').length); })
+      .catch(() => { if (!cancelled) setDueCount(0); });
     return () => { cancelled = true; };
   }, []);
 
   const actions = [
-    { title: 'Ôn từ vựng', hint: 'Ôn từ đến hạn từ tất cả khóa đang học', icon: Brain, to: '/app/practice/review' },
-    { title: 'Luyện câu hỏi', hint: 'Luyện theo chủ đề và nội dung đã học', icon: Target, to: '/app/practice/review' },
-    { title: 'Thi thử', hint: 'Làm đề Tokutei mô phỏng', icon: GraduationCap, to: '/app/exams' },
-    { title: 'Game', hint: 'Luyện phản xạ từ vựng qua trò chơi', icon: Gamepad2, to: '/app/hub' },
-    { title: 'AI Writing', hint: 'Luyện viết và nhận góp ý từ AI', icon: PenLine, to: '/app/ai-lab' },
-    { title: 'AI Speaking', hint: 'Luyện nói và phản xạ hội thoại', icon: MessageCircle, to: '/app/ai-speak' },
+    { title: 'Ôn từ vựng', hint: 'Ôn theo phương pháp SRS', icon: Brain, to: '/app/practice/review', tone: 'bg-[#e5f8ea] text-[#3fac6c]' },
+    { title: 'Luyện câu hỏi', hint: 'Luyện tập theo chủ đề', icon: Target, to: '/app/practice/review', tone: 'bg-[#e7f1ff] text-[#5389d8]' },
+    { title: 'Thi thử', hint: 'Làm đề thi Tokutei', icon: GraduationCap, to: '/app/exams', tone: 'bg-[#ffe7e7] text-[#e25b5b]' },
+    { title: 'Game', hint: 'Luyện phản xạ từ vựng', icon: Gamepad2, to: '/app/hub', tone: 'bg-[#e6f7f7] text-[#55aaa8]' },
+    { title: 'AI Writing', hint: 'Chấm và sửa bài viết', icon: PenLine, to: '/app/ai-lab', tone: 'bg-[#eee6ff] text-[#7956d2]' },
+    { title: 'AI Speaking', hint: 'Luyện nói với AI', icon: MessageCircle, to: '/app/ai-speak', tone: 'bg-[#e8eef8] text-[#344c71]' },
   ];
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 pb-24 sm:px-6">
-      <header className="relative overflow-hidden rounded-[28px] border border-[#fde0c7] bg-gradient-to-br from-[#fffaf3] via-[#fff3e6] to-[#ffe6cf] p-5 shadow-[0_14px_36px_rgba(217,74,19,0.08)] sm:p-7">
-        <div className="relative grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-          <div>
-            <span className="inline-flex rounded-full border border-orange-200 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#d83a00]">Luyện tập tổng hợp</span>
-            <h1 className="mt-3 font-[var(--font-heading)] text-2xl font-black tracking-tight text-[#172033] sm:text-3xl">Hôm nay nên luyện gì?</h1>
-            <p className="mt-1 max-w-xl text-sm font-semibold leading-relaxed text-[#687385]">Đây là khu luyện tập ngoài khóa học. Nội dung được tổng hợp từ tất cả khóa anh đang học.</p>
-          </div>
-          <img src={assets.vocabulary.mascot} alt="Tokutei practice mascot" className="mx-auto h-24 w-auto object-contain drop-shadow-md sm:h-28" />
-        </div>
+    <div className="mx-auto w-full max-w-[760px] px-4 pb-28 pt-5 sm:px-6">
+      <header className="mb-5 flex items-center justify-between">
+        <h1 className="text-[21px] font-extrabold tracking-[-0.02em] text-[#17181d]">Luyện tập</h1>
+        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#ececf2] bg-white px-3 text-[11px] font-bold text-[#595b65] shadow-[0_2px_8px_rgba(25,25,40,.04)]">🔥 {streak} ngày</span>
       </header>
 
-      <section className="rounded-[24px] border border-orange-200 bg-gradient-to-r from-[#d83a00] to-[#ef6c24] p-5 text-white shadow-lg shadow-orange-200/40 sm:p-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-orange-100">Cần làm hôm nay</p>
-            <h2 className="mt-1 font-[var(--font-heading)] text-2xl font-black">{dueCount === null ? 'Đang kiểm tra…' : `${dueCount} từ cần ôn`}</h2>
-            <p className="mt-1 text-xs font-semibold text-orange-50/90">Tổng hợp từ các khóa đang học của anh.</p>
-          </div>
-          <RotateCcw size={34} className="shrink-0 opacity-90" />
-        </div>
-        <Link to="/app/review/flashcards?mode=due" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-[#d83a00] shadow-sm sm:w-auto">
-          Ôn tất cả{typeof dueCount === 'number' && dueCount > 0 ? ` (${dueCount})` : ''} <ChevronRight size={17} />
-        </Link>
-      </section>
-
       <section>
-        <div className="mb-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#d83a00]">Chọn cách luyện</p>
-          <h2 className="font-[var(--font-heading)] text-xl font-black text-[#172033]">Mọi công cụ luyện tập ở một chỗ</h2>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {actions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link key={action.title} to={action.to} className="group flex items-center gap-3 rounded-[22px] border border-[#eedecf] bg-white p-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-100 bg-orange-50 text-[#d83a00]">
-                  <Icon size={22} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <strong className="block text-sm font-black text-[#172033] group-hover:text-[#d83a00]">{action.title}</strong>
-                  <span className="mt-0.5 block text-xs font-semibold leading-5 text-[#7b8796]">{action.hint}</span>
-                </span>
-                <ChevronRight size={16} className="shrink-0 text-[#a0aab8] group-hover:text-[#d83a00]" />
-              </Link>
-            );
-          })}
+        <h2 className="mb-2.5 text-[10px] font-extrabold uppercase tracking-[.06em] text-[#3f4148]">Cần làm hôm nay</h2>
+        <div className="relative overflow-hidden rounded-[16px] bg-[linear-gradient(135deg,#7d4fe0_0%,#9a70e6_100%)] p-4 text-white shadow-[0_8px_18px_rgba(111,69,216,.22)]">
+          <div className="relative z-10">
+            <strong className="block text-[20px] font-extrabold">{dueCount === null ? 'Đang kiểm tra…' : `${dueCount} từ cần ôn`}</strong>
+            <span className="mt-1 block text-[10px] font-medium text-white/80">Từ tất cả khóa học</span>
+            <Link to="/app/review/flashcards?mode=due" className="mt-3 inline-flex h-9 min-w-[190px] items-center justify-center rounded-lg bg-white px-4 text-[10px] font-extrabold text-[#6f45d8] shadow-sm">
+              ÔN TẤT CẢ{typeof dueCount === 'number' && dueCount > 0 ? ` (${dueCount})` : ''}
+            </Link>
+          </div>
+          <img src={assets.shared.mascots.brand} alt="Tanuki" className="absolute -bottom-1 right-3 h-24 w-24 object-contain drop-shadow-md" />
         </div>
       </section>
+
+      <section className="mt-5 overflow-hidden rounded-[15px] border border-[#e8e8ef] bg-white shadow-[0_3px_12px_rgba(20,20,35,.035)]">
+        {actions.map((action, index) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.title} to={action.to} className={`flex min-h-[68px] items-center gap-3 px-3.5 py-3 ${index ? 'border-t border-[#eeeeF3]' : ''}`}>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] ${action.tone}`}><Icon size={17} /></span>
+              <span className="min-w-0 flex-1">
+                <strong className="block text-[12px] font-extrabold text-[#25262c]">{action.title}</strong>
+                <small className="mt-0.5 block text-[10px] font-medium text-[#9799a3]">{action.hint}</small>
+              </span>
+              <ChevronRight size={16} className="text-[#a7a9b1]" />
+            </Link>
+          );
+        })}
+      </section>
+
+      <Link to="/app/practice/review" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-[#ddd5ef] bg-[#faf8ff] px-4 py-3 text-[10px] font-extrabold text-[#7048d4]">
+        <RotateCcw size={14} /> Xem lịch ôn chi tiết
+      </Link>
     </div>
   );
 }
