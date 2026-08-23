@@ -78,6 +78,18 @@ jobs:
           cp site/index.html site/404.html
           cp site/preview/index.html site/preview/404.html
           touch site/.nojekyll
+          PREVIEW_SHA=$(git -C preview-src rev-parse HEAD)
+          echo "$PREVIEW_SHA" > site/preview/build.txt
+          python - <<'PY'
+          from pathlib import Path
+          for name in ('site/preview/index.html', 'site/preview/404.html'):
+              path = Path(name)
+              html = path.read_text()
+              marker = '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">'
+              if marker not in html:
+                  html = html.replace('<head>', '<head>' + marker, 1)
+              path.write_text(html)
+          PY
           echo '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/Gino2/preview/"><title>Gino2 UX Preview</title>' > site/preview-link.html
 
       - name: Setup Pages
