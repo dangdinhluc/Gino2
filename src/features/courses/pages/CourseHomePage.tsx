@@ -20,11 +20,11 @@ export default function CourseHomePage() {
   const coursePath = `/app/courses/${course.id}/workspace`;
 
   const sections = [
-    { label: 'Từ vựng', hint: `${vocabulary.length} từ trong khóa`, icon: BookOpen, image: assets.courses.workspace.vocabulary, to: `${coursePath}?section=vocabulary` },
-    { label: 'Tài liệu', hint: `${documents.length} bài đọc & tài liệu`, icon: FileText, image: assets.courses.workspace.documents, to: `${coursePath}?section=documents` },
-    { label: 'Luyện tập', hint: `${reviewQuestions.length} câu luyện tập`, icon: Target, image: assets.courses.workspace.practice, to: `${coursePath}?section=practice` },
-    { label: 'Game', hint: 'Luyện phản xạ với từ trong khóa', icon: Gamepad2, image: assets.courses.workspace.games, to: `${coursePath}?section=games` },
-    { label: 'Thi thử', hint: `${exams.length} đề thi trong khóa`, icon: GraduationCap, image: assets.courses.workspace.exam, to: `${coursePath}?section=exams` },
+    { label: 'Từ vựng', hint: `${vocabulary.length} từ trong khóa`, icon: BookOpen, image: assets.courses.workspace.vocabulary },
+    { label: 'Tài liệu', hint: `${documents.length} bài đọc & tài liệu`, icon: FileText, image: assets.courses.workspace.documents },
+    { label: 'Luyện tập', hint: `${reviewQuestions.length} câu luyện tập`, icon: Target, image: assets.courses.workspace.practice },
+    { label: 'Game', hint: 'Luyện phản xạ với từ trong khóa', icon: Gamepad2, image: assets.courses.workspace.games },
+    { label: 'Thi thử', hint: `${exams.length} đề thi trong khóa`, icon: GraduationCap, image: assets.courses.workspace.exam },
   ];
 
   return (
@@ -34,7 +34,7 @@ export default function CourseHomePage() {
           <ArrowLeft size={16} /> Khóa học
         </Link>
         {podcasts.length > 0 && (
-          <Link to={`${coursePath}?section=documents`} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 text-xs font-black text-[#c2410c]">
+          <Link to={coursePath} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 text-xs font-black text-[#c2410c]">
             <Headphones size={15} /> {podcasts.length} audio
           </Link>
         )}
@@ -44,7 +44,7 @@ export default function CourseHomePage() {
         <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-orange-200/30 blur-2xl" />
         <div className="relative grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
-            <span className="inline-flex rounded-full border border-orange-200 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#d83a00]">Course Home</span>
+            <span className="inline-flex rounded-full border border-orange-200 bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#d83a00]">Tổng quan khóa học</span>
             <h1 className="mt-3 font-[var(--font-heading)] text-2xl font-black tracking-tight text-[#172033] sm:text-3xl">{course.title}</h1>
             <p className="mt-1 text-sm font-semibold text-[#6b7280]">{course.description}</p>
 
@@ -58,7 +58,7 @@ export default function CourseHomePage() {
               </div>
             </div>
 
-            <Link to={`${coursePath}?section=vocabulary`} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#ea580c] px-5 text-sm font-black text-white shadow-lg shadow-orange-200/50 transition-transform active:scale-[0.98]">
+            <Link to={coursePath} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-gradient-to-r from-[#d83a00] to-[#ea580c] px-5 text-sm font-black text-white shadow-lg shadow-orange-200/50 transition-transform active:scale-[0.98]">
               Tiếp tục học <ChevronRight size={17} />
             </Link>
           </div>
@@ -95,7 +95,7 @@ export default function CourseHomePage() {
           {sections.map((section) => {
             const Icon = section.icon;
             return (
-              <Link key={section.label} to={section.to} className="group flex items-center gap-3 rounded-[22px] border border-[#eedecf] bg-white p-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md">
+              <Link key={section.label} to={coursePath} className="group flex items-center gap-3 rounded-[22px] border border-[#eedecf] bg-white p-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-md">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-100 bg-[#fff8f1] p-1.5">
                   {section.image ? <img src={section.image} alt="" className="h-full w-full object-contain" /> : <Icon size={22} className="text-[#d83a00]" />}
                 </span>
