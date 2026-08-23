@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { GameId } from '@/src/features/games/types';
 
 interface SrsItem {
@@ -20,6 +20,44 @@ interface ProgressState {
   removeFromSrs: (id: string) => void;
   recordGameComplete: (xp: number) => void;
 }
+
+const memoryStorage = new Map<string, string>();
+
+const safeStateStorage: StateStorage = {
+  getItem: (name) => {
+    try {
+      if (typeof window === 'undefined') return memoryStorage.get(name) ?? null;
+      const value = window.localStorage.getItem(name);
+      if (value !== null) {
+        try {
+          JSON.parse(value);
+        } catch {
+          window.localStorage.removeItem(name);
+          return null;
+        }
+      }
+      return value;
+    } catch {
+      return memoryStorage.get(name) ?? null;
+    }
+  },
+  setItem: (name, value) => {
+    memoryStorage.set(name, value);
+    try {
+      if (typeof window !== 'undefined') window.localStorage.setItem(name, value);
+    } catch {
+      // Keep the in-memory copy when browser storage is unavailable.
+    }
+  },
+  removeItem: (name) => {
+    memoryStorage.delete(name);
+    try {
+      if (typeof window !== 'undefined') window.localStorage.removeItem(name);
+    } catch {
+      // Nothing else to do when browser storage is unavailable.
+    }
+  },
+};
 
 export const useProgressStore = create<ProgressState>()(
   persist(
@@ -65,6 +103,9 @@ export const useProgressStore = create<ProgressState>()(
           return { streak, lastPlayedDate: today, weeklyXp: state.weeklyXp + xp };
         }),
     }),
-    { name: 'tokutei-gino-progress' }
+    {
+      name: 'tokutei-gino-progress',
+      storage: createJSONStorage(() => safeStateStorage),
+    }
   )
 );
