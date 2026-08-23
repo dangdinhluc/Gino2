@@ -18,11 +18,20 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@eslint/js@^10.0.1",
+        "npm:@playwright/test@^1.62.1",
         "npm:@supabase/supabase-js@^2.105.4",
         "npm:@tailwindcss/vite@^4.3.3",
+        "npm:@testing-library/jest-dom@^7.0.1",
+        "npm:@testing-library/react@^16.3.2",
         "npm:@types/node@^22.14.0",
         "npm:@vitejs/plugin-react@^5.2.0",
         "npm:clsx@^2.1.1",
+        "npm:eslint-plugin-react-hooks@^7.1.1",
+        "npm:eslint-plugin-react-refresh@~0.5.4",
+        "npm:eslint@^10.9.0",
+        "npm:globals@^17.11.0",
+        "npm:jsdom@^29.1.1",
         "npm:lucide-react@0.546",
         "npm:motion@^12.23.24",
         "npm:react-dom@^19.0.1",
@@ -31,8 +40,10 @@
         "npm:tailwind-merge@^3.5.0",
         "npm:tailwindcss@^4.1.14",
         "npm:tsx@^4.21.0",
+        "npm:typescript-eslint@^8.67.0",
         "npm:typescript@~5.8.2",
         "npm:vite@^6.4.3",
+        "npm:vitest@^4.1.11",
         "npm:zustand@^5.0.13"
       ]
     }

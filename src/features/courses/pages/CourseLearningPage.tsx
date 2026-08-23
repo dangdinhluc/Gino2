@@ -211,7 +211,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
 
   const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: CourseWorkspaceSection) => {
     const currentIndex = courseWorkspaceTabs.findIndex((tab) => tab.id === currentTab);
-    let nextIndex = currentIndex;
+    let nextIndex: number;
 
     if (event.key === 'ArrowRight') {
       nextIndex = (currentIndex + 1) % courseWorkspaceTabs.length;

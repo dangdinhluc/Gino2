@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Validate Cloud configuration
         run: |
           test -n "$VITE_SUPABASE_URL"
