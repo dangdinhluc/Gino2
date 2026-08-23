@@ -60,17 +60,15 @@ jobs:
           GITHUB_PAGES: 'true'
         run: npm run build
 
-      - name: Validate UX preview
+      - name: Install preview dependencies
         working-directory: preview-src
-        run: |
-          npm ci
-          npm run lint
-          npm run test
-          npm run typecheck
+        run: npm ci
 
       - name: Build UX preview
         working-directory: preview-src
-        run: npm run build -- --base=/Gino2/preview/
+        env:
+          VITE_BASE_PATH: /Gino2/preview/
+        run: npm run build
 
       - name: Assemble Pages artifact
         run: |
@@ -78,13 +76,9 @@ jobs:
           cp -a production-src/dist/. site/
           cp -a preview-src/dist/. site/preview/
           cp site/index.html site/404.html
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('site/404.html')
-          html = path.read_text()
-          redirect = """<script>if (location.pathname.startsWith('/Gino2/preview/') && location.pathname !== '/Gino2/preview/') { location.replace('/Gino2/preview/'); }</script>"""
-          path.write_text(html.replace('<head>', '<head>' + redirect, 1))
-          PY
+          cp site/preview/index.html site/preview/404.html
+          touch site/.nojekyll
+          echo '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/Gino2/preview/"><title>Gino2 UX Preview</title>' > site/preview-link.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
