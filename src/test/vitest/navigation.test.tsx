@@ -35,7 +35,7 @@ describe('QuickLearnSheet component', () => {
     const handleNavigate = vi.fn();
     const handleClose = vi.fn();
 
-    render(
+    const { unmount } = render(
       <QuickLearnSheet
         isOpen={true}
         dueCount={8}
@@ -55,8 +55,16 @@ describe('QuickLearnSheet component', () => {
     expect(screen.getByText('Thi thử')).toBeDefined();
     expect(screen.getByText(/Mẹo nhỏ từ Tanuki:/i)).toBeDefined();
 
+    const sheet = screen.getByRole('dialog');
+    expect(sheet.className).toContain('max-h-[90dvh]');
+    expect(sheet.className).toContain('overflow-y-auto');
+    expect(document.body.style.overflow).toBe('hidden');
+
     // Clicking quick action
     fireEvent.click(screen.getByText('Luyện nhanh'));
     expect(handleNavigate).toHaveBeenCalledWith('/app/practice');
+
+    unmount();
+    expect(document.body.style.overflow).toBe('');
   });
 });

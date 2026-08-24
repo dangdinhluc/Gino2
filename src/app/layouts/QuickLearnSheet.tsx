@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
@@ -22,6 +23,27 @@ export function QuickLearnSheet({
 }: QuickLearnSheetProps) {
   const courseTitle = currentCourse?.title || 'Chưa chọn khóa học';
   const coursePath = currentCourse ? `/app/courses/${currentCourse.id}/learn` : '/app/courses';
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const scrollContainer = document.querySelector<HTMLElement>('.desktop-workspace-main');
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousScrollOverflow = scrollContainer?.style.overflowY;
+
+    root.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    if (scrollContainer) scrollContainer.style.overflowY = 'hidden';
+
+    return () => {
+      root.style.overflow = previousRootOverflow;
+      body.style.overflow = previousBodyOverflow;
+      if (scrollContainer) scrollContainer.style.overflowY = previousScrollOverflow ?? '';
+    };
+  }, [isOpen]);
 
   const quickOptions = [
     {
@@ -58,7 +80,7 @@ export function QuickLearnSheet({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-[#130f24]/40 p-0 backdrop-blur-[3px] lg:hidden"
+          className="fixed inset-0 z-[100] flex touch-none items-end justify-center bg-[#130f24]/40 p-0 backdrop-blur-[3px] lg:hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -73,10 +95,10 @@ export function QuickLearnSheet({
             exit={{ y: '100%', opacity: 0.95 }}
             transition={{ type: 'spring', stiffness: 420, damping: 36 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative flex max-h-[90dvh] w-full max-w-[500px] flex-col overflow-hidden rounded-t-[32px] border-t border-[#ebe3fa] bg-white shadow-[0_-16px_50px_rgba(25,15,50,0.2)]"
+            className="relative flex max-h-[90dvh] min-h-0 w-full max-w-[500px] flex-col touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain rounded-t-[32px] border-t border-[#ebe3fa] bg-white shadow-[0_-16px_50px_rgba(25,15,50,0.2)]"
           >
             {/* Header với nền gradient tím pastel & mascot vẫy tay */}
-            <div className="relative overflow-hidden bg-gradient-to-b from-[#eadefc] via-[#f4efff] to-white px-5 pb-3 pt-2.5">
+            <div className="relative shrink-0 overflow-hidden bg-gradient-to-b from-[#eadefc] via-[#f4efff] to-white px-5 pb-3 pt-2.5">
               {/* Thanh kéo sheet */}
               <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-[#c8bde3]/70" />
 
@@ -125,7 +147,7 @@ export function QuickLearnSheet({
             </div>
 
             {/* Nội dung danh sách các tác vụ */}
-            <div className="flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-4 pb-6 pt-1">
+            <div className="space-y-2.5 px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-1">
               {/* Card gợi ý chính: Ôn từ vựng */}
               <div className="relative flex items-center justify-between rounded-[22px] border border-[#d8c7fa] bg-gradient-to-r from-[#f7f3ff] to-[#f0e7ff] p-3.5 shadow-[0_4px_16px_rgba(111,69,216,0.06)]">
                 <div className="flex items-center gap-3">
