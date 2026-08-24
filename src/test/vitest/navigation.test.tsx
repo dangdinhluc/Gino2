@@ -81,7 +81,8 @@ describe('LearningLauncherSheet component', () => {
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
-    expect(sheet.className).toContain('overflow-y-auto');
+    expect(sheet.className).toContain('overflow-hidden');
+    expect(screen.getByLabelText('Nội dung học trong khóa').parentElement?.className).toContain('overflow-y-auto');
     expect(document.body.style.overflow).toBe('hidden');
 
     const routes = [

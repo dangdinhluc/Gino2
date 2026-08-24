@@ -135,7 +135,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
             exit={{ y: '100%', opacity: 0.95 }}
             transition={{ type: 'spring', stiffness: 420, damping: 36 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative flex max-h-[90dvh] min-h-0 w-full max-w-[500px] flex-col touch-pan-y overflow-y-auto overscroll-contain rounded-t-[32px] border-t border-[#ebe3fa] bg-white shadow-[0_-16px_50px_rgba(25,15,50,0.2)]"
+            className="relative flex max-h-[90dvh] min-h-0 w-full max-w-[500px] flex-col overflow-hidden rounded-t-[32px] border-t border-[#ebe3fa] bg-white shadow-[0_-16px_50px_rgba(25,15,50,0.2)]"
           >
             <div className="relative shrink-0 overflow-hidden bg-gradient-to-b from-[#eadefc] via-[#f4efff] to-white px-5 pb-3 pt-2.5">
               <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-[#c8bde3]/70" />
@@ -176,7 +176,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
               </div>
             </div>
 
-            <div className="space-y-3 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3">
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 touch-pan-y">
               {activeCourseStatus !== 'ready' && (
                 <div className="space-y-3 rounded-[22px] border border-[#eae6f4] bg-white p-4" role="status">
                   <div className="h-4 w-2/3 animate-pulse rounded-full bg-[#eeeaf8]" />
