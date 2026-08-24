@@ -3,7 +3,7 @@
 ## Flow
 
 - `/app` loads the persisted learner course context.
-- No active enrollment redirects to `/app/courses?mode=select`.
+- No active enrollment redirects to `/app/courses`, where the selector is shown once.
 - A learner with an active course goes to `/app/dashboard` (Hôm nay).
 - The Course tab owns My Courses, switching, and course discovery.
 - Learning surfaces receive the active course from the shared Zustand store; course workspace and game routes reject a different course id.
