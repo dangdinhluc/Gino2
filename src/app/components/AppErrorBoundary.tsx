@@ -7,6 +7,12 @@ interface AppErrorBoundaryState {
 
 const CHUNK_RELOAD_KEY = 'gino2-chunk-reload-attempted';
 
+function reloadWithFreshDocument(): void {
+  const url = new URL(window.location.href);
+  url.searchParams.set('gino2_reload', String(Date.now()));
+  window.location.replace(url.toString());
+}
+
 function isChunkLoadError(error: Error): boolean {
   return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(
     error.message,
@@ -31,7 +37,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, AppErro
       const alreadyReloaded = window.sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
       if (!alreadyReloaded) {
         window.sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
-        window.location.reload();
+        reloadWithFreshDocument();
         return;
       }
       window.sessionStorage.removeItem(CHUNK_RELOAD_KEY);
@@ -46,7 +52,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, AppErro
     } catch {
       // Ignore storage restrictions.
     }
-    window.location.reload();
+    reloadWithFreshDocument();
   };
 
   handleHome = (): void => {
