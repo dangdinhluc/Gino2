@@ -111,6 +111,28 @@ export default function TodayPage() {
           </div>
         </div>
 
+        {activeCourse ? (
+          <Link
+            to="/app/courses"
+            aria-label={`Khóa đang học: ${activeCourse.title}. Mở quản lý khóa học`}
+            className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[#d7c8f6] bg-[#f8f4ff]/95 px-3.5 py-3 text-[#221640] shadow-sm transition hover:border-[#6e46e6]"
+          >
+            <div className="min-w-0">
+              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#6e46e6]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#6e46e6]" aria-hidden="true" />
+                Khóa đang học
+              </span>
+              <strong className="mt-1 block truncate text-[15px] font-black">{activeCourse.title}</strong>
+              <span className="mt-0.5 block text-[11px] font-bold text-[#77718a]">
+                Đã chọn · {activeCourse.progress}% hoàn thành
+              </span>
+            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6e46e6] text-sm font-black text-white" aria-hidden="true">
+              ✓
+            </span>
+          </Link>
+        ) : null}
+
         {/* Floating Lesson Card: Tiếp tục học (09-icon-open-book.png) */}
         <div className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#1e1f26] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
           <div className="flex min-w-0 flex-1 items-center gap-3">
