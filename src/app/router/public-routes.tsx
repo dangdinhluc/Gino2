@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
+import LandingPage from '@/src/features/public/pages/LandingPage';
 
 const LoginPage = lazy(() => import('@/src/features/auth/pages/LoginPage'));
 const QuickLoginPage = lazy(() => import('@/src/features/auth/pages/QuickLoginPage'));
@@ -8,7 +9,6 @@ const SignupPage = lazy(() => import('@/src/features/auth/pages/SignupPage'));
 const PasswordRecoveryPage = lazy(() => import('@/src/features/auth/pages/PasswordRecoveryPage'));
 const ResetPasswordPage = lazy(() => import('@/src/features/auth/pages/ResetPasswordPage'));
 const AdminDashboardPage = lazy(() => import('@/src/features/admin/pages/AdminDashboardPage'));
-const LandingPage = lazy(() => import('@/src/features/public/pages/LandingPage'));
 const OnboardingPage = lazy(() => import('@/src/features/public/pages/OnboardingPage'));
 const TermsPage = lazy(() => import('@/src/features/public/pages/TermsPage'));
 const PrivacyPage = lazy(() => import('@/src/features/public/pages/PrivacyPage'));
