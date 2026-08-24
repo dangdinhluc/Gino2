@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - ux/mock-navigation-refactor
   workflow_dispatch:
 
 permissions:
@@ -24,73 +23,31 @@ jobs:
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
       VITE_DATA_MODE: real
     steps:
-      - name: Checkout production main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          path: production-src
-
-      - name: Checkout UX preview branch
-        uses: actions/checkout@v4
-        with:
-          ref: ux/mock-navigation-refactor
-          path: preview-src
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Validate Cloud configuration
         run: |
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
 
-      - name: Validate production
-        working-directory: production-src
+      - name: Install, validate and build
+        env:
+          GITHUB_PAGES: 'true'
         run: |
           npm ci
           npm run lint
           npm run test
           npm run typecheck
-
-      - name: Build production root
-        working-directory: production-src
-        env:
-          GITHUB_PAGES: 'true'
-        run: npm run build
-
-      - name: Install preview dependencies
-        working-directory: preview-src
-        run: npm ci
-
-      - name: Build UX preview
-        working-directory: preview-src
-        env:
-          VITE_BASE_PATH: /Gino2/preview/
-        run: npm run build
-
-      - name: Assemble Pages artifact
-        run: |
-          mkdir -p site/preview
-          cp -a production-src/dist/. site/
-          cp -a preview-src/dist/. site/preview/
-          cp site/index.html site/404.html
-          cp site/preview/index.html site/preview/404.html
-          touch site/.nojekyll
-          PREVIEW_SHA=$(git -C preview-src rev-parse HEAD)
-          echo "$PREVIEW_SHA" > site/preview/build.txt
-          python - <<'PY'
-          from pathlib import Path
-          for name in ('site/preview/index.html', 'site/preview/404.html'):
-              path = Path(name)
-              html = path.read_text()
-              marker = '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">'
-              if marker not in html:
-                  html = html.replace('<head>', '<head>' + marker, 1)
-              path.write_text(html)
-          PY
-          echo '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/Gino2/preview/"><title>Gino2 UX Preview</title>' > site/preview-link.html
+          npm run build
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -100,7 +57,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: dist
 
   deploy:
     needs: build
@@ -109,8 +66,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy production + preview
+      - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# Preview refresh: 03b03a010402d76bff970e97c20b579ee09b8a81

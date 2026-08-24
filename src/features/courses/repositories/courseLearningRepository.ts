@@ -1,5 +1,6 @@
 import { requireSupabase, requireUserId } from '@/src/features/supabase/lib/supabaseRepository';
 import { TOKUTEI_VOCAB } from '@/src/data/tokutei/vocabDeck';
+import { resolveCourseFeatureConfig } from '@/src/features/courses/lib/courseCapabilities';
 import type {
   CourseDocumentItem,
   CourseExamItem,
@@ -52,6 +53,7 @@ interface CourseWorkspaceRow {
   title: string;
   level: string;
   description: string;
+  feature_config?: Record<string, unknown> | null;
   course_modules?: Array<{
     id: string;
     title: string;
@@ -134,7 +136,7 @@ function mapWorkspace(
   row: CourseWorkspaceRow,
   progress: LearnerWorkspaceProgress,
   reviewRows: ReviewQuestionRow[],
-): CourseLearningWorkspaceData {
+): Omit<CourseLearningWorkspaceData, 'featureConfig'> {
   const modules = [...(row.course_modules ?? [])].sort((a, b) => a.order_index - b.order_index);
   const lessons = modules.flatMap((module) =>
     [...(module.lessons ?? [])]
@@ -220,7 +222,6 @@ function mapWorkspace(
     .map((assessment, index, all) => {
       const latestScore = progress.assessmentScores.get(assessment.id);
       const hasPassed = progress.assessmentPassed.has(assessment.id);
-      // Đề đầu tiên luôn mở. Đề thứ i+1 chỉ mở khi đề thứ i đã từng đạt điểm pass.
       const previous = index > 0 ? all[index - 1] : null;
       const isLocked = index > 0 && previous !== null && !progress.assessmentPassed.has(previous.id);
       if (isLocked) {
@@ -298,7 +299,7 @@ export async function fetchCourseLearningWorkspace(
     client
       .from('courses')
       .select(`
-        id, title, level, description,
+        id, title, level, description, feature_config,
         course_modules(id, title, order_index, lessons(
           id, title, order_index,
           lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, reading, audio_url, tags))
@@ -318,8 +319,16 @@ export async function fetchCourseLearningWorkspace(
   if (reviewResult.error) throw new Error(reviewResult.error.message);
   if (!courseResult.data) return null;
   const row = courseResult.data as unknown as CourseWorkspaceRow;
-  if (!row.course_modules?.some((module) => (module.lessons?.length ?? 0) > 0) || !row.documents?.length || !row.podcast_episodes?.length || !row.assessments?.length) {
+  const featureConfig = resolveCourseFeatureConfig(row.feature_config);
+  const hasLessons = row.course_modules?.some((module) => (module.lessons?.length ?? 0) > 0);
+  if (!hasLessons) {
     throw new Error('Nội dung khóa học chưa hoàn thiện để có thể học an toàn.');
+  }
+  if (featureConfig.documents && !row.documents?.length) {
+    throw new Error('Nội dung tài liệu khóa học chưa hoàn thiện.');
+  }
+  if (featureConfig.exams && !row.assessments?.length) {
+    throw new Error('Nội dung thi thử khóa học chưa hoàn thiện.');
   }
 
   const workspace = mapWorkspace(
@@ -327,10 +336,13 @@ export async function fetchCourseLearningWorkspace(
     progress,
     (reviewResult.data ?? []) as unknown as ReviewQuestionRow[],
   );
-  if (!workspace.vocabulary.length || !workspace.reviewQuestions.length) {
+  if (featureConfig.vocabulary && !workspace.vocabulary.length) {
+    throw new Error('Nội dung từ vựng khóa học chưa hoàn thiện.');
+  }
+  if (featureConfig.practice && !workspace.reviewQuestions.length) {
     throw new Error('Nội dung ôn tập khóa học chưa hoàn thiện.');
   }
-  return workspace;
+  return { ...workspace, featureConfig };
 }
 
 export async function createSignedCourseAssetUrl(path: string, expiresInSeconds = 300): Promise<string> {

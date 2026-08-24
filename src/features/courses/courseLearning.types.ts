@@ -1,3 +1,5 @@
+import type { CourseFeatureFlags } from '@/src/features/courses/lib/courseCapabilities';
+
 export type VocabularyStatus = 'new' | 'learning' | 'due' | 'remembered';
 export type CourseDocumentKind = 'PDF' | 'DOC' | 'Post';
 export type CourseExamStatus = 'ready' | 'in_progress' | 'completed' | 'locked';
@@ -96,4 +98,5 @@ export interface CourseLearningWorkspaceData {
   games: CourseGameItem[];
   exams: CourseExamItem[];
   podcasts: CoursePodcastItem[];
+  featureConfig: CourseFeatureFlags;
 }

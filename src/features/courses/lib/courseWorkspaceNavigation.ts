@@ -18,7 +18,7 @@ export interface CourseWorkspaceTab {
   imageIcon: string;
 }
 
-/** Single source of truth for the course entry menu, tabs, and course cards. */
+/** Default registry. Visible tabs are filtered by course feature_config. */
 export const courseWorkspaceTabs: readonly CourseWorkspaceTab[] = [
   {
     id: 'vocabulary',
@@ -44,14 +44,14 @@ export const courseWorkspaceTabs: readonly CourseWorkspaceTab[] = [
   {
     id: 'games',
     label: 'Game',
-    hint: 'Flappy Vocab, Sprint & Tình huống',
+    hint: 'Luyện phản xạ từ vựng',
     icon: Gamepad2,
     imageIcon: assets.courses.workspace.games,
   },
   {
     id: 'exams',
     label: 'Thi thử',
-    hint: 'Đề thi mô phỏng Tokutei chuẩn hóa',
+    hint: 'Đề thi theo cấu hình khóa học',
     icon: GraduationCap,
     imageIcon: assets.courses.workspace.exam,
   },
