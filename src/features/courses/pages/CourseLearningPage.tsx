@@ -1,23 +1,22 @@
-import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
+import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { CoursePracticePanel } from '@/src/features/courses/components/CoursePracticePanel';
 import { VocabularyPanel } from '@/src/features/courses/components/CourseVocabularyPanel';
 import {
   DocumentsPanel,
   ExamsPanel,
   GamesPanel,
-  TabButton,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, Flame, Headphones } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Flame, Headphones } from 'lucide-react';
 import { type CourseLearningWorkspaceData } from '@/src/features/courses/courseLearning.types';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { speakJapanese, stopSpeaking } from '@/src/shared/lib/tts';
-import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
 import {
   courseWorkspaceTabs,
@@ -28,8 +27,10 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { course, vocabulary, reviewQuestions, documents, exams, podcasts, featureConfig } = workspace;
-  const visibleTabs = getVisibleCourseWorkspaceTabs(featureConfig);
-  const tabs = visibleTabs.length > 0 ? visibleTabs : [...courseWorkspaceTabs];
+  const tabs = useMemo(() => {
+    const visibleTabs = getVisibleCourseWorkspaceTabs(featureConfig);
+    return visibleTabs.length > 0 ? visibleTabs : [...courseWorkspaceTabs];
+  }, [featureConfig]);
   const requestedTab = tabs.find((tab) => tab.id === searchParams.get('tab'))?.id ?? null;
 
   const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>(requestedTab ?? tabs[0]?.id ?? 'vocabulary');
@@ -42,6 +43,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
   const [activePodcastId, setActivePodcastId] = useState(podcasts[0]?.id ?? '');
   const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
+  const [isModeSheetOpen, setIsModeSheetOpen] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
   const [vocabularyAudioError, setVocabularyAudioError] = useState<string | null>(null);
   const [learnerStats, setLearnerStats] = useState<LearnerStatsSnapshot | null>(null);
@@ -170,53 +172,36 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleWorkspaceTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentTab: CourseWorkspaceSection) => {
-    const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
-    let nextIndex: number;
-
-    if (event.key === 'ArrowRight') {
-      nextIndex = (currentIndex + 1) % tabs.length;
-    } else if (event.key === 'ArrowLeft') {
-      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    } else if (event.key === 'Home') {
-      nextIndex = 0;
-    } else if (event.key === 'End') {
-      nextIndex = tabs.length - 1;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    const nextTab = tabs[nextIndex];
-    handleWorkspaceTabSelect(nextTab.id);
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById(`course-workspace-${event.currentTarget.id.includes('-rail-') ? 'rail' : 'compact'}-tab-${nextTab.id}`)
-        ?.focus();
-    });
-  };
-
-  const activeTabPanelLabelId = `course-workspace-compact-tab-${activeTab}`;
+  const activeTabPanelLabelId = `course-workspace-mode-${activeTab}`;
   const courseHomePath = `/app/courses/${course.id}/learn`;
 
   return (
     <div
       data-course-workspace-background
-      className="course-learning-workspace relative min-h-[calc(100dvh-1.5rem)] space-y-3 pb-[calc(6.15rem+env(safe-area-inset-bottom))]"
+      className="course-learning-workspace relative min-h-[100dvh] space-y-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
     >
       <header className="course-workspace-header sticky top-0 z-40 -mx-3 border-b border-[#ececf2] bg-white/96 px-3.5 py-2 backdrop-blur-xl">
         <div className="mx-auto grid w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
           <Link
             to={courseHomePath}
-            className={cn('flex h-9 w-9 items-center justify-center rounded-full text-[#35363d] hover:bg-[#f6f4fb]', focusRing)}
-            aria-label="Về tổng quan khóa học"
+            className={cn('flex h-11 w-11 items-center justify-center rounded-full text-[#35363d] hover:bg-[#f6f4fb]', focusRing)}
+            aria-label="Về khóa học"
           >
             <ArrowLeft size={18} />
           </Link>
 
           <div className="min-w-0 text-center">
-            <h1 className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition?.label}</h1>
+            <h1 id={activeTabPanelLabelId} className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition?.label}</h1>
             <p className="truncate text-[9px] font-medium text-[#9799a3]">{course.title}</p>
+            <button
+              type="button"
+              onClick={() => setIsModeSheetOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={isModeSheetOpen}
+              className={cn('mx-auto mt-1 inline-flex min-h-11 items-center gap-1 rounded-full border border-[#ded6f3] bg-[#faf8ff] px-3 text-[10px] font-extrabold text-[#6f45d8] transition-colors hover:bg-[#f2edff]', focusRing)}
+            >
+              Đổi chế độ học <ChevronDown size={13} />
+            </button>
           </div>
 
           <div className="flex items-center justify-end gap-1.5">
@@ -246,28 +231,14 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
         </div>
       </header>
 
-      <nav className="course-workspace-desktop-tabs" role="tablist" aria-label="Chọn khu vực học trong khóa">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              id={`course-workspace-rail-tab-${tab.id}`}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={isActive ? `course-workspace-panel-${tab.id}` : undefined}
-              tabIndex={isActive ? 0 : -1}
-              onKeyDown={(event) => handleWorkspaceTabKeyDown(event, tab.id)}
-              onClick={() => handleWorkspaceTabSelect(tab.id)}
-              className={cn('course-workspace-desktop-tab', isActive && 'is-active', focusRing)}
-            >
-              <span className="course-workspace-desktop-tab-icon"><img src={tab.imageIcon} alt="" /></span>
-              <span className="course-workspace-desktop-tab-copy"><span>{tab.label}</span><small>{tab.hint}</small></span>
-            </button>
-          );
-        })}
-      </nav>
+      <CourseLearningMenuSheet
+        activeSection={activeTab}
+        courseTitle={course.title}
+        isOpen={isModeSheetOpen}
+        onClose={() => setIsModeSheetOpen(false)}
+        onSelectSection={handleWorkspaceTabSelect}
+        tabs={tabs}
+      />
 
       <main className={cn('course-workspace-main mx-auto w-full max-w-[760px]', activeTab === 'practice' || activeTab === 'exams' ? 'lg:max-w-none' : '')}>
         <AnimatePresence mode="wait">
@@ -315,20 +286,6 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
           </motion.div>
         </AnimatePresence>
       </main>
-
-      <nav className="course-workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-[#e8e8ef] bg-white/98 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl">
-        <div className="mx-auto grid w-full max-w-[760px] gap-0" role="tablist" aria-label="Điều hướng trong khóa học" aria-orientation="horizontal" style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
-          <Link to={courseHomePath} className="flex min-h-[3.35rem] min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[9px] font-semibold text-[#6f727c]">
-            <img src={assets.shared.navigation.home} alt="" className="h-6 w-6 object-contain opacity-70 grayscale-[15%]" />
-            <span className="max-w-full truncate">Tổng quan</span>
-          </Link>
-          {tabs.map((tab) => (
-            <div key={tab.id} className="min-w-0" role="presentation">
-              <TabButton tab={tab} activeTab={activeTab} onKeyDown={handleWorkspaceTabKeyDown} onSelect={handleWorkspaceTabSelect} compact />
-            </div>
-          ))}
-        </div>
-      </nav>
 
       {activePodcast && (
         <CourseLearningPodcastPlayer

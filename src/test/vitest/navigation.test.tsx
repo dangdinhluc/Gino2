@@ -2,7 +2,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BottomNav } from '@/src/app/layouts/BottomNav';
+import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
@@ -115,5 +117,32 @@ describe('LearningLauncherSheet component', () => {
     expect(await screen.findByText('Bạn chưa chọn khóa học')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: /chọn khóa học/i }));
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/app/courses'));
+  });
+});
+
+describe('CourseLearningMenuSheet component', () => {
+  it('switches directly between focus modes without overview', () => {
+    const onClose = vi.fn();
+    const onSelectSection = vi.fn();
+
+    render(
+      <CourseLearningMenuSheet
+        activeSection="vocabulary"
+        courseTitle="Tokutei Nhà hàng"
+        isOpen
+        onClose={onClose}
+        onSelectSection={onSelectSection}
+        tabs={courseWorkspaceTabs}
+      />,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: /đổi chế độ học/i });
+    expect(screen.queryByText('Tổng quan')).toBeNull();
+    expect(dialog.className).toContain('max-h-[90dvh]');
+    expect(screen.getByLabelText('Các chế độ học').className).toContain('overflow-y-auto');
+
+    fireEvent.click(screen.getByRole('button', { name: /luyện tập/i }));
+    expect(onSelectSection).toHaveBeenCalledWith('practice');
+    expect(onClose).toHaveBeenCalled();
   });
 });
