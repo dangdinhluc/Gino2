@@ -31,7 +31,7 @@ export function VocabularyListItemRow({
       : 'text-[#e26868]';
 
   return (
-    <li className="flex min-h-[62px] items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-[#faf9fd] lg:rounded-xl lg:border lg:border-[#ececf2] lg:bg-white">
+    <li className="flex min-h-[68px] items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-[#faf9fd] lg:rounded-xl lg:border lg:border-[#e8e3f2] lg:bg-white">
       <button
         type="button"
         onClick={() => onToggleDetail(item.id)}
@@ -59,10 +59,10 @@ export function VocabularyListItemRow({
         type="button"
         onClick={() => onAudio(item.id)}
         aria-label={`Nghe phát âm ${item.word}`}
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8] ${
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d70dc] ${
           isPlayingAudio
             ? 'bg-[#6f45d8] text-white'
-            : 'bg-[#f5f2fb] text-[#756b8d] hover:bg-[#eee8fb]'
+            : 'bg-[#f3efff] text-[#7655d9] hover:bg-[#eae2fb]'
         }`}
       >
         <Volume2 size={14} />

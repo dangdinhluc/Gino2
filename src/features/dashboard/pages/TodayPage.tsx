@@ -226,7 +226,7 @@ export default function TodayPage() {
           {/* Card 1: Ôn từ vựng (03-mascot-vocab-writing.png) */}
           <Link
             to="/app/review/flashcards?mode=due"
-            className="flex flex-col items-center justify-between rounded-[24px] border border-[#d6e7fc] bg-gradient-to-b from-[#f0f7ff] to-[#e4f0fc] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex flex-col items-center justify-start rounded-[24px] border border-[#d6e7fc] bg-gradient-to-b from-[#f0f7ff] to-[#e4f0fc] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <div>
               <strong className="block text-[13.5px] font-black text-[#2d6fd8]">Ôn từ vựng</strong>
@@ -243,19 +243,12 @@ export default function TodayPage() {
               />
             </div>
 
-            <div className="flex w-full items-center justify-between rounded-full bg-white/95 p-0.5 text-[10px] font-black shadow-2xs border border-[#d6e7fc]">
-              <span className="flex items-center gap-1 rounded-full bg-[#2d6fd8] px-2 py-0.5 text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                <span>{dueCount > 0 ? 'Ôn ngay' : 'Đã xong'}</span>
-              </span>
-              <span className="pr-2 text-[#2d6fd8]">{dueCount > 0 ? 'Mở bài' : 'Bạn đã hoàn thành mục tiêu 🎉'}</span>
-            </div>
           </Link>
 
           {/* Card 2: Luyện tập (04-mascot-practice-pencil.png) */}
           <Link
             to="/app/practice"
-            className="flex flex-col items-center justify-between rounded-[24px] border border-[#d3ecd5] bg-gradient-to-b from-[#f0fbf0] to-[#e3f6e4] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex flex-col items-center justify-start rounded-[24px] border border-[#d3ecd5] bg-gradient-to-b from-[#f0fbf0] to-[#e3f6e4] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <div>
               <strong className="block text-[13.5px] font-black text-[#2d9e48]">Luyện tập</strong>
@@ -272,19 +265,12 @@ export default function TodayPage() {
               />
             </div>
 
-            <div className="flex w-full items-center justify-between rounded-full bg-white/95 p-0.5 text-[10px] font-black shadow-2xs border border-[#d3ecd5]">
-              <span className="flex items-center gap-1 rounded-full bg-[#2d9e48] px-2 py-0.5 text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                <span>{today.exercises > 0 ? `${today.exercises} lượt` : 'Mở'}</span>
-              </span>
-              <span className="pr-2 text-[#2d9e48]">Luyện tập</span>
-            </div>
           </Link>
 
           {/* Card 3: Bài tiếp theo (05-mascot-next-lesson-n5.png) */}
           <Link
             to={activeCourse ? `/app/courses/${activeCourse.id}/learn` : '/app/courses'}
-            className="flex flex-col items-center justify-between rounded-[24px] border border-[#fbe5cb] bg-gradient-to-b from-[#fdf5ea] to-[#faedd9] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex flex-col items-center justify-start rounded-[24px] border border-[#fbe5cb] bg-gradient-to-b from-[#fdf5ea] to-[#faedd9] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <div>
               <strong className="block text-[13.5px] font-black text-[#d6791e]">Bài tiếp theo</strong>
@@ -301,13 +287,6 @@ export default function TodayPage() {
               />
             </div>
 
-            <div className="flex w-full items-center justify-between rounded-full bg-white/95 p-0.5 text-[10px] font-black shadow-2xs border border-[#fbe5cb]">
-              <span className="flex items-center gap-1 rounded-full bg-[#d6791e] px-2 py-0.5 text-white">
-                <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                <span>{nextLesson ? 'Học ngay' : 'Khám phá'}</span>
-              </span>
-              <span className="pr-2 text-[#d6791e]">{nextLesson ? 'Bài sẵn sàng' : 'Khám phá khóa học'}</span>
-            </div>
           </Link>
         </div>
       </section>

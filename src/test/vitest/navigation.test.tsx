@@ -2,10 +2,17 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BottomNav } from '@/src/app/layouts/BottomNav';
+import { CourseEntryRedirect } from '@/src/features/courses/components/CourseEntryRedirect';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
 import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
+
+const mockUseActiveCourse = vi.hoisted(() => vi.fn());
+
+vi.mock('@/src/features/courses/hooks/useActiveCourse', () => ({
+  useActiveCourse: mockUseActiveCourse,
+}));
 
 vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
   fetchCourseLearningWorkspace: vi.fn().mockResolvedValue({
@@ -53,9 +60,24 @@ describe('BottomNav component', () => {
 
     expect(screen.getByText('Hôm nay')).toBeDefined();
     expect(screen.getByText('Khóa học')).toBeDefined();
-    expect(screen.getByText('Luyện tập')).toBeDefined();
+    expect(screen.getByText('Thi thử')).toBeDefined();
     expect(screen.getByText('Cá nhân')).toBeDefined();
     expect(screen.getByRole('button', { name: /mở học ngay/i })).toBeDefined();
+  });
+});
+
+describe('CourseEntryRedirect component', () => {
+  it('opens the active course exam tab from the shared exam entry route', () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: 'course-1', status: 'ready' });
+
+    render(
+      <MemoryRouter initialEntries={['/app/exams']}>
+        <CourseEntryRedirect destination="exams" />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/courses/course-1/workspace?tab=exams');
   });
 });
 
@@ -79,7 +101,7 @@ describe('LearningLauncherSheet component', () => {
     expect(screen.getByText('Tài liệu')).toBeDefined();
     expect(screen.getByText('Luyện tập')).toBeDefined();
     expect(screen.getByText('Game')).toBeDefined();
-    expect(screen.getByText('Thi thử')).toBeDefined();
+    expect(screen.queryByText('Thi thử')).toBeNull();
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
@@ -93,7 +115,6 @@ describe('LearningLauncherSheet component', () => {
       ['Tài liệu', 'documents'],
       ['Luyện tập', 'practice'],
       ['Game', 'games'],
-      ['Thi thử', 'exams'],
     ] as const;
 
     for (const [label, tab] of routes) {

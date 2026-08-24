@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search } from 'lucide-react';
 
 interface VocabularyEmptyStateProps {
@@ -7,8 +6,8 @@ interface VocabularyEmptyStateProps {
 
 export function VocabularyEmptyState({ onClearSearch }: VocabularyEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-[#e4d8c8] bg-white p-8 text-center my-4">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-50 text-orange-600 mb-3">
+    <div className="my-4 flex flex-col items-center justify-center rounded-[20px] border border-dashed border-[#e8e3f2] bg-white p-8 text-center">
+      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#f3efff] text-[#7655d9]">
         <Search size={26} strokeWidth={1.8} />
       </div>
       <h3 className="font-[var(--font-heading)] text-base font-extrabold text-[#172033]">
@@ -21,7 +20,7 @@ export function VocabularyEmptyState({ onClearSearch }: VocabularyEmptyStateProp
         <button
           type="button"
           onClick={onClearSearch}
-          className="mt-4 inline-flex items-center justify-center rounded-xl bg-orange-100 px-4 py-2 text-xs font-bold text-orange-700 transition-colors hover:bg-orange-200"
+          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#efeaff] px-4 py-2 text-xs font-bold text-[#6f45d8] transition-colors hover:bg-[#e4dbf8]"
         >
           Xóa tìm kiếm
         </button>

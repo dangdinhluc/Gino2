@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { CourseHeader } from '@/src/features/courses/components/CourseHeader';
 import { CourseMarketplace } from '@/src/features/courses/components/CourseMarketplace';
 import { CourseSelector } from '@/src/features/courses/components/CourseSelector';
-import { CourseSwitcher } from '@/src/features/courses/components/CourseSwitcher';
 import { MyCourses } from '@/src/features/courses/components/MyCourses';
 import { enrollInFreeCourse } from '@/src/features/courses/repositories/activeCourseRepository';
 import type { CourseListEntry } from '@/src/features/courses/repositories/coursesRepository';
@@ -50,8 +49,8 @@ export default function CourseListPage() {
   const shouldShowSelector = activeCourse.status === 'ready' && enrolled.length === 0;
 
   useEffect(() => {
-    if (window.location.hash !== '#course-switcher') return;
-    document.getElementById('course-switcher')?.scrollIntoView({ block: 'start' });
+    if (window.location.hash !== '#my-courses-center-title') return;
+    document.getElementById('my-courses-center-title')?.scrollIntoView({ block: 'start' });
   }, []);
 
   async function handleEnroll(course: CourseListEntry): Promise<void> {
@@ -124,12 +123,6 @@ export default function CourseListPage() {
           courses={enrolled}
           activeCourseId={activeCourseId}
           switchingCourseId={busyCourseId}
-          onSwitch={(courseId) => void handleSwitch(courseId)}
-        />
-        <CourseSwitcher
-          courses={enrolled}
-          activeCourseId={activeCourseId}
-          busy={busyCourseId !== null}
           onSwitch={(courseId) => void handleSwitch(courseId)}
         />
         <CourseMarketplace

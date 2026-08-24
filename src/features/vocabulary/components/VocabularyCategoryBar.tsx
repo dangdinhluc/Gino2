@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 export interface CategoryOption {
@@ -44,7 +44,7 @@ export function VocabularyCategoryBar({
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className="no-scrollbar flex touch-pan-x gap-2 overflow-x-auto py-1 pr-10 w-full"
+        className="no-scrollbar flex w-full touch-pan-x gap-2 overflow-x-auto py-1 pr-12"
         role="group"
         aria-label="Danh mục từ vựng"
       >
@@ -56,16 +56,16 @@ export function VocabularyCategoryBar({
               type="button"
               onClick={() => onSelectCategory(cat.id)}
               aria-pressed={isActive}
-              className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
+              className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border px-3 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d70dc] ${
                 isActive
-                  ? 'border-[#d83a00] bg-[#d83a00] text-white shadow-2xs'
-                  : 'border-[#e4d8c8] bg-white text-[#475467] hover:border-orange-300 hover:text-[#d83a00]'
+                  ? 'border-[#6f45d8] bg-[#6f45d8] text-white shadow-2xs'
+                  : 'border-[#e8e3f2] bg-[#f8f7fc] text-[#4e4c5a] hover:border-[#cfc3ea] hover:bg-white hover:text-[#6f45d8]'
               }`}
             >
               <span>{cat.label}</span>
               <span
                 className={`rounded-full px-1.5 py-0.2 text-[9px] font-extrabold ${
-                  isActive ? 'bg-white/25 text-white' : 'bg-orange-50 text-[#d83a00]'
+                  isActive ? 'bg-white/25 text-white' : 'bg-[#efeaff] text-[#6f45d8]'
                 }`}
               >
                 {cat.count}
@@ -86,7 +86,7 @@ export function VocabularyCategoryBar({
           type="button"
           onClick={handleScrollRight}
           aria-label="Cuộn sang phải xem thêm danh mục"
-          className="absolute right-0 flex h-8 w-8 items-center justify-center rounded-full border border-[#e4d8c8] bg-white/95 text-orange-600 shadow-xs transition-all hover:bg-orange-50 active:scale-95"
+          className="absolute right-0 flex h-10 w-10 items-center justify-center rounded-full border border-[#e8e3f2] bg-white/95 text-[#6f45d8] shadow-xs transition-all hover:bg-[#f5f0ff] active:scale-95"
         >
           <ChevronRight size={16} />
         </button>

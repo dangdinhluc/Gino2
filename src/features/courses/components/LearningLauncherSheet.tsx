@@ -98,7 +98,9 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
 
   const activeWorkspace = workspace?.course.id === activeCourseId ? workspace : null;
   const visibleTabs = useMemo(
-    () => activeWorkspace ? getVisibleCourseWorkspaceTabs(activeWorkspace.featureConfig) : [],
+    () => activeWorkspace
+      ? getVisibleCourseWorkspaceTabs(activeWorkspace.featureConfig).filter((tab) => tab.id !== 'exams')
+      : [],
     [activeWorkspace],
   );
   const firstTab = visibleTabs[0]?.id ?? 'vocabulary';
@@ -149,23 +151,11 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                 <X size={17} strokeWidth={2.4} />
               </button>
 
-              <div className="relative flex items-center justify-between pr-8 pt-1">
-                <div className="relative flex items-center">
-                  <img
-                    src={assets.shared.mascots.speechBubble}
-                    alt="一緒に勉強しよう!"
-                    className="h-auto w-[130px] drop-shadow-[0_4px_10px_rgba(111,69,216,0.12)] sm:w-[145px]"
-                  />
-                  <span className="absolute -right-3 -top-1 text-base animate-pulse">✨</span>
-                </div>
-                <div className="relative flex h-[100px] w-[100px] items-end justify-center sm:h-[110px] sm:w-[110px]">
-                  <img
-                    src={assets.shared.mascots.tanukiWaving}
-                    alt="Tanuki"
-                    className="h-full w-full object-contain drop-shadow-[0_6px_16px_rgba(111,69,216,0.16)]"
-                  />
-                </div>
-              </div>
+              <img
+                src={assets.shared.mascots.courseLauncherBanner}
+                alt="一緒に勉強しよう!"
+                className="mt-1 h-auto w-full rounded-[22px] object-cover drop-shadow-[0_4px_10px_rgba(111,69,216,0.12)]"
+              />
 
               <div className="mt-1 text-center">
                 <h2 className="flex items-center justify-center gap-1.5 text-[22px] font-black tracking-tight text-[#1e1e24]">
@@ -224,7 +214,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                       </div>
                       <button
                         type="button"
-                        onClick={() => navigateTo('/app/courses#course-switcher')}
+                        onClick={() => navigateTo('/app/courses#my-courses-center-title')}
                         className="inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-2 text-[11px] font-black text-[#6f45d8] active:bg-[#eee8ff]"
                       >
                         Đổi khóa <ChevronRight size={14} />

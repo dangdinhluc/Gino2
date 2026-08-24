@@ -11,7 +11,7 @@ import {
   GamesPanel,
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
-import { ArrowLeft, ChevronDown, Flame, Headphones } from 'lucide-react';
+import { ArrowLeft, Flame, Headphones, LayoutGrid } from 'lucide-react';
 import { type CourseLearningWorkspaceData } from '@/src/features/courses/courseLearning.types';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
@@ -180,8 +180,8 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
       data-course-workspace-background
       className="course-learning-workspace relative min-h-[100dvh] space-y-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
     >
-      <header className="course-workspace-header sticky top-0 z-40 -mx-3 border-b border-[#ececf2] bg-white/96 px-3.5 py-2 backdrop-blur-xl">
-        <div className="mx-auto grid w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
+      <header className="course-workspace-header sticky top-0 z-40 -mx-3 h-[60px] border-b border-[#ececf2] bg-white/96 px-3.5 py-2 backdrop-blur-xl">
+        <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
           <Link
             to={courseHomePath}
             className={cn('flex h-11 w-11 items-center justify-center rounded-full text-[#35363d] hover:bg-[#f6f4fb]', focusRing)}
@@ -193,18 +193,19 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
           <div className="min-w-0 text-center">
             <h1 id={activeTabPanelLabelId} className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition?.label}</h1>
             <p className="truncate text-[9px] font-medium text-[#9799a3]">{course.title}</p>
+          </div>
+
+          <div className="flex items-center justify-end gap-1.5">
             <button
               type="button"
               onClick={() => setIsModeSheetOpen(true)}
               aria-haspopup="dialog"
               aria-expanded={isModeSheetOpen}
-              className={cn('mx-auto mt-1 inline-flex min-h-11 items-center gap-1 rounded-full border border-[#ded6f3] bg-[#faf8ff] px-3 text-[10px] font-extrabold text-[#6f45d8] transition-colors hover:bg-[#f2edff]', focusRing)}
+              aria-label="Đổi chế độ học"
+              className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#ded6f3] bg-[#f5f0ff] text-[#6f45d8] transition-colors hover:bg-[#eee7ff]', focusRing)}
             >
-              Đổi chế độ học <ChevronDown size={13} />
+              <LayoutGrid size={18} strokeWidth={2.2} aria-hidden="true" />
             </button>
-          </div>
-
-          <div className="flex items-center justify-end gap-1.5">
             {activePodcast && (
               <button
                 type="button"
@@ -213,7 +214,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
                 aria-expanded={isPodcastOpen}
                 aria-label={isPodcastPlaying ? 'Mở audio đang phát' : 'Mở audio khóa học'}
                 className={cn(
-                  'relative flex h-8 w-8 items-center justify-center rounded-full border transition-all',
+                  'relative flex h-11 w-11 items-center justify-center rounded-full border transition-all',
                   isPodcastPlaying
                     ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
                     : 'border-[#e7e3f0] bg-white text-[#6f45d8]',
@@ -224,7 +225,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
                 {isPodcastPlaying && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />}
               </button>
             )}
-            <span className="inline-flex h-8 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2.5 text-[10px] font-bold text-[#646771]" title={statsError ?? 'Chuỗi ngày học'}>
+            <span className="inline-flex h-11 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2 text-[10px] font-bold text-[#646771]" title={statsError ?? 'Chuỗi ngày học'}>
               <Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak === null ? '—' : streak}
             </span>
           </div>

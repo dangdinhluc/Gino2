@@ -11,7 +11,6 @@ const CourseListPage = lazy(() => import('@/src/features/courses/pages/CourseLis
 const CourseHomePage = lazy(() => import('@/src/features/courses/pages/CourseHomePage'));
 const CourseLearningPage = lazy(() => import('@/src/features/courses/pages/CourseLearningPage'));
 const PackageCatalogPage = lazy(() => import('@/src/features/enrollments/pages/PackageCatalogPage'));
-const ExamCenterPage = lazy(() => import('@/src/features/exams/pages/ExamCenterPage'));
 const ExamRunnerPage = lazy(() => import('@/src/features/exams/pages/ExamRunnerPage'));
 const ExamResultPage = lazy(() => import('@/src/features/exams/pages/ExamResultPage'));
 const GrammarLibraryPage = lazy(() => import('@/src/features/grammar/pages/GrammarLibraryPage'));
@@ -52,7 +51,7 @@ export function AppRoutes() {
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
       <Route path="courses/:id/learn" element={<ActiveCourseGuard>{screen(<CourseHomePage />)}</ActiveCourseGuard>} />
       <Route path="courses/:id/workspace" element={<ActiveCourseGuard>{screen(<CourseLearningPage />)}</ActiveCourseGuard>} />
-      <Route path="exams" element={screen(<ExamCenterPage />)} />
+      <Route path="exams" element={<CourseEntryRedirect destination="exams" />} />
       <Route path="exams/:id/start" element={screen(<ExamRunnerPage />)} />
       <Route path="exams/:id/result" element={screen(<ExamResultPage />)} />
       <Route path="grammar" element={screen(<GrammarLibraryPage />)} />

@@ -33,6 +33,7 @@ import trophyAchievement from '@/src/img/ICON/20-trophy-achievement.png';
 import speechStudyTogether from '@/src/img/ICON/21-speech-study-together.png';
 import mascotQuickLearnActive from '@/src/img/ICON/22-mascot-quick-learn-active.png';
 import mascotSleep from '@/src/img/ICON/23-mascot-sleep.png';
+import courseLauncherBanner from '@/src/img/ICON/Lớp_3.png';
 
 // Legacy / Alternative layers from src/img/anh
 import fujiLandscapeBanner from '@/src/img/anh/Lớp_1.png';
@@ -71,6 +72,7 @@ export const assets = {
       faceWinking: mascotFaceWinking,
       speechBubble: speechBubbleIcon,
       speechBanner: speechStudyTogether,
+      courseLauncherBanner,
       lightbulb: meoIcon,
       sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.webp'),
     },

@@ -15,7 +15,7 @@ export function BottomNav() {
   const navItems = [
     { label: 'Hôm nay', path: '/app/dashboard', icon: assets.shared.navigation.home },
     { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
-    { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.practice },
+    { label: 'Thi thử', path: '/app/exams', icon: assets.shared.navigation.exams },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 
