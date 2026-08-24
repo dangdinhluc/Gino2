@@ -57,7 +57,8 @@ describe('QuickLearnSheet component', () => {
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
-    expect(sheet.className).toContain('overflow-y-auto');
+    expect(sheet.className).toContain('overflow-hidden');
+    expect(sheet.querySelector('[class*="overflow-y-auto"]')).not.toBeNull();
     expect(document.body.style.overflow).toBe('hidden');
 
     // Clicking quick action
