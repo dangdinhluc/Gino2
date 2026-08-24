@@ -10,7 +10,7 @@ export function ActiveCourseGuard({ children }: { children: ReactNode }) {
     return <main className="grid min-h-[55vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở khóa học…</main>;
   }
 
-  if (!activeCourseId) return <Navigate to="/app/courses?mode=select" replace />;
+  if (!activeCourseId) return <Navigate to="/app/courses" replace />;
   if (id !== activeCourseId) return <Navigate to="/app/courses" replace />;
   return <>{children}</>;
 }

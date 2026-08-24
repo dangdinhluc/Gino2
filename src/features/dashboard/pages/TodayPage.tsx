@@ -16,7 +16,7 @@ export default function TodayPage() {
 
   useEffect(() => {
     if (!loading && !error && !data) {
-      navigate('/app/courses?mode=select', { replace: true });
+      navigate('/app/courses', { replace: true });
     }
   }, [data, error, loading, navigate]);
 

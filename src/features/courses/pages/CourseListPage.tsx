@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CourseHeader } from '@/src/features/courses/components/CourseHeader';
 import { CourseMarketplace } from '@/src/features/courses/components/CourseMarketplace';
 import { CourseSelector } from '@/src/features/courses/components/CourseSelector';
@@ -31,7 +31,6 @@ function enrollmentErrorMessage(error: unknown): string {
 
 export default function CourseListPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const courseList = useCourseList();
   const courseStats = useCourseStats();
   const activeCourse = useActiveCourse();
@@ -48,8 +47,7 @@ export default function CourseListPage() {
     [category, discover],
   );
   const activeCourseId = activeCourse.activeCourseId ?? enrolled[0]?.id ?? null;
-  const shouldShowSelector = activeCourse.status === 'ready'
-    && (enrolled.length === 0 || searchParams.get('mode') === 'select');
+  const shouldShowSelector = activeCourse.status === 'ready' && enrolled.length === 0;
 
   async function handleEnroll(course: CourseListEntry): Promise<void> {
     setBusyCourseId(course.id);
