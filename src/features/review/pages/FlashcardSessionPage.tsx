@@ -11,6 +11,7 @@ import {
 } from '@/src/features/courses/repositories/learningProgressRepository';
 import { cn, vibrate } from '@/src/lib/utils';
 import { Confetti } from '@/src/shared/components/Confetti';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 type SessionMode = 'due' | 'new' | 'cram';
 type RatingCounts = Record<VocabularyRating, number>;
@@ -72,9 +73,12 @@ export default function FlashcardSession() {
   const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [rewardStats, setRewardStats] = useState<LearnerStatsSnapshot | null>(null);
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
   const sessionStorageKey = `gino-flashcard-session-${mode}-${sessionMinutes}`;
 
   const loadCards = useCallback(async () => {
+    if (activeCourseStatus !== 'ready') return;
     setIsLoading(true);
     setLoadError(null);
     setIndex(0);
@@ -83,8 +87,14 @@ export default function FlashcardSession() {
     setSecondsLeft(sessionSeconds);
     setSessionExpired(false);
     setRewardStats(null);
+    if (!activeCourseId) {
+      setCards([]);
+      setLoadError('Hãy chọn một khóa học để bắt đầu ôn tập.');
+      setIsLoading(false);
+      return;
+    }
     try {
-      const nextCards = cardsForMode(await getDueVocabularyCards(100), mode);
+      const nextCards = cardsForMode(await getDueVocabularyCards(100, activeCourseId), mode);
       setCards(nextCards);
       try {
         const saved = JSON.parse(window.sessionStorage.getItem(sessionStorageKey) ?? 'null') as { secondsLeft?: number; counts?: RatingCounts } | null;
@@ -99,7 +109,7 @@ export default function FlashcardSession() {
     } finally {
       setIsLoading(false);
     }
-  }, [mode, sessionSeconds, sessionStorageKey]);
+  }, [activeCourseId, activeCourseStatus, mode, sessionSeconds, sessionStorageKey]);
 
   useEffect(() => {
     void loadCards();

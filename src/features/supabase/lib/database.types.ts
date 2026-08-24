@@ -1954,6 +1954,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_course_id: string | null
           created_at: string
           display_name: string
           email: string
@@ -1962,6 +1963,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active_course_id?: string | null
           created_at?: string
           display_name: string
           email: string
@@ -1970,6 +1972,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active_course_id?: string | null
           created_at?: string
           display_name?: string
           email?: string
@@ -2551,6 +2554,16 @@ export type Database = {
           post_id: string
         }[]
       }
+      enroll_in_free_course: {
+        Args: { target_course_id: string }
+        Returns: {
+          course_id: string
+          id: string
+          package_id: string
+          progress_percent: number
+          status: string
+        }[]
+      }
       enroll_in_free_package: {
         Args: { target_package_id: string }
         Returns: {
@@ -2679,6 +2692,23 @@ export type Database = {
         }[]
       }
       get_daily_learning_plan: { Args: never; Returns: Json }
+      get_due_vocabulary_cards_for_course: {
+        Args: { target_course_id: string; target_limit?: number }
+        Returns: {
+          due_at: string
+          example_sentence: string
+          interval_days: number
+          lapses: number
+          pronunciation: string
+          reading: string
+          repetitions: number
+          status: string
+          tags: string[]
+          term: string
+          translation: string
+          vocabulary_item_id: string
+        }[]
+      }
       get_due_vocabulary_cards: {
         Args: { target_limit?: number }
         Returns: {
@@ -2888,6 +2918,10 @@ export type Database = {
           handle: string
           user_id: string
         }[]
+      }
+      set_active_course: {
+        Args: { target_course_id: string }
+        Returns: string
       }
       send_community_message: {
         Args: { target_body: string; target_user_id: string }

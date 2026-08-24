@@ -10,6 +10,7 @@ import { generateFlappyRounds, generateVocabRounds } from '@/src/features/games/
 import { generateMemoryRounds } from '@/src/features/games/generators/fromCourseVocabMemory';
 import { generateBuilderRounds } from '@/src/features/games/generators/fromCourseVocabBuilder';
 import type { CourseGameType } from '@/src/features/games/types';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 type PublishedGameType = CourseGameType;
 
@@ -28,7 +29,10 @@ function GameState({ message, returnTo = '/app/courses' }: { message: string; re
 export default function GameScreen() {
   const { gameId } = useParams<{ gameId: string }>();
   const [searchParams] = useSearchParams();
-  const courseId = searchParams.get('courseId') ?? undefined;
+  const requestedCourseId = searchParams.get('courseId') ?? undefined;
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
+  const courseId = activeCourseId ?? undefined;
   const gameType = normalizeGameType(gameId);
   const workspace = useCourseLearningWorkspace(courseId);
   const vocabulary = workspace.data?.vocabulary ?? [];
@@ -37,7 +41,8 @@ export default function GameScreen() {
   const memoryRounds = useMemo(() => generateMemoryRounds(vocabulary), [vocabulary]);
   const builderRounds = useMemo(() => generateBuilderRounds(vocabulary), [vocabulary]);
 
-  if (!courseId || !gameType) return <Navigate to="/app/courses" replace />;
+  if (activeCourseStatus !== 'ready') return <GameState message="Đang mở khóa đang học…" />;
+  if (!courseId || requestedCourseId !== courseId || !gameType) return <Navigate to="/app/courses" replace />;
   if (workspace.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo={`/app/courses/${courseId}/learn`} />;
   if (workspace.loadError || !workspace.data) return <GameState message={workspace.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo={`/app/courses/${courseId}/learn`} />;
   if (vocabulary.length < 4) return <GameState message="Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game." returnTo={`/app/courses/${courseId}/learn`} />;

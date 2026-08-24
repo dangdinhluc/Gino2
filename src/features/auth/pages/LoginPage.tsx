@@ -27,7 +27,7 @@ interface LoginPageProps {
 }
 
 function getDefaultRedirect(area: ProtectedRouteArea): string {
-  return area === 'admin' ? '/admin' : '/app/dashboard';
+  return area === 'admin' ? '/admin' : '/app';
 }
 
 function isSafeRedirect(area: ProtectedRouteArea, target: string): boolean {

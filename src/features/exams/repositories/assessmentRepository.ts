@@ -212,11 +212,13 @@ type AssessmentListRow = {
   config?: Json;
 };
 
-export async function fetchPublishedAssessments(): Promise<Exam[]> {
+export async function fetchPublishedAssessments(courseId?: string): Promise<Exam[]> {
   const client = requireSupabase();
   const userId = await requireUserId(client);
   const [{ data, error }, { data: attempts, error: attemptsError }] = await Promise.all([
-    client.from('assessments').select('*').eq('status', 'published').order('order_index'),
+    (courseId
+      ? client.from('assessments').select('*').eq('status', 'published').eq('course_id', courseId).order('order_index')
+      : client.from('assessments').select('*').eq('status', 'published').order('order_index')),
     client.from('assessment_attempts').select('assessment_id, passed').eq('user_id', userId),
   ]);
   if (error) throw new Error(error.message);

@@ -3,9 +3,10 @@ import { fetchAiConversationHistory, streamAiChat, type AiChatMessage } from '@/
 
 interface UseAiTutorChatOptions {
   enabled?: boolean;
+  courseId?: string;
 }
 
-export function useAiTutorChat({ enabled = false }: UseAiTutorChatOptions = {}) {
+export function useAiTutorChat({ enabled = false, courseId }: UseAiTutorChatOptions = {}) {
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +39,7 @@ export function useAiTutorChat({ enabled = false }: UseAiTutorChatOptions = {}) 
     try {
       const result = await streamAiChat({
         message: trimmedText,
+        courseId,
         conversationId,
         onToken: (token) => setMessages((current) => current.map((message) => message.id === assistantId ? { ...message, text: `${message.text}${token}` } : message)),
       });

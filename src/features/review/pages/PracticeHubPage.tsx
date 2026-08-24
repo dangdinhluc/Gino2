@@ -3,19 +3,27 @@ import { Link } from 'react-router-dom';
 import { Brain, ChevronRight, Gamepad2, GraduationCap, MessageCircle, PenLine, RotateCcw, Target } from 'lucide-react';
 import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 import { assets } from '@/src/shared/lib/assets';
 
 export default function PracticeHubPage() {
   const [dueCount, setDueCount] = useState<number | null>(null);
   const streak = useProgressStore((state) => state.streak);
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   useEffect(() => {
     let cancelled = false;
-    getDueVocabularyCards(100)
+    if (activeCourseStatus !== 'ready') return () => { cancelled = true; };
+    if (!activeCourseId) {
+      setDueCount(0);
+      return () => { cancelled = true; };
+    }
+    getDueVocabularyCards(100, activeCourseId)
       .then((cards) => { if (!cancelled) setDueCount(cards.filter((card) => card.status !== 'new').length); })
       .catch(() => { if (!cancelled) setDueCount(0); });
     return () => { cancelled = true; };
-  }, []);
+  }, [activeCourseId, activeCourseStatus]);
 
   const actions = [
     { title: 'Ôn từ vựng', hint: 'Ôn theo phương pháp SRS', icon: Brain, to: '/app/practice/review', tone: 'bg-[#e5f8ea] text-[#3fac6c]' },
@@ -38,7 +46,7 @@ export default function PracticeHubPage() {
         <div className="relative overflow-hidden rounded-[16px] bg-[linear-gradient(135deg,#7d4fe0_0%,#9a70e6_100%)] p-4 text-white shadow-[0_8px_18px_rgba(111,69,216,.22)]">
           <div className="relative z-10">
             <strong className="block text-[20px] font-extrabold">{dueCount === null ? 'Đang kiểm tra…' : `${dueCount} từ cần ôn`}</strong>
-            <span className="mt-1 block text-[10px] font-medium text-white/80">Từ tất cả khóa học</span>
+                <span className="mt-1 block text-[10px] font-medium text-white/80">Từ khóa đang học</span>
             <Link to="/app/review/flashcards?mode=due" className="mt-3 inline-flex h-9 min-w-[190px] items-center justify-center rounded-lg bg-white px-4 text-[10px] font-extrabold text-[#6f45d8] shadow-sm">
               ÔN TẤT CẢ{typeof dueCount === 'number' && dueCount > 0 ? ` (${dueCount})` : ''}
             </Link>

@@ -2,6 +2,7 @@ import { useEffect, type RefObject } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AITutorChatPanel } from '@/src/features/ai/components/AITutorChatPanel';
 import { useAiTutorChat } from '@/src/features/ai/hooks/useAiTutorChat';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 interface AITutorChatContentProps {
   open: boolean;
@@ -10,7 +11,8 @@ interface AITutorChatContentProps {
 }
 
 export default function AITutorChatContent({ open, dialogRef, onClose }: AITutorChatContentProps) {
-  const { draft, error, handleSubmit, isSending, messages, sendMessage, setDraft } = useAiTutorChat({ enabled: open });
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const { draft, error, handleSubmit, isSending, messages, sendMessage, setDraft } = useAiTutorChat({ enabled: open, courseId: activeCourseId ?? undefined });
 
   useEffect(() => {
     if (!open) return undefined;

@@ -29,7 +29,7 @@ const plan = {
 
 describe('mapRealDashboardData', () => {
   it('keeps empty learner data empty instead of creating course or progress values', () => {
-    const result = mapRealDashboardData({ profile, stats, plan, courses: [] });
+    const result = mapRealDashboardData({ profile, stats, plan, courses: [] }, 'course-1');
 
     expect(result.activeCourse).toBeNull();
     expect(result.courses).toEqual([]);
@@ -53,7 +53,7 @@ describe('mapRealDashboardData', () => {
         themeColor: null,
         isEnrolled: true,
       }],
-    });
+    }, 'course-1');
 
     expect(result.activeCourse).toEqual({
       id: 'course-1',
@@ -64,5 +64,24 @@ describe('mapRealDashboardData', () => {
     expect(result.today).toEqual({ vocabularyDue: 2, exercises: 3, lessons: 1 });
     expect(result.stats).toMatchObject({ streak: 4, xp: 25, learnedWords: 18, studyMinutes: null });
     expect(result.weakPoints).toEqual([{ title: 'Nghe hiểu', accuracy: 72 }]);
+  });
+
+  it('uses the persisted active course instead of picking a course by progress', () => {
+    const result = mapRealDashboardData({
+      profile,
+      stats,
+      plan,
+      courses: [
+        {
+          id: 'course-1', title: 'Khóa cũ', level: 'N4', description: '', progress: 92, totalLessons: 10, image: '', themeColor: null, isEnrolled: true,
+        },
+        {
+          id: 'course-2', title: 'Khóa đang học', level: 'Tokutei', description: '', progress: 20, totalLessons: 20, image: '', themeColor: null, isEnrolled: true,
+        },
+      ],
+    }, 'course-2');
+
+    expect(result.activeCourse?.id).toBe('course-2');
+    expect(result.courses.map((course) => course.id)).toEqual(['course-2']);
   });
 });

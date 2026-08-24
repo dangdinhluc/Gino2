@@ -5,6 +5,7 @@ import { getDueVocabularyCards } from '@/src/features/courses/repositories/learn
 import { fetchPublishedCourses } from '@/src/features/courses/repositories/coursesRepository';
 import { QuickLearnSheet } from '@/src/app/layouts/QuickLearnSheet';
 import { assets } from '@/src/shared/lib/assets';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 export function BottomNav() {
   const [dueCount, setDueCount] = useState(0);
@@ -12,12 +13,20 @@ export function BottomNav() {
   const [isQuickLearnOpen, setIsQuickLearnOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   useEffect(() => {
     let cancelled = false;
 
+    if (activeCourseStatus !== 'ready' || !activeCourseId) {
+      setDueCount(0);
+      setCurrentCourse(null);
+      return () => { cancelled = true; };
+    }
+
     Promise.allSettled([
-      getDueVocabularyCards(100),
+      getDueVocabularyCards(100, activeCourseId),
       fetchPublishedCourses(),
     ]).then(([dueResult, coursesResult]) => {
       if (cancelled) return;
@@ -30,9 +39,7 @@ export function BottomNav() {
 
       if (coursesResult.status === 'fulfilled') {
         const enrolledCourses = coursesResult.value.filter((course) => course.isEnrolled === true);
-        const activeCourse = enrolledCourses.find((course) => course.progress > 0 && course.progress < 100)
-          ?? enrolledCourses[0]
-          ?? null;
+        const activeCourse = enrolledCourses.find((course) => course.id === activeCourseId) ?? null;
         setCurrentCourse(activeCourse ? { id: activeCourse.id, title: activeCourse.title } : null);
       } else {
         setCurrentCourse(null);
@@ -42,7 +49,7 @@ export function BottomNav() {
     return () => {
       cancelled = true;
     };
-  }, [location.pathname]);
+  }, [activeCourseId, activeCourseStatus, location.pathname]);
 
   useEffect(() => {
     setIsQuickLearnOpen(false);

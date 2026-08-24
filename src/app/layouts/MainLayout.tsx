@@ -5,8 +5,10 @@ import { BottomNav } from './BottomNav';
 import { MobileAITutorPopover } from './MobileAITutorPopover';
 import { TokuteiAppChrome } from './TokuteiAppChrome';
 import { AnimeBackdrop } from '@/src/shared/components/AnimeBackdrop';
+import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 
 export function MainLayout() {
+  useActiveCourse();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const isCourseFocusRoute = /^\/app\/courses\/[^/]+\/(learn|workspace)\/?$/.test(location.pathname);

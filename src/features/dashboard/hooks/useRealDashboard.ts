@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 import { fetchRealDashboardData, type RealDashboardData } from '@/src/features/dashboard/repositories/realDashboardRepository';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 export function useRealDashboard() {
   const { user } = useAuth();
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
   const [data, setData] = useState<RealDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -23,10 +26,26 @@ export function useRealDashboard() {
       };
     }
 
+    if (activeCourseStatus !== 'ready') {
+      setLoading(true);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!activeCourseId) {
+      setData(null);
+      setError(null);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     setLoading(true);
     setError(null);
 
-    fetchRealDashboardData(user.id)
+    fetchRealDashboardData(user.id, activeCourseId)
       .then((value) => {
         if (cancelled) return;
         setData(value);
@@ -42,7 +61,7 @@ export function useRealDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [reloadToken, user?.id]);
+  }, [activeCourseId, activeCourseStatus, reloadToken, user?.id]);
 
   return { data, loading, error, refetch };
 }

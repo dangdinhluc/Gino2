@@ -51,7 +51,8 @@ export async function fetchPublishedCourses(): Promise<CourseListEntry[]> {
   const { data: enrollments, error: enrollmentError } = await client
     .from('enrollments')
     .select('course_id, progress_percent')
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .in('status', ['active', 'completed']);
   if (enrollmentError) throw new Error(enrollmentError.message);
   for (const enrollment of enrollments ?? []) {
     progressByCourse.set(enrollment.course_id, Number(enrollment.progress_percent));

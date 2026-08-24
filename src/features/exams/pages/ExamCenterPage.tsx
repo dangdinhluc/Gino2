@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { assets } from '@/src/shared/lib/assets';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 export default function ExamCenter() {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -28,14 +29,21 @@ export default function ExamCenter() {
   const [providerFilter, setProviderFilter] = useState('Tất cả');
   const [skillFilter, setSkillFilter] = useState('Tất cả');
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   useEffect(() => {
     let cancelled = false;
-    fetchPublishedAssessments()
+    if (activeCourseStatus !== 'ready') return () => { cancelled = true; };
+    if (!activeCourseId) {
+      setExams([]);
+      return () => { cancelled = true; };
+    }
+    fetchPublishedAssessments(activeCourseId)
       .then((items) => { if (!cancelled) setExams(items); })
       .catch((error: unknown) => { if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Không tải được đề thi.'); });
     return () => { cancelled = true; };
-  }, []);
+  }, [activeCourseId, activeCourseStatus]);
 
   const providerOptions = ['Tất cả', ...Array.from(new Set(exams.map((exam) => exam.type)))];
   const skillOptions = ['Tất cả', ...Array.from(new Set(exams.flatMap((exam) => exam.skills)))];

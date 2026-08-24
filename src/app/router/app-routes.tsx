@@ -2,6 +2,8 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route } from 'react-router-dom';
 import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
+import { CourseEntryRedirect } from '@/src/features/courses/components/CourseEntryRedirect';
+import { ActiveCourseGuard } from '@/src/features/courses/components/ActiveCourseGuard';
 
 const TodayPage = lazy(() => import('@/src/features/dashboard/pages/TodayPage'));
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
@@ -42,14 +44,14 @@ export function AppRoutes() {
         </ProtectedRoute>
       }
     >
-      <Route index element={<Navigate to="/app/dashboard" replace />} />
+      <Route index element={<CourseEntryRedirect />} />
       <Route path="dashboard" element={screen(<TodayPage />)} />
       <Route path="progress" element={screen(<DashboardPage />)} />
       <Route path="courses" element={screen(<CourseListPage />)} />
       <Route path="enrollments" element={screen(<PackageCatalogPage />)} />
       <Route path="courses/:id" element={<Navigate to="learn" replace />} />
-      <Route path="courses/:id/learn" element={screen(<CourseHomePage />)} />
-      <Route path="courses/:id/workspace" element={screen(<CourseLearningPage />)} />
+      <Route path="courses/:id/learn" element={<ActiveCourseGuard>{screen(<CourseHomePage />)}</ActiveCourseGuard>} />
+      <Route path="courses/:id/workspace" element={<ActiveCourseGuard>{screen(<CourseLearningPage />)}</ActiveCourseGuard>} />
       <Route path="exams" element={screen(<ExamCenterPage />)} />
       <Route path="exams/:id/start" element={screen(<ExamRunnerPage />)} />
       <Route path="exams/:id/result" element={screen(<ExamResultPage />)} />

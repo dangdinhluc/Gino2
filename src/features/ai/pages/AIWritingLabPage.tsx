@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AlertCircle, CheckCircle2, Clock3, FileText, Gauge, PenTool, Send, Sparkles } from 'lucide-react';
 import { submitAiWriting, type AiWritingResult } from '@/src/features/ai/repositories/aiRepository';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 const panelClass = 'rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6';
 const focusRing =
@@ -21,6 +22,7 @@ const scoringItems = [
 ];
 
 export default function AIWritingLab() {
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AiWritingResult | null>(null);
@@ -39,7 +41,7 @@ export default function AIWritingLab() {
     setResult(null);
     setError(null);
     try {
-      setResult(await submitAiWriting({ text }));
+      setResult(await submitAiWriting({ text, courseId: activeCourseId ?? undefined }));
     } catch (nextError: unknown) {
       setError(nextError instanceof Error ? nextError.message : 'AI không chấm được bài viết.');
     } finally {

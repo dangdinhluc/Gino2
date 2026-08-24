@@ -9,6 +9,7 @@ import {
   type SpeakingPrompt,
   type SpeakingSubmission,
 } from '@/src/features/ai/repositories/speakingRepository';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 const panelClass = 'rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6';
 
@@ -37,15 +38,23 @@ export default function AISprechenLab() {
   const chunksRef = useRef<Blob[]>([]);
   const startedAtRef = useRef(0);
   const mimeRef = useRef('audio/webm');
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   useEffect(() => {
     let cancelled = false;
-    fetchSpeakingPrompts()
+    if (activeCourseStatus !== 'ready') return () => { cancelled = true; };
+    if (!activeCourseId) {
+      setPrompts([]);
+      setLoading(false);
+      return () => { cancelled = true; };
+    }
+    fetchSpeakingPrompts(activeCourseId)
       .then((items) => { if (!cancelled) { setPrompts(items); setPromptId(items[0]?.id ?? ''); } })
       .catch((nextError: unknown) => { if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được đề Speaking.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; recorderRef.current?.stop(); streamRef.current?.getTracks().forEach((track) => track.stop()); };
-  }, []);
+  }, [activeCourseId, activeCourseStatus]);
 
   useEffect(() => {
     if (!recording) return undefined;

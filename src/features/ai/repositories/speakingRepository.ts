@@ -67,12 +67,14 @@ function mapSubmission(row: {
   };
 }
 
-export async function fetchSpeakingPrompts(): Promise<SpeakingPrompt[]> {
-  const { data, error } = await requireSupabase()
+export async function fetchSpeakingPrompts(courseId?: string): Promise<SpeakingPrompt[]> {
+  let query = requireSupabase()
     .from('speaking_prompts')
     .select('id, course_id, title, instructions, rubric, order_index')
     .eq('status', 'published')
     .order('order_index');
+  if (courseId) query = query.eq('course_id', courseId);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map((prompt) => ({ id: prompt.id, courseId: prompt.course_id, title: prompt.title, instructions: prompt.instructions, rubric: prompt.rubric, orderIndex: prompt.order_index }));
 }

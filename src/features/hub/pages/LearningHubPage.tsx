@@ -18,6 +18,7 @@ import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
 import type { CourseGameType } from '@/src/features/games/types';
 import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 interface HubGame {
   type: CourseGameType;
@@ -96,9 +97,12 @@ const gameStyles = {
 } as const;
 
 export default function LearningHub() {
-  const { status, data: courses, error } = useCourseList();
+  const { status, data: availableCourses, error } = useCourseList();
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
+  const courses = activeCourseId ? availableCourses.filter((course) => course.id === activeCourseId) : [];
 
-  if (status === 'loading') {
+  if (status === 'loading' || activeCourseStatus !== 'ready') {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 text-sm font-bold text-[#5f6b7c]">
         <Gamepad2 className="mr-2 h-5 w-5 animate-bounce text-[#d83a00]" />
@@ -196,7 +200,7 @@ export default function LearningHub() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-[var(--font-heading)] text-base font-black text-[#172033]">
-              Chọn khóa học để bắt đầu chơi ({courses.length})
+              Khóa đang học ({courses.length})
             </h2>
             <span className="text-xs font-semibold text-[#8c97a8]">4 game cho mỗi khóa</span>
           </div>
@@ -274,4 +278,3 @@ export default function LearningHub() {
     </div>
   );
 }
-

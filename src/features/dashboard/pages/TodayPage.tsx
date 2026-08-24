@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Menu, Flame, Info, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
@@ -8,27 +9,23 @@ import { assets } from '@/src/shared/lib/assets';
 
 export default function TodayPage() {
   const { data, loading, error, refetch } = useRealDashboard();
+  const navigate = useNavigate();
   const [claimingReward, setClaimingReward] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const [rewardToast, setRewardToast] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!loading && !error && !data) {
+      navigate('/app/courses?mode=select', { replace: true });
+    }
+  }, [data, error, loading, navigate]);
+
   if (loading) return <DashboardLoading />;
   if (error || !data) return <DashboardError onRetry={refetch} />;
 
-  const { profile, activeCourse, courses, today, stats } = data;
+  const { profile, activeCourse, today, stats } = data;
   const dueCount = today.vocabularyDue;
   const nextLesson = activeCourse?.nextLesson;
-  const courseCards = courses.slice(0, 3).map((course, index) => ({
-    id: course.id,
-    title: course.title,
-    tag: `${course.progress}%`,
-    thumbnail: course.image || [
-      assets.shared.backgrounds.fujiLandscape,
-      assets.shared.backgrounds.fujiScene,
-      assets.shared.backgrounds.fujiLandscape,
-    ][index % 3],
-    link: `/app/courses/${course.id}/learn`,
-  }));
 
   const handleClaimReward = async () => {
     if (claimingReward || rewardClaimed) return;
@@ -293,64 +290,7 @@ export default function TodayPage() {
         </div>
       </section>
 
-      {/* 3. Khóa học của bạn */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-[15.5px] font-black tracking-tight text-[#1e1f26]">
-            Khóa học của bạn
-          </h2>
-          <Link
-            to="/app/courses"
-            className="text-[12px] font-bold text-[#6e46e6] hover:underline"
-          >
-            Xem tất cả
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2.5">
-          {courseCards.length > 0 ? courseCards.map((course) => (
-            <Link
-              key={course.id}
-              to={course.link}
-              className="flex flex-col justify-between rounded-[22px] border border-[#ece7f5] bg-white p-2 shadow-xs transition-all hover:scale-[1.02] hover:shadow-sm active:scale-[0.98]"
-            >
-              <div className="relative aspect-16/10 w-full overflow-hidden rounded-[15px]">
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="h-full w-full object-cover"
-                />
-                <span className="absolute right-1.5 top-1.5 rounded-full bg-[#6e46e6]/95 px-1.5 py-0.5 text-[9px] font-black text-white shadow-xs backdrop-blur-xs">
-                  {course.tag}
-                </span>
-              </div>
-
-              <strong className="mt-2 block truncate text-[12px] font-black text-[#202129]">
-                {course.title}
-              </strong>
-
-              <div className="mt-2 flex items-center justify-center">
-                <span className="rounded-full bg-[#6e46e6] px-3.5 py-1 text-[10.5px] font-black text-white shadow-2xs">
-                  Tiếp tục
-                </span>
-              </div>
-            </Link>
-          )) : (
-            <div className="col-span-3 rounded-[22px] border border-[#ece7f5] bg-white p-4 text-center shadow-xs">
-              <strong className="block text-[14px] font-black text-[#202129]">Bạn chưa có khóa học</strong>
-              <span className="mt-1 block text-[11px] font-medium text-[#606272]">Chọn khóa Tokutei để bắt đầu</span>
-              <Link
-                to="/app/courses"
-                className="mt-3 inline-flex rounded-full bg-[#6e46e6] px-4 py-2 text-[11px] font-black text-white shadow-2xs"
-              >
-                Xem khóa học
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 4. Thành tích hôm nay */}
+      {/* 3. Thành tích hôm nay */}
       <section className="relative overflow-hidden rounded-[26px] border border-[#d6c7f5] bg-gradient-to-r from-[#e3d8f8] via-[#e9defb] to-[#ded0f7] p-4 shadow-[0_4px_16px_rgba(110,70,230,0.08)]">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-black tracking-tight text-[#1e1f26]">

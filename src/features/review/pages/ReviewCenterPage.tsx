@@ -22,6 +22,7 @@ import {
 } from '@/src/features/courses/repositories/learningProgressRepository';
 import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 interface ReviewSnapshot {
   cards: DueVocabularyCard[];
@@ -36,12 +37,21 @@ export default function ReviewCenter() {
   const [isSavingSetting, setIsSavingSetting] = useState(false);
   const [sessionMinutes, setSessionMinutes] = useState<3 | 5>(3);
   const [error, setError] = useState<string | null>(null);
+  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
+  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   const load = useCallback(async () => {
+    if (activeCourseStatus !== 'ready') return;
     setIsLoading(true);
     setError(null);
+    if (!activeCourseId) {
+      setSnapshot(null);
+      setError('Hãy chọn một khóa học để mở lịch ôn tập.');
+      setIsLoading(false);
+      return;
+    }
     try {
-      const [cards, settings] = await Promise.all([getDueVocabularyCards(100), getReviewSettings()]);
+      const [cards, settings] = await Promise.all([getDueVocabularyCards(100, activeCourseId), getReviewSettings()]);
       setSnapshot({ cards, newCardsPerDay: settings.newCardsPerDay });
     } catch (reason) {
       setSnapshot(null);
@@ -49,7 +59,7 @@ export default function ReviewCenter() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeCourseId, activeCourseStatus]);
 
   useEffect(() => {
     void load();
@@ -412,4 +422,3 @@ export default function ReviewCenter() {
     </div>
   );
 }
-

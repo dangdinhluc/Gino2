@@ -69,11 +69,14 @@ export async function updateReviewSettings(newCardsPerDay: number): Promise<Revi
   return { newCardsPerDay: data.new_cards_per_day };
 }
 
-export async function getDueVocabularyCards(limit = 50): Promise<DueVocabularyCard[]> {
+export async function getDueVocabularyCards(limit = 50, courseId?: string): Promise<DueVocabularyCard[]> {
   if (!supabase) {
     throw new Error('Supabase chưa được cấu hình.');
   }
-  const { data, error } = await supabase.rpc('get_due_vocabulary_cards', { target_limit: Math.min(Math.max(limit, 1), 100) });
+  const targetLimit = Math.min(Math.max(limit, 1), 100);
+  const { data, error } = courseId
+    ? await supabase.rpc('get_due_vocabulary_cards_for_course', { target_course_id: courseId, target_limit: targetLimit })
+    : await supabase.rpc('get_due_vocabulary_cards', { target_limit: targetLimit });
   if (error) throw new Error(error.message);
   return (data ?? []).map((card) => ({
     id: card.vocabulary_item_id,

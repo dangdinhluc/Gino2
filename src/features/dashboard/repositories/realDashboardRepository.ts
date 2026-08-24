@@ -45,13 +45,14 @@ interface RealDashboardSources {
   courses: CourseListEntry[];
 }
 
-export function mapRealDashboardData({ profile, stats, plan, courses }: RealDashboardSources): RealDashboardData {
+export function mapRealDashboardData({ profile, stats, plan, courses }: RealDashboardSources, activeCourseId?: string): RealDashboardData {
   const enrolledCourses = courses.filter((course) => course.isEnrolled === true);
-  const plannedCourse = enrolledCourses.find((course) => course.id === plan.nextLesson?.courseId) ?? null;
-  const activeCourseEntry = plannedCourse
-    ?? enrolledCourses.find((course) => course.progress > 0 && course.progress < 100)
-    ?? enrolledCourses[0]
-    ?? null;
+  const activeCourseEntry = activeCourseId
+    ? enrolledCourses.find((course) => course.id === activeCourseId) ?? null
+    : enrolledCourses.find((course) => course.id === plan.nextLesson?.courseId)
+      ?? enrolledCourses.find((course) => course.progress > 0 && course.progress < 100)
+      ?? enrolledCourses[0]
+      ?? null;
   const nextLesson = activeCourseEntry && plan.nextLesson?.courseId === activeCourseEntry.id
     ? { id: plan.nextLesson.id, title: plan.nextLesson.title }
     : null;
@@ -66,13 +67,13 @@ export function mapRealDashboardData({ profile, stats, plan, courses }: RealDash
           nextLesson,
         }
       : null,
-    courses: enrolledCourses.map((course) => ({
+    courses: activeCourseEntry ? [activeCourseEntry].map((course) => ({
       id: course.id,
       title: course.title,
       progress: course.progress,
       image: course.image,
       totalLessons: course.totalLessons,
-    })),
+    })) : [],
     today: {
       vocabularyDue: plan.dueVocabulary,
       exercises: stats.reviewedToday,
@@ -90,7 +91,7 @@ export function mapRealDashboardData({ profile, stats, plan, courses }: RealDash
   };
 }
 
-export async function fetchRealDashboardData(userId: string): Promise<RealDashboardData> {
+export async function fetchRealDashboardData(userId: string, activeCourseId: string): Promise<RealDashboardData> {
   const [profile, stats, plan, courses] = await Promise.all([
     fetchLearnerProfile(userId),
     fetchLearnerStats(),
@@ -98,5 +99,5 @@ export async function fetchRealDashboardData(userId: string): Promise<RealDashbo
     fetchPublishedCourses(),
   ]);
 
-  return mapRealDashboardData({ profile, stats, plan, courses });
+  return mapRealDashboardData({ profile, stats, plan, courses }, activeCourseId);
 }
