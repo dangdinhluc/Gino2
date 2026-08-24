@@ -1,58 +1,15 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
-import { getDueVocabularyCards } from '@/src/features/courses/repositories/learningProgressRepository';
-import { fetchPublishedCourses } from '@/src/features/courses/repositories/coursesRepository';
-import { QuickLearnSheet } from '@/src/app/layouts/QuickLearnSheet';
+import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
 import { assets } from '@/src/shared/lib/assets';
-import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 export function BottomNav() {
-  const [dueCount, setDueCount] = useState(0);
-  const [currentCourse, setCurrentCourse] = useState<{ id: string; title: string } | null>(null);
-  const [isQuickLearnOpen, setIsQuickLearnOpen] = useState(false);
+  const [isLearningLauncherOpen, setIsLearningLauncherOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
-  const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
   useEffect(() => {
-    let cancelled = false;
-
-    if (activeCourseStatus !== 'ready' || !activeCourseId) {
-      setDueCount(0);
-      setCurrentCourse(null);
-      return () => { cancelled = true; };
-    }
-
-    Promise.allSettled([
-      getDueVocabularyCards(100, activeCourseId),
-      fetchPublishedCourses(),
-    ]).then(([dueResult, coursesResult]) => {
-      if (cancelled) return;
-
-      if (dueResult.status === 'fulfilled') {
-        setDueCount(dueResult.value.filter((card) => card.status !== 'new').length);
-      } else {
-        setDueCount(0);
-      }
-
-      if (coursesResult.status === 'fulfilled') {
-        const enrolledCourses = coursesResult.value.filter((course) => course.isEnrolled === true);
-        const activeCourse = enrolledCourses.find((course) => course.id === activeCourseId) ?? null;
-        setCurrentCourse(activeCourse ? { id: activeCourse.id, title: activeCourse.title } : null);
-      } else {
-        setCurrentCourse(null);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeCourseId, activeCourseStatus, location.pathname]);
-
-  useEffect(() => {
-    setIsQuickLearnOpen(false);
+    setIsLearningLauncherOpen(false);
   }, [location.pathname]);
 
   const navItems = [
@@ -61,11 +18,6 @@ export function BottomNav() {
     { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.practice },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
-
-  const handleQuickNavigate = (path: string) => {
-    setIsQuickLearnOpen(false);
-    navigate(path);
-  };
 
   const renderNavItem = (item: (typeof navItems)[number]) => (
     <NavLink key={item.path} to={item.path} className="relative flex min-w-0 flex-1 items-center justify-center">
@@ -99,13 +51,7 @@ export function BottomNav() {
 
   return (
     <>
-      <QuickLearnSheet
-        isOpen={isQuickLearnOpen}
-        dueCount={dueCount}
-        currentCourse={currentCourse}
-        onClose={() => setIsQuickLearnOpen(false)}
-        onNavigate={handleQuickNavigate}
-      />
+      <LearningLauncherSheet isOpen={isLearningLauncherOpen} onClose={() => setIsLearningLauncherOpen(false)} />
 
       <nav
         aria-label="Thanh điều hướng chính"
@@ -115,31 +61,31 @@ export function BottomNav() {
           {renderNavItem(navItems[0])}
           {renderNavItem(navItems[1])}
 
-          {/* Nút trung tâm Mascot: Học nhanh */}
+          {/* Nút trung tâm Mascot: Học ngay */}
           <div className="relative flex min-w-0 items-end justify-center">
             <motion.button
               type="button"
-              onClick={() => setIsQuickLearnOpen((open) => !open)}
+              onClick={() => setIsLearningLauncherOpen((open) => !open)}
               whileTap={{ scale: 0.92 }}
               aria-haspopup="dialog"
-              aria-expanded={isQuickLearnOpen}
-              aria-label="Mở Học nhanh"
+              aria-expanded={isLearningLauncherOpen}
+              aria-label="Mở Học ngay"
               className="relative -mt-9 flex min-w-0 flex-col items-center"
             >
               <motion.div
-                animate={isQuickLearnOpen ? { scale: 1.1, y: -4 } : { scale: 1, y: 0 }}
+                animate={isLearningLauncherOpen ? { scale: 1.1, y: -4 } : { scale: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 450, damping: 28 }}
                 className="relative flex items-center justify-center"
               >
-                {isQuickLearnOpen ? (
+                {isLearningLauncherOpen ? (
                   <div className="relative flex flex-col items-center">
                     <img
                       src={assets.shared.mascots.quickLearnActive}
-                      alt="Học nhanh"
+                      alt="Học ngay"
                       className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(147,75,255,0.5)]"
                     />
                     <span className="absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#6e46e6] to-[#582dd7] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(110,70,230,0.45)] whitespace-nowrap">
-                      <span>⚡</span> Học nhanh
+                      <span>⚡</span> Học ngay
                     </span>
                   </div>
                 ) : (
@@ -147,12 +93,12 @@ export function BottomNav() {
                     <span className="relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[2.5px] border-[#d8cdf4] bg-white shadow-[0_8px_20px_rgba(111,69,216,0.18)]">
                       <img
                         src={assets.shared.mascots.quickLearn}
-                        alt="Học nhanh"
+                        alt="Học ngay"
                         className="absolute left-1/2 top-0 h-auto w-[76px] max-w-none -translate-x-1/2"
                       />
                     </span>
                     <span className="mt-1 truncate text-[11px] font-semibold text-[#4e505a]">
-                      Học nhanh
+                      Học ngay
                     </span>
                     <div className="h-1.5 w-1.5" />
                   </div>

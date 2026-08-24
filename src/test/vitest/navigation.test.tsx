@@ -1,18 +1,45 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BottomNav } from '@/src/app/layouts/BottomNav';
-import { QuickLearnSheet } from '@/src/app/layouts/QuickLearnSheet';
+import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
+import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
-vi.mock('@/src/features/courses/repositories/learningProgressRepository', () => ({
-  getDueVocabularyCards: vi.fn().mockResolvedValue([{ id: '1', status: 'learning' }]),
+vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
+  fetchCourseLearningWorkspace: vi.fn().mockResolvedValue({
+    course: {
+      id: 'course-1',
+      title: 'Tokutei Nhà hàng',
+      level: 'N4',
+      description: 'Khóa học nhà hàng',
+      currentModule: 'Bài 8: てあります',
+      progress: 62,
+    },
+    vocabulary: [{ id: 'vocab-1', status: 'new' }],
+    reviewQuestions: [{ id: 'question-1' }],
+    documents: [{ id: 'document-1' }],
+    games: [],
+    exams: [{ id: 'exam-1' }],
+    podcasts: [],
+    featureConfig: {
+      vocabulary: true,
+      documents: true,
+      practice: true,
+      games: true,
+      exams: true,
+    },
+  }),
 }));
 
-vi.mock('@/src/features/courses/repositories/coursesRepository', () => ({
-  fetchPublishedCourses: vi.fn().mockResolvedValue([
-    { id: 'course-1', title: 'Demo • Tokutei A1', isEnrolled: true, progress: 35 },
-  ]),
-}));
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location">{location.pathname}{location.search}{location.hash}</output>;
+}
+
+afterEach(() => {
+  cleanup();
+  useActiveCourseStore.getState().reset();
+});
 
 describe('BottomNav component', () => {
   it('renders all 5 tabs and center mascot button', () => {
@@ -26,46 +53,66 @@ describe('BottomNav component', () => {
     expect(screen.getByText('Khóa học')).toBeDefined();
     expect(screen.getByText('Luyện tập')).toBeDefined();
     expect(screen.getByText('Cá nhân')).toBeDefined();
-    expect(screen.getByRole('button', { name: /mở học nhanh/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /mở học ngay/i })).toBeDefined();
   });
 });
 
-describe('QuickLearnSheet component', () => {
-  it('renders correctly when open', () => {
-    const handleNavigate = vi.fn();
+describe('LearningLauncherSheet component', () => {
+  it('loads the active course and deep-links each learning module', async () => {
+    useActiveCourseStore.getState().setLocalCourse('course-1');
     const handleClose = vi.fn();
 
-    const { unmount } = render(
-      <QuickLearnSheet
-        isOpen={true}
-        dueCount={8}
-        currentCourse={{ id: 'course-1', title: 'Demo • Tokutei A1' }}
-        onClose={handleClose}
-        onNavigate={handleNavigate}
-      />
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <LearningLauncherSheet isOpen={true} onClose={handleClose} />
+        <LocationProbe />
+      </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /học nhanh/i })).toBeDefined();
-    expect(screen.getByText('Ôn từ vựng')).toBeDefined();
-    expect(screen.getByText('8 từ đang chờ ôn')).toBeDefined();
-    expect(screen.getByText('Tiếp tục bài đang học')).toBeDefined();
-    expect(screen.getByText('Demo • Tokutei A1')).toBeDefined();
-    expect(screen.getByText('Luyện nhanh')).toBeDefined();
-    expect(screen.getByText('Chơi game')).toBeDefined();
+    expect(screen.getByRole('heading', { name: /học ngay/i })).toBeDefined();
+    expect(await screen.findByText('Tokutei Nhà hàng')).toBeDefined();
+    expect(screen.getAllByText('Bài 8: てあります')).toHaveLength(2);
+    expect(screen.getByText('62%')).toBeDefined();
+    expect(screen.getByText('Từ vựng')).toBeDefined();
+    expect(screen.getByText('Tài liệu')).toBeDefined();
+    expect(screen.getByText('Luyện tập')).toBeDefined();
+    expect(screen.getByText('Game')).toBeDefined();
     expect(screen.getByText('Thi thử')).toBeDefined();
-    expect(screen.getByText(/Mẹo nhỏ từ Tanuki:/i)).toBeDefined();
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
-    expect(sheet.className).toContain('overflow-hidden');
-    expect(sheet.querySelector('[class*="overflow-y-auto"]')).not.toBeNull();
+    expect(sheet.className).toContain('overflow-y-auto');
     expect(document.body.style.overflow).toBe('hidden');
 
-    // Clicking quick action
-    fireEvent.click(screen.getByText('Luyện nhanh'));
-    expect(handleNavigate).toHaveBeenCalledWith('/app/practice');
+    const routes = [
+      ['Tiếp tục bài đang học', 'vocabulary'],
+      ['Từ vựng', 'vocabulary'],
+      ['Tài liệu', 'documents'],
+      ['Luyện tập', 'practice'],
+      ['Game', 'games'],
+      ['Thi thử', 'exams'],
+    ] as const;
 
-    unmount();
-    expect(document.body.style.overflow).toBe('');
+    for (const [label, tab] of routes) {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(label, 'i') }));
+      await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(`/app/courses/course-1/workspace?tab=${tab}`));
+    }
+
+    expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('offers course selection when there is no active course', async () => {
+    useActiveCourseStore.setState({ status: 'ready' });
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <LearningLauncherSheet isOpen={true} onClose={vi.fn()} />
+        <LocationProbe />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Bạn chưa chọn khóa học')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: /chọn khóa học/i }));
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/app/courses'));
   });
 });

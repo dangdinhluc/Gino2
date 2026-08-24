@@ -11,7 +11,7 @@ interface CourseSwitcherProps {
 
 export function CourseSwitcher({ courses, activeCourseId, busy, onSwitch }: CourseSwitcherProps) {
   return (
-    <section aria-labelledby="course-switcher-title" className="rounded-[22px] border border-[#e8e1f5] bg-[#f9f7ff] p-4">
+    <section id="course-switcher" aria-labelledby="course-switcher-title" className="scroll-mt-4 rounded-[22px] border border-[#e8e1f5] bg-[#f9f7ff] p-4">
       <div className="flex items-center gap-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#6f45d8] shadow-2xs"><Repeat2 size={17} /></span>
         <div>

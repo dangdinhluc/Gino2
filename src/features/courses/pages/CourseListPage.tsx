@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CourseHeader } from '@/src/features/courses/components/CourseHeader';
 import { CourseMarketplace } from '@/src/features/courses/components/CourseMarketplace';
@@ -48,6 +48,11 @@ export default function CourseListPage() {
   );
   const activeCourseId = activeCourse.activeCourseId ?? enrolled[0]?.id ?? null;
   const shouldShowSelector = activeCourse.status === 'ready' && enrolled.length === 0;
+
+  useEffect(() => {
+    if (window.location.hash !== '#course-switcher') return;
+    document.getElementById('course-switcher')?.scrollIntoView({ block: 'start' });
+  }, []);
 
   async function handleEnroll(course: CourseListEntry): Promise<void> {
     setBusyCourseId(course.id);
