@@ -100,6 +100,10 @@ function appRedirectUrl(path = ''): string | undefined {
   return new URL(`${base}${path.replace(/^\//, '')}`, window.location.origin).toString();
 }
 
+function sessionApplyKey(session: Session | null): string {
+  return session ? `${session.user.id}:${session.access_token}` : 'anonymous';
+}
+
 async function loadStaffRole(user: User | null): Promise<StaffRole | null> {
   if (!supabase || !user) {
     return null;
@@ -125,9 +129,15 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+interface ApplySessionOptions {
+  force?: boolean;
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const sessionRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
+  const appliedSessionKeyRef = useRef<string | null>(null);
+  const sessionApplyRef = useRef<{ key: string; promise: Promise<void> } | null>(null);
   const [state, setState] = useState<AuthState>(() => ({ ...initialState, isLoading: supabaseConfig.isConfigured }));
 
   useEffect(() => {
@@ -136,28 +146,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       isMountedRef.current = false;
       sessionRequestIdRef.current += 1;
+      sessionApplyRef.current = null;
     };
   }, []);
 
-  const applySession = useCallback(async (session: Session | null): Promise<void> => {
+  const applySession = useCallback((session: Session | null, options: ApplySessionOptions = {}): Promise<void> => {
+    const key = sessionApplyKey(session);
+    if (!options.force) {
+      if (appliedSessionKeyRef.current === key) return Promise.resolve();
+      const inFlight = sessionApplyRef.current;
+      if (inFlight?.key === key) return inFlight.promise;
+    }
+
     const requestId = sessionRequestIdRef.current + 1;
     sessionRequestIdRef.current = requestId;
 
-    if (!session) {
-      if (isMountedRef.current) setState({ ...initialState, isLoading: false });
-      return;
-    }
-
-    setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'loading', isLoading: false, error: null });
-    try {
-      const staffRole = await loadStaffRole(session.user);
-      if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) return;
-      setState({ session, user: session.user, isAdmin: staffRole !== null, staffRole, staffRoleStatus: 'loaded', isLoading: false, error: null });
-    } catch (error: unknown) {
-      if (isMountedRef.current && sessionRequestIdRef.current === requestId) {
-        setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'error', isLoading: false, error: getAuthErrorMessage(error) });
+    const promise = (async () => {
+      if (!session) {
+        if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) return;
+        appliedSessionKeyRef.current = key;
+        setState({ ...initialState, isLoading: false });
+        return;
       }
-    }
+
+      if (isMountedRef.current) {
+        setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'loading', isLoading: false, error: null });
+      }
+
+      try {
+        const staffRole = await loadStaffRole(session.user);
+        if (!isMountedRef.current || sessionRequestIdRef.current !== requestId) return;
+        appliedSessionKeyRef.current = key;
+        setState({ session, user: session.user, isAdmin: staffRole !== null, staffRole, staffRoleStatus: 'loaded', isLoading: false, error: null });
+      } catch (error: unknown) {
+        if (isMountedRef.current && sessionRequestIdRef.current === requestId) {
+          appliedSessionKeyRef.current = key;
+          setState({ session, user: session.user, isAdmin: false, staffRole: null, staffRoleStatus: 'error', isLoading: false, error: getAuthErrorMessage(error) });
+        }
+      }
+    })();
+
+    sessionApplyRef.current = { key, promise };
+    return promise.finally(() => {
+      if (sessionApplyRef.current?.promise === promise) {
+        sessionApplyRef.current = null;
+      }
+    });
   }, []);
 
   const refreshSession = useCallback(async (): Promise<void> => {
@@ -178,7 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(error.message);
       }
 
-      await applySession(data.session);
+      await applySession(data.session, { force: true });
     } catch (error: unknown) {
       if (isMountedRef.current) {
         setState({ ...initialState, isLoading: false, error: getAuthErrorMessage(error) });
@@ -246,7 +280,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        const { error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email, password }), 'sign in');
+        const { data, error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email, password }), 'sign in');
 
         if (error) {
           if (import.meta.env.DEV) {
@@ -255,7 +289,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return { ok: false, error: getSignInErrorMessage(error) };
         }
 
-        await refreshSession();
+        if (data.session) {
+          await applySession(data.session);
+        } else {
+          await refreshSession();
+        }
         return { ok: true };
       } catch (error: unknown) {
         if (import.meta.env.DEV) {
@@ -264,7 +302,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { ok: false, error: getSignInErrorMessage(error) };
       }
     },
-    [refreshSession],
+    [applySession, refreshSession],
   );
 
   const signUp = useCallback(async (email: string, password: string, displayName: string): Promise<AuthActionResult> => {
@@ -279,12 +317,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       });
       if (error) return { ok: false, error: error.message };
-      if (data.session) await refreshSession();
+      if (data.session) await applySession(data.session);
       return { ok: true, requiresEmailConfirmation: !data.session };
     } catch (error: unknown) {
       return { ok: false, error: getAuthErrorMessage(error) };
     }
-  }, [refreshSession]);
+  }, [applySession]);
 
   const requestPasswordReset = useCallback(async (email: string): Promise<AuthActionResult> => {
     if (!supabase) return { ok: false, error: 'Supabase chưa được cấu hình.' };
@@ -320,6 +358,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       sessionRequestIdRef.current += 1;
+      appliedSessionKeyRef.current = sessionApplyKey(null);
+      sessionApplyRef.current = null;
       if (isMountedRef.current) {
         setState({ ...initialState, isLoading: false });
       }

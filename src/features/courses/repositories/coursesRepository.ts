@@ -17,6 +17,8 @@ export interface CourseListEntry extends Course {
   isEnrolled?: boolean;
 }
 
+const COURSE_LIST_SELECT = 'id, title, level, description, status, theme_color, order_index, lessons(count)';
+
 export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0, isEnrolled = false): CourseListEntry {
   const totalLessons = row.lessons?.[0]?.count ?? 0;
   return {
@@ -32,12 +34,41 @@ export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0, isEnro
   };
 }
 
+export async function fetchPublishedCourseForLearner(userId: string, courseId: string): Promise<CourseListEntry | null> {
+  const client = requireSupabase();
+  const [{ data: course, error: courseError }, { data: enrollment, error: enrollmentError }] = await Promise.all([
+    client
+      .from('courses')
+      .select(COURSE_LIST_SELECT)
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle(),
+    client
+      .from('enrollments')
+      .select('progress_percent')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .in('status', ['active', 'completed'])
+      .maybeSingle(),
+  ]);
+
+  if (courseError) throw new Error(courseError.message);
+  if (enrollmentError) throw new Error(enrollmentError.message);
+  if (!course || !enrollment) return null;
+
+  return mapCourseRowToEntry(
+    course as unknown as SupabaseCourseRow,
+    Number(enrollment.progress_percent),
+    true,
+  );
+}
+
 export async function fetchPublishedCourses(userId?: string): Promise<CourseListEntry[]> {
   const client = requireSupabase();
   const authenticatedUserId = userId ?? await requireUserId(client);
   const { data, error } = await client
     .from('courses')
-    .select('id, title, level, description, status, theme_color, order_index, lessons(count)')
+    .select(COURSE_LIST_SELECT)
     .eq('status', 'published')
     .order('order_index', { ascending: true });
 

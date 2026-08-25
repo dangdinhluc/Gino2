@@ -45,7 +45,7 @@ export function AppRoutes() {
         </ProtectedRoute>
       }
     >
-      <Route index element={<CourseEntryRedirect />} />
+      <Route index element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={screen(<TodayPage />, <DashboardLoading />)} />
       <Route path="progress" element={screen(<DashboardPage />)} />
       <Route path="courses" element={screen(<CourseListPage />)} />

@@ -1,7 +1,9 @@
-import { fetchPublishedCourses, type CourseListEntry } from '@/src/features/courses/repositories/coursesRepository';
+import { fetchPublishedCourseForLearner, type CourseListEntry } from '@/src/features/courses/repositories/coursesRepository';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { fetchDailyLearningPlan, type DailyLearningPlan } from './learnerDashboardRepository';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from './learnerStatsRepository';
+
+export type DashboardWarning = 'profile' | 'stats' | 'plan';
 
 export interface RealDashboardData {
   profile: {
@@ -36,7 +38,7 @@ export interface RealDashboardData {
     title: string;
     accuracy: number;
   }>;
-  warnings?: Array<'stats' | 'plan'>;
+  warnings?: DashboardWarning[];
 }
 
 interface RealDashboardSources {
@@ -44,12 +46,17 @@ interface RealDashboardSources {
   stats: LearnerStatsSnapshot;
   plan: DailyLearningPlan;
   courses: CourseListEntry[];
-  warnings?: Array<'stats' | 'plan'>;
+  warnings?: DashboardWarning[];
 }
 
 export interface RealDashboardCacheEntry {
   data: RealDashboardData;
   fetchedAt: number;
+}
+
+interface SettledValue<T> {
+  ok: boolean;
+  value?: T;
 }
 
 export const REAL_DASHBOARD_CACHE_STALE_TIME_MS = 45_000;
@@ -58,6 +65,13 @@ const dashboardRequests = new Map<string, Promise<RealDashboardData>>();
 
 function dashboardCacheKey(userId: string, activeCourseId: string): string {
   return `${userId}:${activeCourseId}`;
+}
+
+function settle<T>(promise: Promise<T>): Promise<SettledValue<T>> {
+  return promise.then(
+    (value) => ({ ok: true, value }),
+    () => ({ ok: false }),
+  );
 }
 
 export function readRealDashboardCache(userId: string, activeCourseId: string): RealDashboardCacheEntry | null {
@@ -73,6 +87,14 @@ export function clearRealDashboardCache(userId?: string): void {
   for (const key of dashboardCache.keys()) {
     if (key.startsWith(`${userId}:`)) dashboardCache.delete(key);
   }
+}
+
+function emptyProfile(): LearnerProfileSnapshot {
+  return {
+    displayName: 'Học viên',
+    email: '',
+    targetLevel: 'Tokutei Gino',
+  };
 }
 
 function emptyStats(): LearnerStatsSnapshot {
@@ -156,23 +178,32 @@ export async function fetchRealDashboardData(
   if (inFlight) return inFlight;
 
   const request = (async () => {
-    // Profile and courses are required to render the Home shell. The other
-    // sources are useful enhancements and must not blank an otherwise usable page.
-    const [profile, courses] = await Promise.all([
-      fetchLearnerProfile(userId),
-      fetchPublishedCourses(userId),
-    ]);
-    const [statsResult, planResult] = await Promise.allSettled([
-      fetchLearnerStats(),
-      fetchDailyLearningPlan(),
-    ]);
-    const warnings: Array<'stats' | 'plan'> = [];
-    const stats = statsResult.status === 'fulfilled' ? statsResult.value : emptyStats();
-    const plan = planResult.status === 'fulfilled' ? planResult.value : emptyPlan(stats.dueVocabulary);
-    if (statsResult.status === 'rejected') warnings.push('stats');
-    if (planResult.status === 'rejected') warnings.push('plan');
+    // Start every Home source at the same time. Only the active course is
+    // critical; profile/stats/plan failures must not blank an otherwise usable Home.
+    const profilePromise = settle(fetchLearnerProfile(userId));
+    const statsPromise = settle(fetchLearnerStats());
+    const planPromise = settle(fetchDailyLearningPlan());
+    const activeCourse = await fetchPublishedCourseForLearner(userId, activeCourseId);
 
-    const data = mapRealDashboardData({ profile, stats, plan, courses, warnings }, activeCourseId);
+    if (!activeCourse) {
+      throw new Error('Khóa học đang học không còn khả dụng. Vui lòng chọn lại khóa học.');
+    }
+
+    const [profileResult, statsResult, planResult] = await Promise.all([
+      profilePromise,
+      statsPromise,
+      planPromise,
+    ]);
+
+    const warnings: DashboardWarning[] = [];
+    const profile = profileResult.ok && profileResult.value ? profileResult.value : emptyProfile();
+    const stats = statsResult.ok && statsResult.value ? statsResult.value : emptyStats();
+    const plan = planResult.ok && planResult.value ? planResult.value : emptyPlan(stats.dueVocabulary);
+    if (!profileResult.ok) warnings.push('profile');
+    if (!statsResult.ok) warnings.push('stats');
+    if (!planResult.ok) warnings.push('plan');
+
+    const data = mapRealDashboardData({ profile, stats, plan, courses: [activeCourse], warnings }, activeCourseId);
     dashboardCache.set(key, { data, fetchedAt: Date.now() });
     return data;
   })();
