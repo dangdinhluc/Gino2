@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   user: { id: 'user-1' } as { id: string } | null,
-  fetchPublishedCourses: vi.fn(),
+  fetchPublishedCourseForLearner: vi.fn(),
   fetchLearnerProfile: vi.fn(),
   fetchDailyLearningPlan: vi.fn(),
   fetchLearnerStats: vi.fn(),
 }));
 
 vi.mock('@/src/features/auth/lib/AuthProvider', () => ({ useAuth: () => ({ user: mocks.user }) }));
-vi.mock('@/src/features/courses/repositories/coursesRepository', () => ({ fetchPublishedCourses: mocks.fetchPublishedCourses }));
+vi.mock('@/src/features/courses/repositories/coursesRepository', () => ({ fetchPublishedCourseForLearner: mocks.fetchPublishedCourseForLearner }));
 vi.mock('@/src/features/profile/repositories/profileRepository', () => ({ fetchLearnerProfile: mocks.fetchLearnerProfile }));
 vi.mock('@/src/features/dashboard/repositories/learnerDashboardRepository', () => ({ fetchDailyLearningPlan: mocks.fetchDailyLearningPlan }));
 vi.mock('@/src/features/dashboard/repositories/learnerStatsRepository', () => ({ fetchLearnerStats: mocks.fetchLearnerStats }));
@@ -38,7 +38,7 @@ const course = {
 beforeEach(() => {
   mocks.user = { id: 'user-1' };
   mocks.fetchLearnerProfile.mockResolvedValue(profile);
-  mocks.fetchPublishedCourses.mockResolvedValue([course]);
+  mocks.fetchPublishedCourseForLearner.mockResolvedValue(course);
   mocks.fetchLearnerStats.mockResolvedValue(stats);
   mocks.fetchDailyLearningPlan.mockResolvedValue(plan);
   clearRealDashboardCache();
@@ -63,6 +63,7 @@ describe('useRealDashboard', () => {
     await waitFor(() => expect(cached.result.current.loading).toBe(false));
     expect(cached.result.current.data?.activeCourse?.id).toBe('course-1');
     expect(mocks.fetchLearnerProfile).not.toHaveBeenCalled();
+    expect(mocks.fetchPublishedCourseForLearner).not.toHaveBeenCalled();
 
     mocks.user = null;
     await act(async () => {
@@ -74,5 +75,6 @@ describe('useRealDashboard', () => {
     vi.clearAllMocks();
     cached.rerender();
     await waitFor(() => expect(mocks.fetchLearnerProfile).toHaveBeenCalledWith('user-1'));
+    expect(mocks.fetchPublishedCourseForLearner).toHaveBeenCalledWith('user-1', 'course-1');
   });
 });
