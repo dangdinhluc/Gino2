@@ -33,7 +33,7 @@ export function GamesPanel({ courseId, courseTitle, vocabulary }: GamesPanelProp
   const games = useMemo(() => getAvailableCourseGames(vocabulary), [vocabulary]);
 
   return (
-    <div className="mx-auto w-full max-w-[620px] space-y-2.5 pb-24">
+    <div className="mx-auto w-full max-w-[620px] space-y-2.5">
       <p className="px-1 text-[9px] font-medium text-[#989aa3]">Game sử dụng từ vựng của {courseTitle}.</p>
 
       {games.length === 0 ? (

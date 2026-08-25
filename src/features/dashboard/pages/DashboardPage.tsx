@@ -16,6 +16,7 @@ import { DashboardShortcuts } from '@/src/features/dashboard/components/Dashboar
 import { DashboardQuestsModal } from '@/src/features/dashboard/components/DashboardQuestsModal';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
 const XP_PER_LEVEL = 500;
 const DAILY_XP_GOAL = 60;
@@ -187,7 +188,7 @@ export default function Dashboard() {
   const weeklyActivity = stats?.weeklyActivity ?? [];
   const topicMastery = stats?.topicMastery ?? [];
   const taskItems: DashboardTask[] = [];
-  if (plan?.nextLesson) taskItems.push({ title: plan.nextLesson.title, status: plan.nextLesson.courseTitle, action: 'Học bài', icon: BookOpen, path: `/app/courses/${plan.nextLesson.courseId}/learn` });
+  if (plan?.nextLesson) taskItems.push({ title: plan.nextLesson.title, status: plan.nextLesson.courseTitle, action: 'Học bài', icon: BookOpen, path: `/app/courses/${plan.nextLesson.courseId}/workspace?tab=${courseWorkspaceTabs[0]?.id ?? 'vocabulary'}` });
   if (displayDueCount > 0) taskItems.push({ title: `Ôn ${displayDueCount} thẻ đến hạn`, status: 'Lịch SRS hôm nay', action: 'Ôn ngay', icon: Layers, path: '/app/review/flashcards?mode=due' });
   if (plan?.weakAssessment) taskItems.push({ title: plan.weakAssessment.title, status: `Điểm gần nhất ${plan.weakAssessment.score}%`, action: 'Làm lại', icon: GraduationCap, path: `/app/exams/${plan.weakAssessment.id}/start` });
   if (taskItems.length === 0) taskItems.push({ title: 'Chọn khóa học để bắt đầu', status: `Mục tiêu ${plan?.goalMinutes ?? 20} phút hôm nay`, action: 'Xem khóa học', icon: BookOpen, path: '/app/courses' });

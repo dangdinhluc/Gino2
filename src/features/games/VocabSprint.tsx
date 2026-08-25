@@ -40,7 +40,7 @@ export function VocabSprint({ courseId, rounds, returnTo, courseTitle }: VocabSp
         courseId={courseId}
         gameId="vocab-sprint"
         returnTo={returnTo}
-        returnLabel="Về khóa học"
+        returnLabel="Về Hôm nay"
         onRestart={() => { store.reset(); setReady(false); setTimeout(() => { store.startGame('vocab-sprint', sessionRounds.length); setReady(true); }, 0); }}
       />
     );
@@ -70,7 +70,7 @@ export function VocabSprint({ courseId, rounds, returnTo, courseTitle }: VocabSp
       title="Vocab Sprint"
       accent="#3B82F6"
       returnTo={returnTo}
-      returnLabel={returnTo ? 'Khóa học' : 'Hub'}
+      returnLabel={returnTo ? 'Hôm nay' : 'Hub'}
       score={store.score}
       combo={store.combo}
       progress={progress}

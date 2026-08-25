@@ -99,7 +99,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
   const activeWorkspace = workspace?.course.id === activeCourseId ? workspace : null;
   const visibleTabs = useMemo(
     () => activeWorkspace
-      ? getVisibleCourseWorkspaceTabs(activeWorkspace.featureConfig).filter((tab) => tab.id !== 'exams')
+      ? getVisibleCourseWorkspaceTabs(activeWorkspace.featureConfig)
       : [],
     [activeWorkspace],
   );

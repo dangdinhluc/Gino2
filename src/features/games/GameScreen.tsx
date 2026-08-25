@@ -23,7 +23,8 @@ function normalizeGameType(gameId: string | undefined): PublishedGameType | null
 }
 
 function GameState({ message, returnTo = '/app/courses' }: { message: string; returnTo?: string }) {
-  return <div className="fixed inset-0 grid place-items-center bg-[#0F1419] p-6 text-center"><div className="max-w-md space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 text-white"><p className="text-sm font-semibold text-white/75">{message}</p><Link to={returnTo} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold hover:bg-white/10"><ArrowLeft size={16} /> Về khóa học</Link></div></div>;
+  const returnLabel = returnTo === '/app/dashboard' ? 'Về Hôm nay' : 'Về khóa học';
+  return <div className="fixed inset-0 grid place-items-center bg-[#0F1419] p-6 text-center"><div className="max-w-md space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 text-white"><p className="text-sm font-semibold text-white/75">{message}</p><Link to={returnTo} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold hover:bg-white/10"><ArrowLeft size={16} /> {returnLabel}</Link></div></div>;
 }
 
 export default function GameScreen() {
@@ -43,12 +44,12 @@ export default function GameScreen() {
 
   if (activeCourseStatus !== 'ready') return <GameState message="Đang mở khóa đang học…" />;
   if (!courseId || requestedCourseId !== courseId || !gameType) return <Navigate to="/app/courses" replace />;
-  if (workspace.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo={`/app/courses/${courseId}/learn`} />;
-  if (workspace.loadError || !workspace.data) return <GameState message={workspace.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo={`/app/courses/${courseId}/learn`} />;
-  if (vocabulary.length < 4) return <GameState message="Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game." returnTo={`/app/courses/${courseId}/learn`} />;
-  if ((gameType === 'vocab-sprint' && !vocabRounds.length) || (gameType === 'flappy-vocab' && !flappyRounds.length) || (gameType === 'memory-match' && !memoryRounds.length) || (gameType === 'word-builder' && !builderRounds.length)) return <GameState message="Nội dung từ vựng hiện chưa phù hợp với game này." returnTo={`/app/courses/${courseId}/learn`} />;
+  if (workspace.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo="/app/dashboard" />;
+  if (workspace.loadError || !workspace.data) return <GameState message={workspace.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo="/app/dashboard" />;
+  if (vocabulary.length < 4) return <GameState message="Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game." returnTo="/app/dashboard" />;
+  if ((gameType === 'vocab-sprint' && !vocabRounds.length) || (gameType === 'flappy-vocab' && !flappyRounds.length) || (gameType === 'memory-match' && !memoryRounds.length) || (gameType === 'word-builder' && !builderRounds.length)) return <GameState message="Nội dung từ vựng hiện chưa phù hợp với game này." returnTo="/app/dashboard" />;
 
-  const returnTo = `/app/courses/${workspace.data.course.id}/learn`;
+  const returnTo = '/app/dashboard';
   const courseTitle = workspace.data.course.title;
   if (gameType === 'vocab-sprint') return <VocabSprint courseId={courseId} rounds={vocabRounds} returnTo={returnTo} courseTitle={courseTitle} />;
   if (gameType === 'flappy-vocab') return <FlappyVocab courseId={courseId} rounds={flappyRounds} returnTo={returnTo} courseTitle={courseTitle} />;

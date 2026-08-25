@@ -5,6 +5,7 @@ import { Menu, Flame, Info, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 import { useRealDashboard } from '@/src/features/dashboard/hooks/useRealDashboard';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 import { assets } from '@/src/shared/lib/assets';
 
 export default function TodayPage() {
@@ -26,6 +27,7 @@ export default function TodayPage() {
   const { profile, activeCourse, today, stats } = data;
   const dueCount = today.vocabularyDue;
   const nextLesson = activeCourse?.nextLesson;
+  const defaultWorkspaceTab = courseWorkspaceTabs[0]?.id ?? 'vocabulary';
 
   const handleClaimReward = async () => {
     if (claimingReward || rewardClaimed) return;
@@ -171,7 +173,7 @@ export default function TodayPage() {
 
           {activeCourse ? (
             <Link
-              to={`/app/courses/${activeCourse.id}/learn`}
+              to={`/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}`}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#6e46e6] to-[#552ad6] text-white shadow-[0_5px_16px_rgba(110,70,230,0.38)] transition-all hover:scale-105 active:scale-95"
               aria-label={nextLesson ? 'Tiếp tục học' : 'Khám phá khóa học'}
             >
@@ -269,7 +271,7 @@ export default function TodayPage() {
 
           {/* Card 3: Bài tiếp theo (05-mascot-next-lesson-n5.png) */}
           <Link
-            to={activeCourse ? `/app/courses/${activeCourse.id}/learn` : '/app/courses'}
+            to={activeCourse ? `/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}` : '/app/courses'}
             className="flex flex-col items-center justify-start rounded-[24px] border border-[#fbe5cb] bg-gradient-to-b from-[#fdf5ea] to-[#faedd9] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <div>

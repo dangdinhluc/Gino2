@@ -101,7 +101,7 @@ describe('LearningLauncherSheet component', () => {
     expect(screen.getByText('Tài liệu')).toBeDefined();
     expect(screen.getByText('Luyện tập')).toBeDefined();
     expect(screen.getByText('Game')).toBeDefined();
-    expect(screen.queryByText('Thi thử')).toBeNull();
+    expect(screen.getByText('Thi thử')).toBeDefined();
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
@@ -115,6 +115,7 @@ describe('LearningLauncherSheet component', () => {
       ['Tài liệu', 'documents'],
       ['Luyện tập', 'practice'],
       ['Game', 'games'],
+      ['Thi thử', 'exams'],
     ] as const;
 
     for (const [label, tab] of routes) {

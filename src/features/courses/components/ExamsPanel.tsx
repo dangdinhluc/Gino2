@@ -8,7 +8,7 @@ interface ExamsPanelProps {
 
 export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
   return (
-    <div className="mx-auto w-full max-w-[620px] space-y-2.5 pb-24">
+    <div className="mx-auto w-full max-w-[620px] space-y-2.5">
       {exams.length === 0 ? (
         <div className="rounded-[13px] border border-dashed border-[#dedbe6] bg-white px-4 py-8 text-center">
           <ClipboardCheck size={24} className="mx-auto text-[#8062c9]" />

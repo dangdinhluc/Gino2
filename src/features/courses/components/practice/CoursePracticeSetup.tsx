@@ -37,7 +37,7 @@ export function CoursePracticeSetup({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[620px] space-y-3 pb-24">
+    <div className="mx-auto w-full max-w-[620px] space-y-3">
       {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">{error}</p>}
 
       <div className="space-y-2.5" role="radiogroup" aria-label="Loại nội dung luyện tập">

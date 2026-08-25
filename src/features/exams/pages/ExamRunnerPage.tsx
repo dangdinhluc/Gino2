@@ -122,6 +122,12 @@ export default function ExamRunner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remainingSeconds]);
 
+  const handleExit = () => {
+    if (isSubmitting) return;
+    if (!window.confirm('Bạn có chắc muốn thoát bài thi? Tiến độ chưa nộp sẽ không được chấm.')) return;
+    navigate('/app/dashboard');
+  };
+
   if (loadError) {
     return <PageState tone="error" message={loadError} />;
   }
@@ -136,8 +142,8 @@ export default function ExamRunner() {
             <p className="font-[var(--font-heading)] text-lg font-black text-[#172033]">Đề thi chưa mở khóa</p>
             <p className="mt-2 text-sm font-semibold text-[#5f6b7c]">{lockState.label ?? 'Hãy hoàn thành đề trước để mở đề này.'}</p>
           </div>
-          <Link to="/app/exams" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-orange-700 px-6 text-sm font-bold text-white transition-colors hover:bg-orange-800">
-            <ArrowLeft size={16} /> Về trung tâm luyện thi
+          <Link to="/app/dashboard" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-orange-700 px-6 text-sm font-bold text-white transition-colors hover:bg-orange-800">
+            <ArrowLeft size={16} /> Về Hôm nay
           </Link>
         </div>
       </div>
@@ -163,9 +169,9 @@ export default function ExamRunner() {
     <div className="min-h-[100dvh] bg-[#fbf6ef]">
       <header className="sticky top-0 z-20 border-b border-[#e8dccb] bg-[#fbf6ef]/95 px-4 py-2.5 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[820px] items-center gap-2">
-          <Link to="/app/exams" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:bg-[#fffaf3] hover:text-[#172033]" aria-label="Thoát bài thi">
+          <button type="button" onClick={handleExit} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[#5f6b7c] transition-colors hover:bg-[#fffaf3] hover:text-[#172033]" aria-label="Thoát bài thi">
             <ArrowLeft size={20} strokeWidth={1.8} />
-          </Link>
+          </button>
           <button
             type="button"
             onClick={() => setIsQuestionListOpen((open) => !open)}

@@ -91,7 +91,7 @@ export function WordBuilder({ courseId, rounds, returnTo, courseTitle }: WordBui
         courseId={courseId}
         gameId="word-builder"
         returnTo={returnTo}
-        returnLabel={returnTo && returnTo !== '/app/hub' ? 'Về khóa học' : 'Về Hub'}
+        returnLabel={returnTo && returnTo !== '/app/hub' ? 'Về Hôm nay' : 'Về Hub'}
         onRestart={() => {
           store.reset();
           setReady(false);
@@ -224,7 +224,7 @@ export function WordBuilder({ courseId, rounds, returnTo, courseTitle }: WordBui
       title="Word Builder"
       accent={ACCENT}
       returnTo={returnTo}
-      returnLabel={returnTo && returnTo !== '/app/hub' ? 'Khóa học' : 'Hub'}
+      returnLabel={returnTo && returnTo !== '/app/hub' ? 'Hôm nay' : 'Hub'}
       score={store.score}
       combo={store.combo}
       progress={progress}

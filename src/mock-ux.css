@@ -39,12 +39,6 @@
   display: none !important;
 }
 
-.course-workspace-mobile-nav {
-  border-color: #e8e8ef !important;
-  background: rgba(255, 255, 255, 0.98) !important;
-  box-shadow: 0 -6px 18px rgba(30, 25, 50, 0.04);
-}
-
 .course-workspace-desktop-tabs {
   border-color: #e8e8ef !important;
   background: rgba(255, 255, 255, 0.94) !important;

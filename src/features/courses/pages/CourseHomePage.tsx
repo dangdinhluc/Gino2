@@ -3,7 +3,6 @@ import { ArrowLeft, Flame, Headphones } from 'lucide-react';
 import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
-import { assets } from '@/src/shared/lib/assets';
 
 export default function CourseHomePage() {
   const { id } = useParams();
@@ -37,18 +36,8 @@ export default function CourseHomePage() {
     tab: tab.id,
     image: tab.imageIcon,
   }));
-  const localNav = [
-    { label: 'Tổng quan', image: assets.shared.navigation.home, to: `/app/courses/${course.id}/learn`, active: true },
-    ...visibleTabs.map((tab) => ({
-      label: tab.label,
-      image: tab.imageIcon,
-      to: `${coursePath}?tab=${tab.id}`,
-      active: false,
-    })),
-  ];
-
   return (
-    <div className="mx-auto w-full max-w-[760px] px-4 pb-24 pt-3 sm:px-6">
+    <div className="mx-auto w-full max-w-[760px] px-4 pt-3 sm:px-6">
       <header className="flex min-h-11 items-center justify-between gap-3">
         <Link to="/app/courses" className="flex h-9 w-9 items-center justify-center rounded-full text-[#30323a]" aria-label="Trở về khóa học"><ArrowLeft size={18} /></Link>
         <div className="min-w-0 flex-1 text-center">
@@ -112,16 +101,6 @@ export default function CourseHomePage() {
         </div>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto grid min-h-[66px] max-w-[760px] border-t border-[#e8e8ef] bg-white/98 px-1 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${localNav.length}, minmax(0, 1fr))` }}>
-        {localNav.map((item) => (
-          <Link key={item.label} to={item.to} className={`flex min-w-0 flex-col items-center justify-center gap-0.5 ${item.active ? 'text-[#6f45d8]' : 'text-[#62656f]'}`}>
-            <span className={`flex h-8 w-9 items-center justify-center rounded-xl ${item.active ? 'bg-[#f3efff]' : ''}`}>
-              <img src={item.image} alt="" className={`h-7 w-7 object-contain ${item.active ? 'scale-110 opacity-100' : 'opacity-72 grayscale-[14%]'}`} />
-            </span>
-            <span className="max-w-full truncate text-[8px] font-bold">{item.label}</span>
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }

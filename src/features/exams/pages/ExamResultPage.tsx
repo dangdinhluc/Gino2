@@ -62,7 +62,7 @@ export default function ExamResult() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 pb-24">
       <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-6 md:p-8">
-        <Link to="/app/exams" className="inline-flex items-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-2 text-sm font-semibold text-[#5f6b7c]"><ArrowLeft size={16} /> Về trung tâm luyện thi</Link>
+        <Link to="/app/dashboard" className="inline-flex items-center gap-2 rounded-xl border border-[#e8dccb] bg-[#fffdf8] px-4 py-2 text-sm font-semibold text-[#5f6b7c]"><ArrowLeft size={16} /> Về Hôm nay</Link>
         <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-700">Kết quả đã được máy chủ chấm</p>

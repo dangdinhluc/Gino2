@@ -18,6 +18,15 @@ vi.mock('@/src/features/rewards/repositories/rewardRepository', () => ({
 
 vi.mock('@/src/shared/lib/assets', () => ({
   assets: {
+    courses: {
+      workspace: {
+        vocabulary: 'vocabulary.png',
+        documents: 'documents.png',
+        practice: 'practice.png',
+        games: 'games.png',
+        exam: 'exam.png',
+      },
+    },
     shared: {
       backgrounds: { fujiLandscape: 'fuji.png', fujiScene: 'fuji2.png' },
       mascots: {
@@ -92,5 +101,29 @@ describe('TodayPage', () => {
     await waitFor(() => expect(screen.getByText('RPC failed')).toBeInTheDocument());
     expect(screen.queryByText(/nhận thưởng thành công/i)).not.toBeInTheDocument();
     expect(mocks.claimDailyReward).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the active learning workspace directly', () => {
+    mocks.useRealDashboard.mockReturnValue({
+      data: {
+        ...emptyDashboard,
+        activeCourse: {
+          id: 'course-1',
+          title: 'Tokutei Nhà hàng',
+          progress: 40,
+          nextLesson: { id: 'lesson-1', title: 'Bài tiếp theo' },
+        },
+      },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    renderToday();
+
+    expect(screen.getByRole('link', { name: 'Tiếp tục học' })).toHaveAttribute(
+      'href',
+      '/app/courses/course-1/workspace?tab=vocabulary',
+    );
   });
 });

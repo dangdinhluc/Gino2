@@ -217,7 +217,7 @@ export function FlappyVocab({ courseId, rounds, returnTo = '/app/hub', courseTit
     <div className="fixed inset-0 flex items-center justify-center bg-[#0a0e13]">
       {/* HUD */}
       <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-4 py-3">
-        <Link to={returnTo} className="rounded-xl p-2 text-white/60 hover:bg-white/10"><ArrowLeft size={18} /></Link>
+        <Link to={returnTo} aria-label={showCourseReturn ? 'Về Hôm nay' : 'Về Hub'} className="rounded-xl p-2 text-white/60 hover:bg-white/10"><ArrowLeft size={18} /></Link>
         <div className="flex items-center gap-3">
           <span className="text-lg font-black text-white">{score}</span>
           {combo > 1 && (
@@ -365,7 +365,7 @@ export function FlappyVocab({ courseId, rounds, returnTo = '/app/hub', courseTit
                 </Link>
                 {showCourseReturn && (
                   <Link to={returnTo} onClick={(e) => e.stopPropagation()} className="rounded-xl border border-amber-400/30 bg-amber-500/15 px-4 py-2.5 text-sm font-bold text-amber-100 transition-colors hover:bg-amber-500/25">
-                    Về khóa học
+                    Về Hôm nay
                   </Link>
                 )}
               </div>

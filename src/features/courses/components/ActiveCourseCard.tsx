@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import type { CourseListEntry } from '@/src/features/courses/repositories/coursesRepository';
 import { getCourseThumbnail } from './CourseCard';
 import { completedLessonCount } from './CourseListItem';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 
 interface ActiveCourseCardProps {
   course: CourseListEntry | null;
@@ -56,7 +57,7 @@ export function ActiveCourseCard({ course, loading = false }: ActiveCourseCardPr
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eeeaf6]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={course.progress} aria-label={`Tiến độ ${course.title}`}>
               <div className="h-full rounded-full bg-[#7544df] transition-[width] duration-500" style={{ width: `${course.progress}%` }} />
             </div>
-            <Link to={`/app/courses/${course.id}/learn`} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#7041dc] px-3 py-2.5 text-[11px] font-black text-white shadow-[0_5px_12px_rgba(112,65,220,.2)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7041dc] active:scale-[.98]">
+            <Link to={`/app/courses/${course.id}/workspace?tab=${courseWorkspaceTabs[0]?.id ?? 'vocabulary'}`} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#7041dc] px-3 py-2.5 text-[11px] font-black text-white shadow-[0_5px_12px_rgba(112,65,220,.2)] transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7041dc] active:scale-[.98]">
               <Play size={12} fill="currentColor" aria-hidden="true" />
               {actionLabel}
             </Link>

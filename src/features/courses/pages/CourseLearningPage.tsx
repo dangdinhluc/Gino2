@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
@@ -173,7 +173,6 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   };
 
   const activeTabPanelLabelId = `course-workspace-mode-${activeTab}`;
-  const courseHomePath = `/app/courses/${course.id}/learn`;
 
   return (
     <div
@@ -182,13 +181,14 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
     >
       <header className="course-workspace-header sticky top-0 z-40 -mx-3 h-[60px] border-b border-[#ececf2] bg-white/96 px-3.5 py-2 backdrop-blur-xl">
         <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
-          <Link
-            to={courseHomePath}
+          <button
+            type="button"
+            onClick={() => navigate('/app/dashboard')}
             className={cn('flex h-11 w-11 items-center justify-center rounded-full text-[#35363d] hover:bg-[#f6f4fb]', focusRing)}
-            aria-label="Về khóa học"
+            aria-label="Thoát học và về Hôm nay"
           >
             <ArrowLeft size={18} />
-          </Link>
+          </button>
 
           <div className="min-w-0 text-center">
             <h1 id={activeTabPanelLabelId} className="truncate text-[14px] font-extrabold text-[#222329]">{activeTabDefinition?.label}</h1>
