@@ -967,6 +967,104 @@
   }
 }
 
+.gino2-mascot-loading {
+  display: flex;
+  min-height: 7rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, 4px, 0) scale(0.96);
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.gino2-mascot-loading[data-visible='true'] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.gino2-mascot-loading__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.gino2-mascot-loading__image {
+  width: min(110px, 29vw);
+  height: 5.25rem;
+  object-fit: contain;
+  transform-origin: center bottom;
+  animation: gino2-mascot-loading-vocabulary 1.8s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.gino2-mascot-loading[data-visible='true'] .gino2-mascot-loading__image {
+  animation-play-state: running;
+}
+
+.gino2-mascot-loading__message {
+  margin: 0;
+  color: #858091;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.gino2-mascot-loading--documents .gino2-mascot-loading__image {
+  animation-name: gino2-mascot-loading-documents;
+  animation-duration: 2.2s;
+}
+
+.gino2-mascot-loading--practice .gino2-mascot-loading__image {
+  animation-name: gino2-mascot-loading-practice;
+}
+
+.gino2-mascot-loading--games .gino2-mascot-loading__image {
+  animation-name: gino2-mascot-loading-games;
+  animation-duration: 1.7s;
+}
+
+.gino2-mascot-loading--exams .gino2-mascot-loading__image {
+  animation-name: gino2-mascot-loading-exams;
+  animation-duration: 2s;
+}
+
+@keyframes gino2-mascot-loading-vocabulary {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.5deg) scale(1); }
+  50% { transform: translate3d(0, -3px, 0) rotate(0.5deg) scale(1.02); }
+}
+
+@keyframes gino2-mascot-loading-documents {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -2px, 0) scale(1.01); }
+}
+
+@keyframes gino2-mascot-loading-practice {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg) scale(1); }
+  50% { transform: translate3d(0, -3px, 0) rotate(1deg) scale(1.02); }
+}
+
+@keyframes gino2-mascot-loading-games {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -4px, 0) scale(1.025); }
+}
+
+@keyframes gino2-mascot-loading-exams {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -2px, 0) scale(1.015); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gino2-mascot-loading,
+  .gino2-mascot-loading__image {
+    animation: none;
+    transition-duration: 0.01ms;
+  }
+}
+
 /* Dashboard clone: dark library shell, Tokutei copy, real local progress. */
 .dashboard-page {
   --dashboard-ink: #f9f0e2;

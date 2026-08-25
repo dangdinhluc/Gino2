@@ -24,6 +24,7 @@ import {
 } from '@/src/features/courses/hooks/useCourseLearningModules';
 import { CourseLearningSkeleton } from '@/src/features/courses/components/loading/CourseLearningSkeleton';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
+import { useDelayedLoadingIndicator } from '@/src/features/courses/hooks/useDelayedLoadingIndicator';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { speakJapanese, stopSpeaking } from '@/src/shared/lib/tts';
 import { cn } from '@/src/lib/utils';
@@ -267,7 +268,7 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
   const activeModuleLoading = activeModuleState.isLoading || (!activeModuleState.data && !activeModuleState.loadError);
   const activeModuleError = activeModuleState.loadError;
   const retryActiveModule = activeModuleState.retry;
-  const showLoadingStatus = useDelayedLoadingStatus(activeModuleLoading);
+  const showDelayedMascot = useDelayedLoadingIndicator(activeModuleLoading, 700, activeTab);
 
   useEffect(() => {
     setVocabularySearchQuery('');
@@ -375,9 +376,21 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
       />
 
       <main className={cn('course-workspace-main mx-auto w-full max-w-[760px]', activeTab === 'practice' || activeTab === 'exams' ? 'lg:max-w-none' : '')}>
-        {activeModuleLoading ? (
-          <CourseLearningSkeleton activeTab={activeTab} showStatus={showLoadingStatus} />
-        ) : activeModuleError ? (
+        <AnimatePresence initial={false}>
+          {activeModuleLoading && (
+            <motion.div
+              key="course-learning-loading"
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <CourseLearningSkeleton activeTab={activeTab} showDelayedMascot={showDelayedMascot} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!activeModuleLoading && (activeModuleError ? (
           <CourseLearningModuleError message={activeModuleError} onRetry={retryActiveModule} />
         ) : (
           <AnimatePresence mode="wait">
@@ -387,8 +400,8 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
               id={`course-workspace-panel-${activeTab}`}
               role="tabpanel"
               aria-labelledby={activeTabPanelLabelId}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.14 }}
             >
@@ -425,7 +438,7 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
               {activeTab === 'exams' && examsState.data && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
             </motion.div>
           </AnimatePresence>
-        )}
+        ))}
       </main>
 
       {activePodcast && (
@@ -446,33 +459,17 @@ function getLoadingTab(requestedTab: string | null): CourseWorkspaceSection {
   return courseWorkspaceTabs.some((tab) => tab.id === requestedTab) ? requestedTab as CourseWorkspaceSection : 'vocabulary';
 }
 
-function useDelayedLoadingStatus(isLoading: boolean) {
-  const [showStatus, setShowStatus] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading) {
-      setShowStatus(false);
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setShowStatus(true), 800);
-    return () => window.clearTimeout(timeoutId);
-  }, [isLoading]);
-
-  return showStatus;
-}
-
 export default function CourseLearningWorkspace() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const meta = useCourseLearningMeta(id);
   const loadingTab = getLoadingTab(searchParams.get('tab'));
-  const showLoadingStatus = useDelayedLoadingStatus(meta.isLoading);
+  const showDelayedMascot = useDelayedLoadingIndicator(meta.isLoading, 700, loadingTab);
 
   if (meta.isLoading) {
     return (
       <CourseLearningShell activeTab={loadingTab}>
-        <CourseLearningSkeleton activeTab={loadingTab} showStatus={showLoadingStatus} />
+        <CourseLearningSkeleton activeTab={loadingTab} showDelayedMascot={showDelayedMascot} />
       </CourseLearningShell>
     );
   }
