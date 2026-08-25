@@ -19,7 +19,9 @@ export function CourseLearningSkeleton({
   const reducedMotion = useReducedMotion();
 
   return (
-    <div aria-busy={isPresent} className="space-y-3">
+    <div aria-busy="true" className="course-learning-loading">
+      <MascotLoadingCompanion mode={activeTab} visible={showDelayedMascot && isPresent} />
+
       <motion.div
         aria-hidden="true"
         className={cn('course-learning-skeleton', activeTab === 'practice' || activeTab === 'exams' ? 'lg:max-w-none' : '')}
@@ -33,8 +35,6 @@ export function CourseLearningSkeleton({
         {activeTab === 'games' && <GamesSkeleton />}
         {activeTab === 'exams' && <ExamsSkeleton />}
       </motion.div>
-
-      <MascotLoadingCompanion mode={activeTab} visible={showDelayedMascot && isPresent} />
     </div>
   );
 }

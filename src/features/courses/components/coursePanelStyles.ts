@@ -11,3 +11,5 @@ export const searchInputClass = 'min-w-0 flex-1 bg-transparent py-2 text-sm text
 export const primaryButtonClass =
   'flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#6f45d8] px-5 text-sm font-extrabold text-white transition-colors hover:bg-[#623acb]';
 export const emptyStateClass = 'rounded-xl border border-dashed border-[#dedee7] bg-[#fbfbfd] px-4 py-8 text-center';
+export const learningStickyToolbarClass = 'learning-sticky-toolbar';
+export const learningDesktopStickyViewerClass = 'learning-desktop-sticky-viewer';

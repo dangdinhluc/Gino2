@@ -6,6 +6,7 @@ import {
   type CourseDocumentItem,
 } from '@/src/features/courses/courseLearning.types';
 import { cn } from '@/src/lib/utils';
+import { learningDesktopStickyViewerClass, learningStickyToolbarClass } from '@/src/features/courses/components/coursePanelStyles';
 
 import { MarkdownViewer } from '@/src/features/documents/components/MarkdownViewer';
 import { DocumentFilterSheet, type DocumentReadFilter } from '@/src/features/documents/components/DocumentFilterSheet';
@@ -252,7 +253,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-3 pb-4 lg:max-w-none">
-      <div className="sticky top-[60px] z-30 space-y-2 rounded-[18px] border border-[#e8e3f2] bg-[#f8f7fc]/95 p-1.5 shadow-2xs backdrop-blur-md">
+      <div className={cn(learningStickyToolbarClass, 'space-y-2 rounded-[18px] border border-[#e8e3f2] bg-white p-1.5 shadow-2xs')}>
         <DocumentSearchAndFilter
           query={searchQuery}
           onQueryChange={setSearchQuery}
@@ -290,7 +291,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
           )}
         </div>
 
-        <section className="rounded-2xl border border-[#e8e3f2] bg-white p-4 lg:sticky lg:top-[84px] lg:p-5">
+        <section className={cn(learningDesktopStickyViewerClass, 'rounded-2xl border border-[#e8e3f2] bg-white p-4 lg:p-5')}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6f45d8]">Trình xem tài liệu</p>

@@ -4,7 +4,8 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Lightbulb, RotateCcw, Shuffle,
 import {
   emptyStateClass,
   focusRing,
-} from '@/src/features/courses/components/CourseLearningResourcePanels';
+  learningStickyToolbarClass,
+} from '@/src/features/courses/components/coursePanelStyles';
 import { type CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
 import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
 import { submitVocabularyRating, type VocabularyRating } from '@/src/features/courses/repositories/learningProgressRepository';
@@ -122,7 +123,7 @@ export function VocabularyPanel({
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-2.5 pb-6 lg:max-w-none lg:space-y-4">
-      <div className="sticky top-[60px] z-30 space-y-2 rounded-[20px] border border-[#e8e3f2] bg-white/95 p-2.5 shadow-2xs backdrop-blur-md lg:space-y-3 lg:rounded-[24px] lg:p-4">
+      <div className={cn(learningStickyToolbarClass, 'space-y-2 rounded-[20px] border border-[#e8e3f2] bg-white p-2.5 shadow-2xs lg:space-y-3 lg:rounded-[24px] lg:p-4')}>
         <div className="flex min-w-0 items-center gap-2">
           <VocabularyModeSegment mode={view} onModeChange={setView} compact />
           {view === 'list' ? (

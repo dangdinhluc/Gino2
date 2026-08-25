@@ -1,6 +1,6 @@
 import { BookOpen, Check, ClipboardCheck, Play, Shuffle } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { focusRing } from '@/src/features/courses/components/CourseLearningResourcePanels';
+import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 import type { PracticeMode } from './types';
 
 export function CoursePracticeSetup({

@@ -1,147 +1,112 @@
-import canhanIcon from '@/src/img/canhan.png';
-import cupIcon from '@/src/img/cup.png';
-import gameIcon from '@/src/img/game.png';
-import hocnhanhIcon from '@/src/img/hocnhanh.png';
-import hoctapIcon from '@/src/img/hoctap.png';
-import homeIcon from '@/src/img/home.png';
-import khoahocIcon from '@/src/img/khoahoc.png';
-import luyentapIcon from '@/src/img/luyentap.png';
-import ontapIcon from '@/src/img/ontap.png';
-import tailieuIcon from '@/src/img/tailieu.png';
-import meoIcon from '@/src/img/meo.png';
-import tanukiWavingIcon from '@/src/img/tanuki_waving.png';
-import mascotActiveRingIcon from '@/src/img/mascot_active_ring.png';
-import speechBubbleIcon from '@/src/img/speech_bubble.png';
-
-// Native 3D Assets & Layers from PSD (src/img/ICON & src/img/anh)
-import mascotHeroWave from '@/src/img/ICON/01-mascot-hero-wave.png';
-import mascotReadingBook from '@/src/img/ICON/02-mascot-reading-book.png';
-import mascotVocabWriting from '@/src/img/ICON/03-mascot-vocab-writing.png';
-import mascotPracticePencil from '@/src/img/ICON/04-mascot-practice-pencil.png';
-import mascotNextLessonN5 from '@/src/img/ICON/05-mascot-next-lesson-n5.png';
-import mascotBackpack from '@/src/img/ICON/06-mascot-backpack.png';
-import iconJapaneseBooks from '@/src/img/ICON/07-icon-japanese-books.png';
-import iconChecklist from '@/src/img/ICON/08-icon-checklist.png';
-import iconOpenBook from '@/src/img/ICON/09-icon-open-book.png';
-import iconPassSign from '@/src/img/ICON/10-icon-pass-sign.png';
-import sceneJapanFujiTorii from '@/src/img/ICON/11-scene-japan-fuji-torii.png';
-import iconStudyTimer from '@/src/img/ICON/15-icon-study-timer.png';
-import iconXpStar from '@/src/img/ICON/16-icon-xp-star.png';
-import badgeStreak12 from '@/src/img/ICON/18-badge-streak-12.png';
-import badgeReward30xp from '@/src/img/ICON/19-badge-reward-30xp.png';
-import trophyAchievement from '@/src/img/ICON/20-trophy-achievement.png';
-import speechStudyTogether from '@/src/img/ICON/21-speech-study-together.png';
-import mascotQuickLearnActive from '@/src/img/ICON/22-mascot-quick-learn-active.png';
-import mascotSleep from '@/src/img/ICON/23-mascot-sleep.png';
-import courseLauncherBanner from '@/src/img/ICON/Lớp_3.png';
-
-// Legacy / Alternative layers from src/img/anh
-import fujiLandscapeBanner from '@/src/img/anh/Lớp_1.png';
-import mascotFaceWinking from '@/src/img/anh/Lớp_24.png';
-import chestGold from '@/src/img/anh/Lớp_19.png';
-import flameStreak from '@/src/img/anh/Lớp_17.png';
-
 const assetBaseUrl = import.meta.env?.BASE_URL ?? '/';
 
 export const assetPath = (path: string) => `${assetBaseUrl}${path.replace(/^\/+/, '')}`;
 
 const asset = (path: string) => assetPath(`assets/${path}`);
+const appImage = (name: string) => asset(`app-images/${name}`);
 
 export const assets = {
   shared: {
     backgrounds: {
-      dashboardLibrary: asset('shared/backgrounds/dashboard-library-background.webp'),
-      englishHero: asset('shared/backgrounds/english-hero-background.jpg'),
-      fujiLandscape: fujiLandscapeBanner,
-      fujiScene: sceneJapanFujiTorii,
+      dashboardLibrary: appImage('background-dashboard-library.webp'),
+      englishHero: appImage('background-english-hero.webp'),
+      fujiLandscape: appImage('background-fuji-landscape.webp'),
+      fujiScene: appImage('background-fuji-scene.webp'),
     },
     mascots: {
-      aiTutorTanuki: asset('shared/mascots/ai-tutor-tanuki.webp'),
-      brand: asset('shared/mascots/brand-mascot.webp'),
-      meow: asset('shared/mascots/meow-mascot.webp'),
-      quickLearn: hocnhanhIcon,
-      quickLearnActive: mascotQuickLearnActive,
-      tanukiWaving: tanukiWavingIcon,
-      headerWaving: mascotHeroWave,
-      readingBook: mascotReadingBook,
-      vocabWriting: mascotVocabWriting,
-      practicePencil: mascotPracticePencil,
-      nextLessonN5: mascotNextLessonN5,
-      backpack: mascotBackpack,
-      sleep: mascotSleep,
-      faceWinking: mascotFaceWinking,
-      speechBubble: speechBubbleIcon,
-      speechBanner: speechStudyTogether,
-      courseLauncherBanner,
-      lightbulb: meoIcon,
-      sleepingMeow: asset('shared/mascots/sleeping-meow-mascot.webp'),
+      aiTutorTanuki: appImage('mascot-ai-tutor-tanuki.webp'),
+      brand: appImage('mascot-brand.webp'),
+      meow: appImage('mascot-meow.webp'),
+      quickLearn: appImage('quick-learn.webp'),
+      quickLearnActive: appImage('mascot-quick-learn-active.webp'),
+      tanukiWaving: appImage('mascot-tanuki-waving.webp'),
+      headerWaving: appImage('mascot-hero-wave.webp'),
+      readingBook: appImage('mascot-reading-book.webp'),
+      vocabWriting: appImage('mascot-vocab-writing.webp'),
+      practicePencil: appImage('mascot-practice-pencil.webp'),
+      nextLessonN5: appImage('mascot-next-lesson-n5.webp'),
+      backpack: appImage('mascot-backpack.webp'),
+      sleep: appImage('mascot-sleep.webp'),
+      faceWinking: appImage('mascot-face-winking.webp'),
+      speechBubble: appImage('speech-bubble.webp'),
+      speechBanner: appImage('speech-study-together.webp'),
+      courseLauncherBanner: appImage('course-launcher-banner.webp'),
+      lightbulb: appImage('mascot-lightbulb.webp'),
+      sleepingMeow: appImage('mascot-sleeping-meow.webp'),
     },
     dashboard: {
-      chestGold,
-      xpStar: iconXpStar,
-      flameStreak,
-      badgeStreak: badgeStreak12,
-      badgeReward30xp,
-      studyTimer: iconStudyTimer,
-      bookStack: iconJapaneseBooks,
-      checklist: iconChecklist,
-      openBook: iconOpenBook,
-      passSign: iconPassSign,
-      trophy: trophyAchievement,
+      chestGold: appImage('dashboard-chest-gold.webp'),
+      xpStar: appImage('dashboard-xp-star.webp'),
+      flameStreak: appImage('dashboard-flame-streak.webp'),
+      badgeStreak: appImage('dashboard-badge-streak.webp'),
+      badgeReward30xp: appImage('dashboard-badge-reward.webp'),
+      studyTimer: appImage('dashboard-study-timer.webp'),
+      bookStack: appImage('dashboard-book-stack.webp'),
+      checklist: appImage('dashboard-checklist.webp'),
+      openBook: appImage('dashboard-open-book.webp'),
+      passSign: appImage('dashboard-pass-sign.webp'),
+      trophy: appImage('dashboard-trophy.webp'),
     },
     navigation: {
-      courses: khoahocIcon,
-      exams: cupIcon,
-      home: homeIcon,
-      practice: luyentapIcon,
-      profile: canhanIcon,
-      vocabulary: ontapIcon,
+      courses: appImage('navigation-courses.webp'),
+      exams: appImage('navigation-exams.webp'),
+      home: appImage('navigation-home.webp'),
+      practice: appImage('navigation-practice.webp'),
+      profile: appImage('navigation-profile.webp'),
+      vocabulary: appImage('course-mode-vocabulary.webp'),
     },
   },
   courses: {
     workspace: {
-      documents: tailieuIcon,
-      exam: cupIcon,
-      games: gameIcon,
-      practice: hoctapIcon,
-      vocabulary: ontapIcon,
+      documents: appImage('course-mode-documents.webp'),
+      exam: appImage('navigation-exams.webp'),
+      games: appImage('course-mode-game.webp'),
+      practice: appImage('course-mode-practice.webp'),
+      vocabulary: appImage('course-mode-vocabulary.webp'),
     },
   },
   practice: {
     icons: {
-      badgeOrangeAa: asset('practice/icons/badge-orange-aa.webp'),
-      completed: asset('practice/icons/completed.webp'),
-      flashcards: asset('practice/icons/flashcards.webp'),
-      goal: asset('practice/icons/goal.webp'),
-      heroWorkbook: asset('practice/icons/hero-workbook.webp'),
-      listening: asset('practice/icons/listening.webp'),
-      streak: asset('practice/icons/streak.webp'),
-      vocabularyBook: asset('practice/icons/vocabulary-book.webp'),
-      worksheetQuiz: asset('practice/icons/worksheet-quiz.webp'),
+      badgeOrangeAa: appImage('practice-badge-orange-aa.webp'),
+      completed: appImage('practice-completed.webp'),
+      flashcards: appImage('practice-flashcards.webp'),
+      goal: appImage('practice-goal.webp'),
+      heroWorkbook: appImage('practice-hero-workbook.webp'),
+      listening: appImage('practice-listening.webp'),
+      streak: appImage('practice-streak.webp'),
+      vocabularyBook: appImage('practice-vocabulary-book.webp'),
+      worksheetQuiz: appImage('practice-worksheet-quiz.webp'),
     },
   },
   games: {
-    giftBox: asset('games/gift-box.webp'),
-    mascot: asset('games/game-tanuki.webp'),
+    giftBox: appImage('game-gift-box.webp'),
+    mascot: appImage('game-tanuki.webp'),
     icons: {
-      calendar: asset('games/icons/calendar.png'),
-      chart: asset('games/icons/chart.png'),
-      gamepad: asset('games/icons/gamepad.png'),
-      trophy: asset('games/icons/trophy.png'),
+      calendar: appImage('game-calendar.webp'),
+      chart: appImage('game-chart.webp'),
+      gamepad: appImage('game-gamepad.webp'),
+      trophy: appImage('game-trophy.webp'),
     },
     thumbnails: {
-      flappy: asset('games/thumbnails/flappy.webp'),
-      situation: asset('games/thumbnails/situation.webp'),
-      sprint: asset('games/thumbnails/sprint.webp'),
+      flappy: appImage('game-flappy.webp'),
+      situation: appImage('game-situation.webp'),
+      sprint: appImage('game-sprint.webp'),
     },
   },
   exams: {
-    mascot: asset('exams/tanuki.webp'),
+    mascot: appImage('exam-tanuki.webp'),
   },
   documents: {
-    mascot: asset('documents/tanuki.webp'),
+    mascot: appImage('document-tanuki.webp'),
   },
   vocabulary: {
-    mascot: asset('vocabulary/tanuki.webp'),
+    mascot: appImage('vocabulary-tanuki.webp'),
+  },
+  loading: {
+    vocabulary: asset('loading/vocabulary.webp'),
+    documents: asset('loading/documents.webp'),
+    practice: asset('loading/practice.webp'),
+    games: asset('loading/games.webp'),
+    exams: asset('loading/exams.webp'),
   },
 } as const;

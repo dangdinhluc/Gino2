@@ -8,7 +8,7 @@
   "theme_color": "#d83a00",
   "icons": [
     {
-      "src": "/Gino2/assets/shared/mascots/brand-mascot.webp",
+      "src": "/Gino2/assets/app-images/mascot-brand.webp",
       "sizes": "any",
       "type": "image/webp"
     }

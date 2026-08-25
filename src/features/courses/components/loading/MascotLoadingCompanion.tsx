@@ -8,23 +8,23 @@ interface MascotLoadingModeConfig {
 
 const modeConfig: Record<CourseWorkspaceSection, MascotLoadingModeConfig> = {
   vocabulary: {
-    image: assets.vocabulary.mascot,
+    image: assets.loading.vocabulary,
     message: 'Đang chuẩn bị từ vựng…',
   },
   documents: {
-    image: assets.shared.mascots.readingBook,
+    image: assets.loading.documents,
     message: 'Đang chuẩn bị tài liệu…',
   },
   practice: {
-    image: assets.shared.mascots.practicePencil,
-    message: 'Đang chuẩn bị câu hỏi…',
+    image: assets.loading.practice,
+    message: 'Đang chuẩn bị bài luyện…',
   },
   games: {
-    image: assets.games.mascot,
-    message: 'Đang tải trò chơi…',
+    image: assets.loading.games,
+    message: 'Đang khởi động trò chơi…',
   },
   exams: {
-    image: assets.exams.mascot,
+    image: assets.loading.exams,
     message: 'Đang chuẩn bị đề thi…',
   },
 };
@@ -52,14 +52,14 @@ export function MascotLoadingCompanion({
           alt=""
           aria-hidden="true"
           className="gino2-mascot-loading__image"
+          width={512}
+          height={512}
           decoding="async"
-          loading="lazy"
+          loading="eager"
         />
-        {visible && (
-          <p role="status" aria-live="polite" className="gino2-mascot-loading__message">
-            {message ?? config.message}
-          </p>
-        )}
+        <p role="status" aria-live="polite" className="gino2-mascot-loading__message" aria-hidden={!visible}>
+          {message ?? config.message}
+        </p>
       </div>
     </div>
   );

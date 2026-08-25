@@ -80,7 +80,7 @@ export function DocumentCardItem({
   const reader = isReaderOpen && typeof window !== 'undefined'
     ? createPortal(
         <div className="fixed inset-0 z-[120] flex flex-col bg-[#f8f7fc]" role="dialog" aria-modal="true" aria-label={`Trình đọc ${document.title}`}>
-          <header className="sticky top-0 z-10 flex min-h-[56px] items-center gap-2 border-b border-[#e8e3f2] bg-white/98 px-3 backdrop-blur-xl">
+          <header className="sticky top-0 z-10 flex min-h-[56px] items-center gap-2 border-b border-[#e8e3f2] bg-white px-3">
             <button
               type="button"
               onClick={() => setIsReaderOpen(false)}

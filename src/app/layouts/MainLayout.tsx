@@ -22,16 +22,20 @@ export function MainLayout() {
   const useTokuteiChrome = !isFocusRoute && !isMockExperience && isTokuteiMenuRoute;
 
   useEffect(() => {
-    mainRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.pathname]);
+    const isMobileFocusMode = isFocusRoute && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1023px)').matches;
+    if (isMobileFocusMode) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    } else {
+      mainRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  }, [isFocusRoute, location.pathname]);
 
   return (
-    <div className={`flex h-[100dvh] min-h-0 overflow-hidden ${isMockExperience ? 'bg-[#f7f7fb]' : 'app-layout-root'}`}>
+    <div className={`flex ${isFocusRoute ? 'focus-mode-layout' : 'h-[100dvh] min-h-0 overflow-hidden'} ${isMockExperience ? 'bg-[#f7f7fb]' : 'app-layout-root'}`}>
       {!isFocusRoute && !isMockExperience && <AnimeBackdrop />}
       <main
         ref={mainRef}
-        className={`desktop-workspace-main relative min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain ${useTokuteiChrome ? 'tokutei-app-main' : ''} ${isMockExperience ? 'bg-[#f7f7fb]' : ''}`}
+        className={`desktop-workspace-main relative min-w-0 ${isFocusRoute ? 'focus-mode-main' : 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain'} ${useTokuteiChrome ? 'tokutei-app-main' : ''} ${isMockExperience ? 'bg-[#f7f7fb]' : ''}`}
       >
         {!isFocusRoute && !useTokuteiChrome && !isMockExperience && <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.06),transparent_34%)]" />}
         {!isFocusRoute && !useTokuteiChrome && !isMockExperience && <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.035),transparent_72%)]" />}
@@ -40,9 +44,9 @@ export function MainLayout() {
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
+              initial={isFocusRoute ? { opacity: 0 } : { opacity: 0, y: 6 }}
+              animate={isFocusRoute ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              exit={isFocusRoute ? { opacity: 0 } : { opacity: 0, y: -4 }}
               transition={{ duration: 0.16, ease: 'easeOut' }}
             >
               <Outlet />

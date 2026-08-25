@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, CheckCircle2, ChevronRight, Flame, Sparkles, Target, X, Zap } from 'lucide-react';
 import type { LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import type { CourseWorkspaceSection } from '@/src/features/courses/lib/courseWorkspaceNavigation';
-import { focusRing } from '@/src/features/courses/components/CourseLearningResourcePanels';
+import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 import { cn } from '@/src/lib/utils';
 
 const XP_TARGET = 50;

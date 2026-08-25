@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export function useDelayedLoadingIndicator(isLoading: boolean, delay = 700, resetKey?: string): boolean {
+export function useDelayedLoadingIndicator(isLoading: boolean, delay = 400, resetKey?: string): boolean {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

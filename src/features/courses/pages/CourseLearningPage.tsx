@@ -1,16 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { CourseLearningPodcastPlayer } from '@/src/features/courses/components/CourseLearningPodcastPlayer';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
-import { CoursePracticePanel } from '@/src/features/courses/components/CoursePracticePanel';
-import { VocabularyPanel } from '@/src/features/courses/components/CourseVocabularyPanel';
-import {
-  DocumentsPanel,
-  ExamsPanel,
-  GamesPanel,
-  focusRing,
-} from '@/src/features/courses/components/CourseLearningResourcePanels';
+import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 import { ArrowLeft, Flame, Headphones, LayoutGrid } from 'lucide-react';
 import { type CourseLearningMeta, type CoursePodcastItem } from '@/src/features/courses/courseLearning.types';
 import {
@@ -32,6 +24,25 @@ import {
   courseWorkspaceTabs,
   type CourseWorkspaceSection,
 } from '@/src/features/courses/lib/courseWorkspaceNavigation';
+
+const LazyCourseLearningPodcastPlayer = lazy(() =>
+  import('@/src/features/courses/components/CourseLearningPodcastPlayer').then(({ CourseLearningPodcastPlayer }) => ({ default: CourseLearningPodcastPlayer }))
+);
+const LazyCoursePracticePanel = lazy(() =>
+  import('@/src/features/courses/components/CoursePracticePanel').then(({ CoursePracticePanel }) => ({ default: CoursePracticePanel }))
+);
+const LazyVocabularyPanel = lazy(() =>
+  import('@/src/features/courses/components/CourseVocabularyPanel').then(({ VocabularyPanel }) => ({ default: VocabularyPanel }))
+);
+const LazyDocumentsPanel = lazy(() =>
+  import('@/src/features/courses/components/DocumentsPanel').then(({ DocumentsPanel }) => ({ default: DocumentsPanel }))
+);
+const LazyGamesPanel = lazy(() =>
+  import('@/src/features/courses/components/GamesPanel').then(({ GamesPanel }) => ({ default: GamesPanel }))
+);
+const LazyExamsPanel = lazy(() =>
+  import('@/src/features/courses/components/ExamsPanel').then(({ ExamsPanel }) => ({ default: ExamsPanel }))
+);
 
 interface CourseLearningHeaderProps {
   activeTabLabel: string;
@@ -67,7 +78,7 @@ function CourseLearningHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="course-workspace-header sticky top-0 z-40 -mx-3 h-[60px] border-b border-[#ececf2] bg-white/96 px-3.5 py-2 backdrop-blur-xl">
+    <header className="course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2">
       <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
         <button
           type="button"
@@ -159,6 +170,10 @@ function CourseLearningModuleError({ message, onRetry }: { message: string; onRe
       <button type="button" onClick={onRetry} className="mt-4 min-h-11 rounded-full bg-white px-4 text-xs font-extrabold text-red-700 shadow-xs">Thử lại</button>
     </section>
   );
+}
+
+function CourseLearningPanelFallback({ activeTab }: { activeTab: CourseWorkspaceSection }) {
+  return <CourseLearningSkeleton activeTab={activeTab} showDelayedMascot={false} />;
 }
 
 function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) {
@@ -268,7 +283,7 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
   const activeModuleLoading = activeModuleState.isLoading || (!activeModuleState.data && !activeModuleState.loadError);
   const activeModuleError = activeModuleState.loadError;
   const retryActiveModule = activeModuleState.retry;
-  const showDelayedMascot = useDelayedLoadingIndicator(activeModuleLoading, 700, activeTab);
+  const showDelayedMascot = useDelayedLoadingIndicator(activeModuleLoading, 400, activeTab);
 
   useEffect(() => {
     setVocabularySearchQuery('');
@@ -341,7 +356,11 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
   const handleWorkspaceTabSelect = (tab: CourseWorkspaceSection) => {
     setActiveTab(tab);
     setSearchParams({ tab }, { replace: true });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1023px)').matches) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.querySelector<HTMLElement>('.desktop-workspace-main')?.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
   };
 
   const activeTabPanelLabelId = `course-workspace-mode-${activeTab}`;
@@ -393,63 +412,67 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
         {!activeModuleLoading && (activeModuleError ? (
           <CourseLearningModuleError message={activeModuleError} onRetry={retryActiveModule} />
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              className="course-workspace-panel"
-              key={activeTab}
-              id={`course-workspace-panel-${activeTab}`}
-              role="tabpanel"
-              aria-labelledby={activeTabPanelLabelId}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.14 }}
-            >
-              {activeTab === 'vocabulary' && vocabularyState.data && (
-                <div className="space-y-3">
-                  {vocabularyAudioError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{vocabularyAudioError}</p>}
-                  <VocabularyPanel
-                    courseId={course.id}
-                    expandedVocabularyId={expandedVocabularyId}
-                    filteredVocabulary={filteredVocabulary}
-                    categoryOptions={vocabularyCategories}
-                    selectedCategory={vocabularyCategory}
-                    heardVocabularyId={heardVocabularyId}
-                    searchQuery={vocabularySearchQuery}
-                    showFurigana={showFurigana}
-                    showRomaji={showRomaji}
-                    onAudio={handleVocabularyAudio}
-                    onSearchChange={setVocabularySearchQuery}
-                    onCategoryChange={(categoryId) => {
-                      setVocabularyCategory(categoryId);
-                      setVocabularySearchQuery('');
-                      setExpandedVocabularyId(null);
-                    }}
-                    onToggleFurigana={() => setShowFurigana((value) => !value)}
-                    onToggleRomaji={() => setShowRomaji((value) => !value)}
-                    onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
-                  />
-                </div>
-              )}
-              {activeTab === 'documents' && documentsState.data && selectedDocument && <DocumentsPanel courseId={course.id} documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
-              {activeTab === 'documents' && documentsState.data && !selectedDocument && <div className="rounded-xl border border-dashed border-[#e6e2ec] bg-white px-4 py-8 text-center text-sm text-[#8b8e98]">Khóa học chưa có tài liệu.</div>}
-              {activeTab === 'practice' && practiceState.data && <CoursePracticePanel courseId={course.id} courseTitle={course.title} vocabulary={practiceVocabulary} reviewQuestions={reviewQuestions} />}
-              {activeTab === 'games' && gamesState.data && <GamesPanel courseId={course.id} courseTitle={course.title} vocabulary={gamesVocabulary} />}
-              {activeTab === 'exams' && examsState.data && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
-            </motion.div>
-          </AnimatePresence>
+          <Suspense fallback={<CourseLearningPanelFallback activeTab={activeTab} />}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                className="course-workspace-panel"
+                key={activeTab}
+                id={`course-workspace-panel-${activeTab}`}
+                role="tabpanel"
+                aria-labelledby={activeTabPanelLabelId}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.14 }}
+              >
+                {activeTab === 'vocabulary' && vocabularyState.data && (
+                  <div className="space-y-3">
+                    {vocabularyAudioError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{vocabularyAudioError}</p>}
+                    <LazyVocabularyPanel
+                      courseId={course.id}
+                      expandedVocabularyId={expandedVocabularyId}
+                      filteredVocabulary={filteredVocabulary}
+                      categoryOptions={vocabularyCategories}
+                      selectedCategory={vocabularyCategory}
+                      heardVocabularyId={heardVocabularyId}
+                      searchQuery={vocabularySearchQuery}
+                      showFurigana={showFurigana}
+                      showRomaji={showRomaji}
+                      onAudio={handleVocabularyAudio}
+                      onSearchChange={setVocabularySearchQuery}
+                      onCategoryChange={(categoryId) => {
+                        setVocabularyCategory(categoryId);
+                        setVocabularySearchQuery('');
+                        setExpandedVocabularyId(null);
+                      }}
+                      onToggleFurigana={() => setShowFurigana((value) => !value)}
+                      onToggleRomaji={() => setShowRomaji((value) => !value)}
+                      onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
+                    />
+                  </div>
+                )}
+                {activeTab === 'documents' && documentsState.data && selectedDocument && <LazyDocumentsPanel courseId={course.id} documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
+                {activeTab === 'documents' && documentsState.data && !selectedDocument && <div className="rounded-xl border border-dashed border-[#e6e2ec] bg-white px-4 py-8 text-center text-sm text-[#8b8e98]">Khóa học chưa có tài liệu.</div>}
+                {activeTab === 'practice' && practiceState.data && <LazyCoursePracticePanel courseId={course.id} courseTitle={course.title} vocabulary={practiceVocabulary} reviewQuestions={reviewQuestions} />}
+                {activeTab === 'games' && gamesState.data && <LazyGamesPanel courseId={course.id} courseTitle={course.title} vocabulary={gamesVocabulary} />}
+                {activeTab === 'exams' && examsState.data && <LazyExamsPanel exams={exams} onStartExam={handleStartExam} />}
+              </motion.div>
+            </AnimatePresence>
+          </Suspense>
         ))}
       </main>
 
       {activePodcast && (
-        <CourseLearningPodcastPlayer
-          activePodcast={activePodcast}
-          isOpen={isPodcastOpen}
-          podcasts={podcasts}
-          onClose={() => setIsPodcastOpen(false)}
-          onPlayingChange={setIsPodcastPlaying}
-          onSelectPodcast={setActivePodcastId}
-        />
+        <Suspense fallback={null}>
+          <LazyCourseLearningPodcastPlayer
+            activePodcast={activePodcast}
+            isOpen={isPodcastOpen}
+            podcasts={podcasts}
+            onClose={() => setIsPodcastOpen(false)}
+            onPlayingChange={setIsPodcastPlaying}
+            onSelectPodcast={setActivePodcastId}
+          />
+        </Suspense>
       )}
     </div>
   );
@@ -464,7 +487,7 @@ export default function CourseLearningWorkspace() {
   const [searchParams] = useSearchParams();
   const meta = useCourseLearningMeta(id);
   const loadingTab = getLoadingTab(searchParams.get('tab'));
-  const showDelayedMascot = useDelayedLoadingIndicator(meta.isLoading, 700, loadingTab);
+  const showDelayedMascot = useDelayedLoadingIndicator(meta.isLoading, 400, loadingTab);
 
   if (meta.isLoading) {
     return (

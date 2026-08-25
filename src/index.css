@@ -93,10 +93,72 @@
 
 :root {
   --app-background: linear-gradient(180deg, rgba(255, 250, 246, 0.88), rgba(248, 238, 232, 0.94)), var(--asset-english-hero-background) center top / cover fixed;
+  --learning-header-height: 60px;
 }
 :root[data-app-background='paper'] { --app-background: linear-gradient(135deg, #fffaf6 0%, #f2e9dd 100%); }
 :root[data-app-background='night'] { --app-background: linear-gradient(135deg, rgba(27, 22, 27, 0.88), rgba(73, 45, 50, 0.9)), var(--asset-dashboard-library-background) center / cover fixed; }
 .app-layout-root { background: var(--app-background); }
+
+/* Focus Mode uses the document as its mobile scroll owner so iOS Safari can keep sticky layers stable. */
+.focus-mode-layout {
+  min-height: 100dvh;
+}
+
+.focus-mode-main {
+  min-height: 100dvh;
+}
+
+.learning-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--learning-header-height);
+}
+
+.learning-sticky-toolbar {
+  position: sticky;
+  top: var(--learning-header-height);
+  z-index: 30;
+  background: #fff;
+}
+
+.learning-desktop-sticky-viewer {
+  position: static;
+}
+
+@media (max-width: 1023px) {
+  .focus-mode-layout {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .focus-mode-main {
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .focus-mode-layout {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .focus-mode-main {
+    min-height: 0;
+    flex: 1 1 0%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+
+  .learning-desktop-sticky-viewer {
+    position: sticky;
+    top: calc(var(--learning-header-height) + 1.5rem);
+  }
+}
 
 @layer components {
   .app-route-shell {
@@ -967,33 +1029,45 @@
   }
 }
 
+.course-learning-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .gino2-mascot-loading {
   display: flex;
-  min-height: 7rem;
+  min-height: 3.75rem;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
   opacity: 0;
-  transform: translate3d(0, 4px, 0) scale(0.96);
+  visibility: hidden;
+  transform: translateY(2px) scale(0.98);
   pointer-events: none;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
 }
 
 .gino2-mascot-loading[data-visible='true'] {
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
 }
 
 .gino2-mascot-loading__content {
   display: flex;
-  flex-direction: column;
+  width: 100%;
+  max-width: 32rem;
   align-items: center;
-  gap: 0.25rem;
+  flex-direction: row;
+  gap: 0.65rem;
+  padding-inline: 0.5rem;
 }
 
 .gino2-mascot-loading__image {
-  width: min(110px, 29vw);
-  height: 5.25rem;
+  width: clamp(56px, 18vw, 72px);
+  height: clamp(56px, 18vw, 72px);
   object-fit: contain;
   transform-origin: center bottom;
   animation: gino2-mascot-loading-vocabulary 1.8s ease-in-out infinite;
@@ -1010,7 +1084,22 @@
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .gino2-mascot-loading {
+    min-height: 4.5rem;
+  }
+
+  .gino2-mascot-loading__image {
+    width: clamp(64px, 8vw, 84px);
+    height: clamp(64px, 8vw, 84px);
+  }
+
+  .gino2-mascot-loading__message {
+    font-size: 0.75rem;
+  }
 }
 
 .gino2-mascot-loading--documents .gino2-mascot-loading__image {
@@ -1061,6 +1150,7 @@
   .gino2-mascot-loading,
   .gino2-mascot-loading__image {
     animation: none;
+    transform: none;
     transition-duration: 0.01ms;
   }
 }

@@ -4,7 +4,17 @@ import { cn } from '@/src/lib/utils';
 import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 
 export { focusRing } from '@/src/features/courses/components/coursePanelStyles';
-export { panelClass, panelTitleClass, panelSubtitleClass, dividerListClass, searchFieldClass, searchInputClass, primaryButtonClass, emptyStateClass } from '@/src/features/courses/components/coursePanelStyles';
+export {
+  panelClass,
+  panelTitleClass,
+  panelSubtitleClass,
+  dividerListClass,
+  searchFieldClass,
+  searchInputClass,
+  primaryButtonClass,
+  emptyStateClass,
+  learningStickyToolbarClass,
+} from '@/src/features/courses/components/coursePanelStyles';
 export { DocumentsPanel } from '@/src/features/courses/components/DocumentsPanel';
 export { GamesPanel } from '@/src/features/courses/components/GamesPanel';
 export { ExamsPanel } from '@/src/features/courses/components/ExamsPanel';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, Flame, HelpCircle, LoaderCircle, Target, XCircle } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { focusRing } from '@/src/features/courses/components/CourseLearningResourcePanels';
+import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 import type { PracticeAnswer, PracticeQuestion } from './types';
 import { PracticeFeedbackSheet } from './PracticeFeedbackSheet';
 
