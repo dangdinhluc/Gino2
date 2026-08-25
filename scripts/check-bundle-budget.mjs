@@ -1,5 +1,6 @@
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { gzipSync } from 'node:zlib';
 
 const distDir = path.resolve(process.cwd(), 'dist');
@@ -37,6 +38,6 @@ if (html.includes('vendor-motion')) {
   throw new Error('Bundle budget: vendor-motion must not be preloaded on the initial document.');
 }
 
-console.log('[bundle-budget] entry JS', `${(entryRaw / 1024).toFixed(2)} KiB raw / ${(entryGzip / 1024).toFixed(2)} KiB gzip`);
-console.log('[bundle-budget] entry CSS', `${(cssRaw / 1024).toFixed(2)} KiB raw / ${(cssGzip / 1024).toFixed(2)} KiB gzip`);
-console.log('[bundle-budget] initial document does not preload vendor-motion');
+process.stdout.write(`[bundle-budget] entry JS ${(entryRaw / 1024).toFixed(2)} KiB raw / ${(entryGzip / 1024).toFixed(2)} KiB gzip\n`);
+process.stdout.write(`[bundle-budget] entry CSS ${(cssRaw / 1024).toFixed(2)} KiB raw / ${(cssGzip / 1024).toFixed(2)} KiB gzip\n`);
+process.stdout.write('[bundle-budget] initial document does not preload vendor-motion\n');
