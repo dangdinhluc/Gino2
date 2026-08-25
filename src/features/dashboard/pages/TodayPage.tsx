@@ -1,8 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Menu, Flame, Info, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 import { useRealDashboard } from '@/src/features/dashboard/hooks/useRealDashboard';
 import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
@@ -58,33 +56,29 @@ export default function TodayPage() {
           {error ? <button type="button" onClick={refetch} className="shrink-0 font-black text-[#6f45d8]">Thử lại</button> : null}
         </div>
       ) : null}
-      {/* Toast thông báo thưởng */}
-      <AnimatePresence>
-        {rewardToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-[#c3adfa] bg-[#6e46e6] px-4 py-2.5 text-center text-xs font-black text-white shadow-xl"
-          >
-            {rewardToast}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* 1. Hero Header Banner */}
+      {rewardToast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="gino-toast-enter fixed top-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-[#c3adfa] bg-[#6e46e6] px-4 py-2.5 text-center text-xs font-black text-white shadow-xl"
+        >
+          {rewardToast}
+        </div>
+      ) : null}
+
       <section className="relative overflow-hidden rounded-[30px] bg-[#221640] p-4 text-white shadow-[0_12px_32px_rgba(25,12,50,0.18)]">
-        {/* Nền phong cảnh Phú Sĩ & Torii */}
         <div className="absolute inset-0">
           <img
             src={assets.shared.backgrounds.fujiLandscape}
             alt="Fuji Landscape"
+            decoding="async"
+            fetchPriority="high"
             className="h-full w-full object-cover object-center opacity-90"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#160d2d]/95 via-[#1d123b]/50 to-[#190f33]/30" />
         </div>
 
-        {/* Thanh Menu + Streak */}
         <div className="relative z-10 flex items-center justify-between">
           <button
             type="button"
@@ -103,7 +97,6 @@ export default function TodayPage() {
           </div>
         </div>
 
-        {/* Lời chào + Mascot cử nhân vẫy tay nháy mắt (01-mascot-hero-wave.png) */}
         <div className="relative z-10 mt-3.5 flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h1 className="flex items-center gap-1.5 text-[22px] font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
@@ -119,6 +112,7 @@ export default function TodayPage() {
             <img
               src={assets.shared.mascots.headerWaving}
               alt="Tanuki Mascot"
+              decoding="async"
               className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.5)]"
             />
           </div>
@@ -146,13 +140,13 @@ export default function TodayPage() {
           </Link>
         ) : null}
 
-        {/* Floating Lesson Card: Tiếp tục học (09-icon-open-book.png) */}
         <div className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#1e1f26] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center">
               <img
                 src={assets.shared.dashboard.openBook}
                 alt=""
+                decoding="async"
                 className="h-full w-full object-contain drop-shadow-2xs"
               />
             </span>
@@ -201,7 +195,6 @@ export default function TodayPage() {
         </div>
       </section>
 
-      {/* 2. Nhiệm vụ hôm nay */}
       <section className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-1.5">
@@ -218,25 +211,22 @@ export default function TodayPage() {
             </button>
           </div>
 
-          {/* Treasure Box / XP Badge (19-badge-reward-30xp.png) */}
-          <motion.button
+          <button
             type="button"
             onClick={handleClaimReward}
-            whileTap={{ scale: 0.94 }}
-            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#7042e6] to-[#5a2fd8] py-1 pl-1.5 pr-3 text-[11.5px] font-black text-white shadow-[0_3px_12px_rgba(110,70,230,0.35)] transition-transform"
+            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#7042e6] to-[#5a2fd8] py-1 pl-1.5 pr-3 text-[11.5px] font-black text-white shadow-[0_3px_12px_rgba(110,70,230,0.35)] transition-transform active:scale-[0.94]"
           >
             <img
               src={assets.shared.dashboard.chestGold}
               alt=""
+              decoding="async"
               className="h-5 w-5 object-contain drop-shadow-xs"
             />
             <span>{rewardClaimed ? 'Đã nhận' : 'Nhận XP'}</span>
-          </motion.button>
+          </button>
         </div>
 
-        {/* 3 Mission Cards */}
         <div className="grid grid-cols-3 gap-2.5">
-          {/* Card 1: Ôn từ vựng (03-mascot-vocab-writing.png) */}
           <Link
             to="/app/review/flashcards?mode=due"
             className="flex flex-col items-center justify-start rounded-[24px] border border-[#d6e7fc] bg-gradient-to-b from-[#f0f7ff] to-[#e4f0fc] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -252,13 +242,12 @@ export default function TodayPage() {
               <img
                 src={assets.shared.mascots.vocabWriting}
                 alt="Ôn từ vựng"
+                decoding="async"
                 className="h-full w-full object-contain drop-shadow-2xs"
               />
             </div>
-
           </Link>
 
-          {/* Card 2: Luyện tập (04-mascot-practice-pencil.png) */}
           <Link
             to="/app/practice"
             className="flex flex-col items-center justify-start rounded-[24px] border border-[#d3ecd5] bg-gradient-to-b from-[#f0fbf0] to-[#e3f6e4] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -274,13 +263,12 @@ export default function TodayPage() {
               <img
                 src={assets.shared.mascots.practicePencil}
                 alt="Luyện tập"
+                decoding="async"
                 className="h-full w-full object-contain drop-shadow-2xs"
               />
             </div>
-
           </Link>
 
-          {/* Card 3: Bài tiếp theo (05-mascot-next-lesson-n5.png) */}
           <Link
             to={activeCourse ? `/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}` : '/app/courses'}
             className="flex flex-col items-center justify-start rounded-[24px] border border-[#fbe5cb] bg-gradient-to-b from-[#fdf5ea] to-[#faedd9] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -296,15 +284,14 @@ export default function TodayPage() {
               <img
                 src={assets.shared.mascots.nextLessonN5}
                 alt="Bài tiếp theo"
+                decoding="async"
                 className="h-full w-full object-contain drop-shadow-2xs"
               />
             </div>
-
           </Link>
         </div>
       </section>
 
-      {/* 3. Thành tích hôm nay */}
       <section className="relative overflow-hidden rounded-[26px] border border-[#d6c7f5] bg-gradient-to-r from-[#e3d8f8] via-[#e9defb] to-[#ded0f7] p-4 shadow-[0_4px_16px_rgba(110,70,230,0.08)]">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-black tracking-tight text-[#1e1f26]">
@@ -315,17 +302,20 @@ export default function TodayPage() {
             <img
               src={assets.shared.mascots.faceWinking}
               alt="Mascot"
+              loading="lazy"
+              decoding="async"
               className="h-8 w-8 object-contain drop-shadow-xs"
             />
           </div>
         </div>
 
         <div className="mt-3 grid grid-cols-4 gap-2">
-          {/* 1. Đã ôn (07-icon-japanese-books.png) */}
           <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
             <img
               src={assets.shared.dashboard.bookStack}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-7 w-7 object-contain"
             />
             <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
@@ -334,11 +324,12 @@ export default function TodayPage() {
             <span className="text-[9.5px] font-bold text-[#656775]">Từ đã nhớ</span>
           </div>
 
-          {/* 2. Đã làm (08-icon-checklist.png) */}
           <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
             <img
               src={assets.shared.dashboard.checklist}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-7 w-7 object-contain"
             />
             <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
@@ -347,11 +338,12 @@ export default function TodayPage() {
             <span className="text-[9.5px] font-bold text-[#656775]">Đã ôn hôm nay</span>
           </div>
 
-          {/* 3. Thời gian học (15-icon-study-timer.png) */}
           <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
             <img
               src={assets.shared.dashboard.studyTimer}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-7 w-7 object-contain"
             />
             <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
@@ -360,11 +352,12 @@ export default function TodayPage() {
             <span className="text-[9.5px] font-bold text-[#656775]">Thời gian học</span>
           </div>
 
-          {/* 4. Điểm kinh nghiệm (16-icon-xp-star.png) */}
           <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
             <img
               src={assets.shared.dashboard.xpStar}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-7 w-7 object-contain"
             />
             <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">

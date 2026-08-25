@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import { BottomNav } from './BottomNav';
 import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 
@@ -51,17 +50,12 @@ export function MainLayout() {
           </Suspense>
         )}
         <div className={`app-route-shell desktop-route-frame relative z-10 ${!isFocusRoute ? 'app-route-shell-wide' : ''} ${isFocusRoute ? 'app-route-shell-focus' : ''} ${isDashboardRoute ? 'app-route-shell-dashboard' : ''} ${isMockExperience ? '!mx-auto !w-full !max-w-[1180px] !px-0 !pt-0' : ''}`}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={isFocusRoute ? { opacity: 0 } : { opacity: 0, y: 6 }}
-              animate={isFocusRoute ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              exit={isFocusRoute ? { opacity: 0 } : { opacity: 0, y: -4 }}
-              transition={{ duration: 0.16, ease: 'easeOut' }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <div
+            key={location.pathname}
+            className={isFocusRoute ? 'gino-route-enter gino-route-enter-focus' : 'gino-route-enter'}
+          >
+            <Outlet />
+          </div>
         </div>
       </main>
       {!isFocusRoute && <BottomNav />}

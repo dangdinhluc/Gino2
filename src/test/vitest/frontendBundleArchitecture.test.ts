@@ -20,18 +20,50 @@ describe('frontend cold-start boundaries', () => {
     expect(bottomNav).not.toContain("import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet'");
   });
 
-  it('keeps push subscription code out of the startup module', () => {
+  it('keeps Motion out of the learner cold-start shell and Home route', () => {
+    const mainLayout = source('src/app/layouts/MainLayout.tsx');
+    const bottomNav = source('src/app/layouts/BottomNav.tsx');
+    const todayPage = source('src/features/dashboard/pages/TodayPage.tsx');
+
+    expect(mainLayout).not.toContain("from 'motion/react'");
+    expect(bottomNav).not.toContain("from 'motion/react'");
+    expect(todayPage).not.toContain("from 'motion/react'");
+    expect(mainLayout).not.toContain('mode="wait"');
+    expect(mainLayout).toContain('gino-route-enter');
+    expect(todayPage).toContain('gino-toast-enter');
+  });
+
+  it('defers service-worker registration until after load/idle', () => {
     const main = source('src/main.tsx');
     expect(main).not.toContain('pushRepository');
     expect(main).toContain('navigator.serviceWorker.register');
+    expect(main).toContain('requestIdleCallback');
+    expect(main).toContain("window.addEventListener('load'");
   });
 
-  it('creates stable vendor boundaries for the heaviest shared libraries', () => {
+  it('prefetches primary destinations only on user intent and respects Data Saver', () => {
+    const bottomNav = source('src/app/layouts/BottomNav.tsx');
+    expect(bottomNav).toContain('routePreloaders');
+    expect(bottomNav).toContain('onPointerEnter');
+    expect(bottomNav).toContain('onPointerDown');
+    expect(bottomNav).toContain('connection?.saveData');
+    expect(bottomNav).toContain("/^(slow-)?2g$/i");
+  });
+
+  it('creates stable vendor boundaries without forcing tree-shakeable icons into one chunk', () => {
     const viteConfig = source('vite.config.ts');
     expect(viteConfig).toContain("return 'vendor-react'");
     expect(viteConfig).toContain("return 'vendor-supabase'");
     expect(viteConfig).toContain("return 'vendor-motion'");
-    expect(viteConfig).toContain("return 'vendor-icons'");
     expect(viteConfig).toContain("return 'vendor-state'");
+    expect(viteConfig).not.toContain("return 'vendor-icons'");
+  });
+
+  it('enforces bundle budgets in the production build', () => {
+    const packageJson = source('package.json');
+    const budgetScript = source('scripts/check-bundle-budget.mjs');
+    expect(packageJson).toContain('node scripts/check-bundle-budget.mjs');
+    expect(budgetScript).toContain('entry JS gzip');
+    expect(budgetScript).toContain('vendor-motion');
   });
 });

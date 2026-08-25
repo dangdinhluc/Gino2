@@ -20,7 +20,6 @@ function manualChunks(id: string): string | undefined {
 
   if (normalizedId.includes('/node_modules/@supabase/')) return 'vendor-supabase';
   if (normalizedId.includes('/node_modules/motion/') || normalizedId.includes('/node_modules/framer-motion/')) return 'vendor-motion';
-  if (normalizedId.includes('/node_modules/lucide-react/')) return 'vendor-icons';
   if (normalizedId.includes('/node_modules/zustand/') || normalizedId.includes('/node_modules/use-sync-external-store/')) return 'vendor-state';
 
   return undefined;
@@ -47,8 +46,8 @@ export default defineConfig(() => ({
   build: {
     rollupOptions: {
       output: {
-        // Keep framework/vendor hashes stable across app-only deploys and let the
-        // browser download/parse the large libraries as independent modules.
+        // Keep the genuinely heavy shared libraries cacheable without forcing
+        // tree-shakeable icon modules into one eager shared chunk.
         manualChunks,
       },
     },

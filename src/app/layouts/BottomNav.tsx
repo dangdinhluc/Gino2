@@ -1,9 +1,38 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { assets } from '@/src/shared/lib/assets';
 
-const LazyLearningLauncherSheet = lazy(() => import('@/src/features/courses/components/LearningLauncherSheet').then(({ LearningLauncherSheet }) => ({ default: LearningLauncherSheet })));
+type NetworkInformationLike = {
+  saveData?: boolean;
+  effectiveType?: string;
+};
+
+const loadLearningLauncherSheet = () => import('@/src/features/courses/components/LearningLauncherSheet').then(({ LearningLauncherSheet }) => ({ default: LearningLauncherSheet }));
+const LazyLearningLauncherSheet = lazy(loadLearningLauncherSheet);
+
+const routePreloaders: Record<string, () => Promise<unknown>> = {
+  '/app/dashboard': () => import('@/src/features/dashboard/pages/TodayPage'),
+  '/app/courses': () => import('@/src/features/courses/pages/CourseListPage'),
+  '/app/exams': () => import('@/src/features/courses/pages/CourseLearningPage'),
+  '/app/profile': () => import('@/src/features/profile/pages/ProfilePage'),
+};
+
+function canPrefetch(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const connection = (navigator as Navigator & { connection?: NetworkInformationLike }).connection;
+  if (connection?.saveData) return false;
+  return !/^(slow-)?2g$/i.test(connection?.effectiveType ?? '');
+}
+
+function preloadNavTarget(path: string): void {
+  if (!canPrefetch()) return;
+  void routePreloaders[path]?.();
+}
+
+function preloadLearningLauncher(): void {
+  if (!canPrefetch()) return;
+  void loadLearningLauncherSheet();
+}
 
 export function BottomNav() {
   const [isLearningLauncherOpen, setIsLearningLauncherOpen] = useState(false);
@@ -22,13 +51,21 @@ export function BottomNav() {
   ];
 
   const renderNavItem = (item: (typeof navItems)[number]) => (
-    <NavLink key={item.path} to={item.path} className="relative flex min-w-0 flex-1 items-center justify-center">
+    <NavLink
+      key={item.path}
+      to={item.path}
+      onPointerEnter={() => preloadNavTarget(item.path)}
+      onPointerDown={() => preloadNavTarget(item.path)}
+      onFocus={() => preloadNavTarget(item.path)}
+      className="relative flex min-w-0 flex-1 items-center justify-center"
+    >
       {({ isActive }) => (
-        <motion.div className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1" whileTap={{ scale: 0.92 }}>
+        <div className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1 transition-transform duration-150 active:scale-[0.92]">
           <span className="relative flex h-10 w-12 items-center justify-center rounded-xl transition-all">
             <img
               src={item.icon}
               alt=""
+              decoding="async"
               className={`h-9 w-9 object-contain transition-transform duration-200 ${
                 isActive
                   ? 'scale-110 drop-shadow-[0_4px_8px_rgba(111,69,216,.22)]'
@@ -46,7 +83,7 @@ export function BottomNav() {
           <div className="h-1.5 w-1.5 flex items-center justify-center">
             {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#6f45d8]" />}
           </div>
-        </motion.div>
+        </div>
       )}
     </NavLink>
   );
@@ -68,28 +105,31 @@ export function BottomNav() {
           {renderNavItem(navItems[1])}
 
           <div className="relative flex min-w-0 items-end justify-center">
-            <motion.button
+            <button
               type="button"
+              onPointerEnter={preloadLearningLauncher}
+              onPointerDown={preloadLearningLauncher}
+              onFocus={preloadLearningLauncher}
               onClick={() => {
                 setHasOpenedLearningLauncher(true);
                 setIsLearningLauncherOpen((open) => !open);
               }}
-              whileTap={{ scale: 0.92 }}
               aria-haspopup="dialog"
               aria-expanded={isLearningLauncherOpen}
               aria-label="Mở Học ngay"
-              className="relative -mt-9 flex min-w-0 flex-col items-center"
+              className="relative -mt-9 flex min-w-0 flex-col items-center transition-transform duration-150 active:scale-[0.92]"
             >
-              <motion.div
-                animate={isLearningLauncherOpen ? { scale: 1.1, y: -4 } : { scale: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-                className="relative flex items-center justify-center"
+              <div
+                className={`relative flex items-center justify-center transition-transform duration-200 ease-out ${
+                  isLearningLauncherOpen ? '-translate-y-1 scale-110' : 'translate-y-0 scale-100'
+                }`}
               >
                 {isLearningLauncherOpen ? (
                   <div className="relative flex flex-col items-center">
                     <img
                       src={assets.shared.mascots.quickLearnActive}
                       alt="Học ngay"
+                      decoding="async"
                       className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(147,75,255,0.5)]"
                     />
                     <span className="absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#6e46e6] to-[#582dd7] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(110,70,230,0.45)] whitespace-nowrap">
@@ -102,6 +142,7 @@ export function BottomNav() {
                       <img
                         src={assets.shared.mascots.quickLearn}
                         alt="Học ngay"
+                        decoding="async"
                         className="absolute left-1/2 top-0 h-auto w-[76px] max-w-none -translate-x-1/2"
                       />
                     </span>
@@ -111,8 +152,8 @@ export function BottomNav() {
                     <div className="h-1.5 w-1.5" />
                   </div>
                 )}
-              </motion.div>
-            </motion.button>
+              </div>
+            </button>
           </div>
 
           {renderNavItem(navItems[2])}
