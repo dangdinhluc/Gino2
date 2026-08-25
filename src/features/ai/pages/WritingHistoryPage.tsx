@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, FileText, Loader2, PenTool } from 'lucide-react';
+import { ChevronRight, FileText, PenTool } from 'lucide-react';
 import { fetchAiWritingHistory, type AiWritingHistoryItem } from '@/src/features/ai/repositories/aiRepository';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(new Date(value));
@@ -35,7 +36,7 @@ export default function WritingHistory() {
       </section>
 
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
-      {loading && <div className="flex items-center gap-2 rounded-2xl border border-[#e6ddd1] bg-[#fffaf3] px-5 py-6 text-sm font-bold text-gray-500"><Loader2 size={18} className="animate-spin" /> Đang tải lịch sử…</div>}
+      {loading && <PageLoading />}
       {!loading && !error && items.length === 0 && <div className="rounded-[2rem] border border-dashed border-[#e6ddd1] bg-[#fffaf3] px-5 py-12 text-center text-sm font-semibold text-gray-500">Chưa có bài viết nào được chấm.</div>}
       {!loading && !error && items.length > 0 && (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

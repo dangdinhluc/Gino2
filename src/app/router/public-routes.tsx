@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 import LandingPage from '@/src/features/public/pages/LandingPage';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const LoginPage = lazy(() => import('@/src/features/auth/pages/LoginPage'));
 const QuickLoginPage = lazy(() => import('@/src/features/auth/pages/QuickLoginPage'));
@@ -13,7 +14,7 @@ const OnboardingPage = lazy(() => import('@/src/features/public/pages/Onboarding
 const TermsPage = lazy(() => import('@/src/features/public/pages/TermsPage'));
 const PrivacyPage = lazy(() => import('@/src/features/public/pages/PrivacyPage'));
 
-const routeLoading = <main className="grid min-h-dvh place-items-center bg-[#F5EFE6] text-sm font-bold text-[#5F6B7C]">Đang mở màn hình…</main>;
+const routeLoading = <PageLoading />;
 const screen = (content: ReactNode) => <Suspense fallback={routeLoading}>{content}</Suspense>;
 
 export function PublicRoutes() {

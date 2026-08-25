@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, CircleAlert, KeyRound, Lightbulb, ListChecks, RotateCcw, Target, TriangleAlert } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 import {
   fetchAssessmentResultDetail,
   fetchLatestAssessmentResult,
@@ -57,7 +58,7 @@ export default function ExamResult() {
   }, [result]);
 
   if (loadError) return <PageState tone="error" message={loadError} />;
-  if (isLoading || !result) return <PageState message="Đang tải kết quả…" />;
+  if (isLoading || !result) return <PageLoading variant="exams" />;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 pb-24">

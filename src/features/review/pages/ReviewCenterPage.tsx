@@ -23,6 +23,7 @@ import {
 import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 interface ReviewSnapshot {
   cards: DueVocabularyCard[];
@@ -94,12 +95,7 @@ export default function ReviewCenter() {
   };
 
   if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4 text-sm font-bold text-[#5f6b7c]">
-        <RotateCcw className="mr-2 h-4 w-4 animate-spin text-[#d83a00]" />
-        Đang tải trung tâm ôn tập…
-      </div>
-    );
+    return <PageLoading variant="practice" />;
   }
 
   if (!snapshot) {

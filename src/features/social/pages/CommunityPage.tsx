@@ -28,6 +28,7 @@ import {
 } from '@/src/features/social/repositories/communityRepository';
 import { cn } from '@/src/lib/utils';
 import { requireSupabase } from '@/src/features/supabase/lib/supabaseRepository';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const panel = 'rounded-[24px] border border-[#e8dccb] bg-[#fffaf3] p-5 shadow-2xs';
 
@@ -148,6 +149,8 @@ export default function CommunityPage() {
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Không chặn được người dùng.'); }
   }
 
+  if (loading) return <PageLoading />;
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-4 pb-24 sm:px-6">
       <header className="relative overflow-hidden rounded-[26px] border border-orange-200 bg-gradient-to-r from-[#fff9f3] via-[#fff5eb] to-[#ffeedd] p-5 sm:p-6">
@@ -187,4 +190,3 @@ export default function CommunityPage() {
 }
 
 export function CommunityNavIcon() { return <Users size={18} />; }
-

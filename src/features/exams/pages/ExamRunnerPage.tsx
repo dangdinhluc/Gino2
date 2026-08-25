@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, Clock3, 
 import { cn } from '@/src/lib/utils';
 import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
 import { fetchAssessmentPaper, fetchAssessmentUnlockState, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const deadlineKey = (assessmentId: string) => `gino2:assessment-deadline:${assessmentId}`;
 
@@ -152,7 +153,7 @@ export default function ExamRunner() {
     );
   }
   if (!paper) {
-    return <PageState message="Đang tải đề thi…" />;
+    return <PageLoading variant="exams" />;
   }
 
   const activeQuestion = paper.questions[activeIndex];

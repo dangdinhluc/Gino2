@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Loader2, Package, Sparkles } from 'lucide-react';
 import { enrollInFreePackage, fetchPackageCatalog, type PackageCatalogItem } from '@/src/features/enrollments/repositories/enrollmentRepository';
 import { formatMinorUnitAmount, isPaidCheckoutEnabled } from '@/src/shared/lib/money';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 export default function PackageCatalogPage() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function PackageCatalogPage() {
       setBusyId(null);
     }
   }
+
+  if (loading) return <PageLoading />;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-5 pb-24 md:px-8">

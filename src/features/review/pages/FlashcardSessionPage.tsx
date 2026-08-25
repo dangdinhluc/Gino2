@@ -11,6 +11,7 @@ import {
 } from '@/src/features/courses/repositories/learningProgressRepository';
 import { cn, vibrate } from '@/src/lib/utils';
 import { Confetti } from '@/src/shared/components/Confetti';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 type SessionMode = 'due' | 'new' | 'cram';
@@ -180,7 +181,7 @@ export default function FlashcardSession() {
   const sessionXp = totalRated * 10;
 
   if (isLoading) {
-    return <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-4 text-sm font-bold text-[#5f6b7c]">Đang tải thẻ từ Supabase Cloud…</div>;
+    return <PageLoading />;
   }
 
   if (loadError && !currentCard) {

@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 import { ActiveCourseErrorState } from './ActiveCourseErrorState';
 
 interface CourseEntryRedirectProps {
@@ -17,7 +18,7 @@ export function CourseEntryRedirect({ destination = 'dashboard' }: CourseEntryRe
   if (status !== 'ready') {
     return destination === 'dashboard'
       ? <DashboardLoading />
-      : <main className="grid min-h-[55vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở lộ trình học…</main>;
+      : <PageLoading />;
   }
 
   const target = activeCourseId && destination === 'exams'

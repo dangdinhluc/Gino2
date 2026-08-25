@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 import { CourseEntryRedirect } from '@/src/features/courses/components/CourseEntryRedirect';
 import { ActiveCourseGuard } from '@/src/features/courses/components/ActiveCourseGuard';
 import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const TodayPage = lazy(() => import('@/src/features/dashboard/pages/TodayPage'));
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
@@ -31,7 +32,7 @@ const JournalPage = lazy(() => import('@/src/features/social/pages/JournalPage')
 const CommunityPage = lazy(() => import('@/src/features/social/pages/CommunityPage'));
 const NotificationCenterPage = lazy(() => import('@/src/features/notifications/pages/NotificationCenterPage'));
 
-const routeLoading = <main className="grid min-h-[45vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở màn hình…</main>;
+const routeLoading = <PageLoading />;
 const screen = (content: ReactNode, fallback: ReactNode = routeLoading) => <Suspense fallback={fallback}>{content}</Suspense>;
 
 export function AppRoutes() {

@@ -11,6 +11,7 @@ import { generateMemoryRounds } from '@/src/features/games/generators/fromCourse
 import { generateBuilderRounds } from '@/src/features/games/generators/fromCourseVocabBuilder';
 import type { CourseGameType } from '@/src/features/games/types';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 type PublishedGameType = CourseGameType;
 
@@ -44,9 +45,9 @@ export default function GameScreen() {
   const memoryRounds = useMemo(() => generateMemoryRounds(vocabulary), [vocabulary]);
   const builderRounds = useMemo(() => generateBuilderRounds(vocabulary), [vocabulary]);
 
-  if (activeCourseStatus !== 'ready') return <GameState message="Đang mở khóa đang học…" />;
+  if (activeCourseStatus !== 'ready') return <PageLoading variant="games" />;
   if (!courseId || requestedCourseId !== courseId || !gameType) return <Navigate to="/app/courses" replace />;
-  if (meta.isLoading || games.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo="/app/dashboard" />;
+  if (meta.isLoading || games.isLoading) return <PageLoading variant="games" />;
   if (meta.loadError || games.loadError || !meta.data || !games.data) return <GameState message={meta.loadError ?? games.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo="/app/dashboard" />;
   if (vocabulary.length < 4) return <GameState message="Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game." returnTo="/app/dashboard" />;
   if ((gameType === 'vocab-sprint' && !vocabRounds.length) || (gameType === 'flappy-vocab' && !flappyRounds.length) || (gameType === 'memory-match' && !memoryRounds.length) || (gameType === 'word-builder' && !builderRounds.length)) return <GameState message="Nội dung từ vựng hiện chưa phù hợp với game này." returnTo="/app/dashboard" />;

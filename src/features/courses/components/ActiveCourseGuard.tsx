@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 import { ActiveCourseErrorState } from './ActiveCourseErrorState';
 
 export function ActiveCourseGuard({ children }: { children: ReactNode }) {
@@ -12,7 +13,7 @@ export function ActiveCourseGuard({ children }: { children: ReactNode }) {
   }
 
   if (status !== 'ready') {
-    return <main className="grid min-h-[55vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở khóa học…</main>;
+    return <PageLoading />;
   }
 
   if (!activeCourseId) return <Navigate to="/app/courses" replace />;

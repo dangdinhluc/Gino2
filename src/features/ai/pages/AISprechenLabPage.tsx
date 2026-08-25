@@ -10,6 +10,7 @@ import {
   type SpeakingSubmission,
 } from '@/src/features/ai/repositories/speakingRepository';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const panelClass = 'rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-5 md:p-6';
 
@@ -114,6 +115,8 @@ export default function AISprechenLab() {
   function stopRecording(): void {
     recorderRef.current?.stop();
   }
+
+  if (loading) return <PageLoading variant="practice" />;
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 pb-16">

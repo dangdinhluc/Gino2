@@ -10,6 +10,7 @@ import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
 import { useCourseStats } from '@/src/features/courses/hooks/useCourseStats';
 import { ActiveCourseErrorState } from '@/src/features/courses/components/ActiveCourseErrorState';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 const ALL = 'Tất cả';
 
@@ -90,7 +91,7 @@ export default function CourseListPage() {
   }
 
   if (activeCourse.status !== 'ready' || courseList.status === 'loading') {
-    return <main className="grid min-h-[55vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang tải khóa học…</main>;
+    return <PageLoading />;
   }
 
   if (shouldShowSelector) {

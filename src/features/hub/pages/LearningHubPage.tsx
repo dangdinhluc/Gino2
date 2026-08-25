@@ -18,6 +18,7 @@ import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
 import type { CourseGameType } from '@/src/features/games/types';
 import { assets } from '@/src/shared/lib/assets';
 import { cn } from '@/src/lib/utils';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 
 interface HubGame {
@@ -103,12 +104,7 @@ export default function LearningHub() {
   const courses = activeCourseId ? availableCourses.filter((course) => course.id === activeCourseId) : [];
 
   if (status === 'loading' || activeCourseStatus !== 'ready') {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 text-sm font-bold text-[#5f6b7c]">
-        <Gamepad2 className="mr-2 h-5 w-5 animate-bounce text-[#d83a00]" />
-        Đang tải khu trò chơi ôn tập…
-      </div>
-    );
+    return <PageLoading variant="games" />;
   }
 
   return (

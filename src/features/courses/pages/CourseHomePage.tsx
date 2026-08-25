@@ -9,6 +9,7 @@ import {
 } from '@/src/features/courses/hooks/useCourseLearningModules';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
+import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
 export default function CourseHomePage() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function CourseHomePage() {
   const loadError = meta.loadError ?? vocabularyState.loadError ?? documentsState.loadError ?? practiceState.loadError ?? examsState.loadError;
 
   if (isLoading) {
-    return <div className="mx-auto flex min-h-[60vh] max-w-[760px] items-center justify-center px-4 text-[11px] font-semibold text-[#8b8e98]">Đang tải khóa học…</div>;
+    return <PageLoading />;
   }
 
   if (loadError || !meta.data) {
