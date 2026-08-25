@@ -3,10 +3,12 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './mock-ux.css';
-import { registerServiceWorker } from '@/src/features/notifications/repositories/pushRepository';
 
 if ('serviceWorker' in navigator) {
-  void registerServiceWorker();
+  const scope = import.meta.env.BASE_URL || '/';
+  window.setTimeout(() => {
+    void navigator.serviceWorker.register(`${scope}sw.js`, { scope }).catch(() => undefined);
+  }, 0);
 }
 
 createRoot(document.getElementById('root')!).render(

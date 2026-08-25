@@ -1,11 +1,13 @@
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
 import { assets } from '@/src/shared/lib/assets';
+
+const LazyLearningLauncherSheet = lazy(() => import('@/src/features/courses/components/LearningLauncherSheet').then(({ LearningLauncherSheet }) => ({ default: LearningLauncherSheet })));
 
 export function BottomNav() {
   const [isLearningLauncherOpen, setIsLearningLauncherOpen] = useState(false);
+  const [hasOpenedLearningLauncher, setHasOpenedLearningLauncher] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -51,7 +53,11 @@ export function BottomNav() {
 
   return (
     <>
-      <LearningLauncherSheet isOpen={isLearningLauncherOpen} onClose={() => setIsLearningLauncherOpen(false)} />
+      {hasOpenedLearningLauncher && (
+        <Suspense fallback={null}>
+          <LazyLearningLauncherSheet isOpen={isLearningLauncherOpen} onClose={() => setIsLearningLauncherOpen(false)} />
+        </Suspense>
+      )}
 
       <nav
         aria-label="Thanh điều hướng chính"
@@ -61,11 +67,13 @@ export function BottomNav() {
           {renderNavItem(navItems[0])}
           {renderNavItem(navItems[1])}
 
-          {/* Nút trung tâm Mascot: Học ngay */}
           <div className="relative flex min-w-0 items-end justify-center">
             <motion.button
               type="button"
-              onClick={() => setIsLearningLauncherOpen((open) => !open)}
+              onClick={() => {
+                setHasOpenedLearningLauncher(true);
+                setIsLearningLauncherOpen((open) => !open);
+              }}
               whileTap={{ scale: 0.92 }}
               aria-haspopup="dialog"
               aria-expanded={isLearningLauncherOpen}

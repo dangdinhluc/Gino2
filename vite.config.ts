@@ -4,6 +4,28 @@ import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 
+function manualChunks(id: string): string | undefined {
+  const normalizedId = id.replace(/\\/g, '/');
+  if (!normalizedId.includes('/node_modules/')) return undefined;
+
+  if (
+    normalizedId.includes('/node_modules/react/')
+    || normalizedId.includes('/node_modules/react-dom/')
+    || normalizedId.includes('/node_modules/react-router/')
+    || normalizedId.includes('/node_modules/react-router-dom/')
+    || normalizedId.includes('/node_modules/scheduler/')
+  ) {
+    return 'vendor-react';
+  }
+
+  if (normalizedId.includes('/node_modules/@supabase/')) return 'vendor-supabase';
+  if (normalizedId.includes('/node_modules/motion/') || normalizedId.includes('/node_modules/framer-motion/')) return 'vendor-motion';
+  if (normalizedId.includes('/node_modules/lucide-react/')) return 'vendor-icons';
+  if (normalizedId.includes('/node_modules/zustand/') || normalizedId.includes('/node_modules/use-sync-external-store/')) return 'vendor-state';
+
+  return undefined;
+}
+
 export default defineConfig(() => ({
   // Cho phép CI đặt base path riêng cho preview. Nếu không có thì giữ hành vi production cũ.
   base: process.env.VITE_BASE_PATH || (process.env.GITHUB_PAGES === 'true' ? '/Gino2/' : '/'),
@@ -20,6 +42,15 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep framework/vendor hashes stable across app-only deploys and let the
+        // browser download/parse the large libraries as independent modules.
+        manualChunks,
+      },
     },
   },
   server: {
