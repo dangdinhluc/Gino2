@@ -6,11 +6,9 @@ import {
   type CourseDocumentItem,
 } from '@/src/features/courses/courseLearning.types';
 import { cn } from '@/src/lib/utils';
-import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
 
-import { DocumentHero } from '@/src/features/documents/components/DocumentHero';
 import { MarkdownViewer } from '@/src/features/documents/components/MarkdownViewer';
-import { DocumentStats } from '@/src/features/documents/components/DocumentStats';
+import { DocumentFilterSheet, type DocumentReadFilter } from '@/src/features/documents/components/DocumentFilterSheet';
 import { DocumentSearchAndFilter } from '@/src/features/documents/components/DocumentSearchAndFilter';
 import { DocumentCategoryBar } from '@/src/features/documents/components/DocumentCategoryBar';
 import { DocumentCardItem } from '@/src/features/documents/components/DocumentCardItem';
@@ -28,11 +26,6 @@ import {
   recordDocumentOpened,
 } from '@/src/features/documents/repositories/documentProgressRepository';
 import { fetchDocumentBookmarkIds, setDocumentBookmark } from '@/src/features/documents/repositories/documentBookmarkRepository';
-import { StudyHeatmap } from '@/src/features/profile/components/StudyHeatmap';
-import {
-  fetchLearningActivityHeatmap,
-  type StudyHeatmapDay,
-} from '@/src/features/profile/repositories/learningActivityRepository';
 
 interface DocumentsPanelProps {
   courseId: string;
@@ -59,7 +52,9 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
   const [readDocumentIds, setReadDocumentIds] = useState<Set<string>>(new Set());
   const [bookmarkedDocumentIds, setBookmarkedDocumentIds] = useState<Set<string>>(new Set());
   const [bookmarkError, setBookmarkError] = useState<string | null>(null);
-  const [heatmapDays, setHeatmapDays] = useState<StudyHeatmapDay[]>([]);
+  const [readFilter, setReadFilter] = useState<DocumentReadFilter>('all');
+  const [selectedModule, setSelectedModule] = useState('all');
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const documentContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,14 +72,6 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
       .catch(() => { /* bookmark là phụ trợ — không chặn trình xem */ });
     return () => { cancelled = true; };
   }, [courseId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchLearningActivityHeatmap(30)
-      .then((days) => { if (!cancelled) setHeatmapDays(days); })
-      .catch(() => { /* heatmap là phụ trợ — thất bại không chặn tài liệu */ });
-    return () => { cancelled = true; };
-  }, []);
 
   useEffect(() => {
     recordDocumentOpened({
@@ -226,6 +213,11 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
     ];
   }, [documents]);
 
+  const modules = useMemo(
+    () => ['all', ...Array.from(new Set(documents.map((document) => document.module).filter(Boolean)))],
+    [documents],
+  );
+
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -234,6 +226,9 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
       if (selectedCategory === 'pdf' && document.kind !== 'PDF') return false;
       if (selectedCategory === 'doc' && document.kind === 'PDF') return false;
       if (selectedCategory === 'profile' && !document.module.includes('Hồ sơ')) return false;
+      if (selectedModule !== 'all' && document.module !== selectedModule) return false;
+      if (readFilter === 'saved' && !bookmarkedDocumentIds.has(document.id)) return false;
+      if (readFilter === 'unread' && readDocumentIds.has(document.id)) return false;
 
       // Filter by query
       if (!normalizedQuery) return true;
@@ -249,42 +244,21 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
 
       return haystack.includes(normalizedQuery);
     });
-  }, [documents, searchQuery, selectedCategory]);
+  }, [bookmarkedDocumentIds, documents, readDocumentIds, readFilter, searchQuery, selectedCategory, selectedModule]);
 
   const viewerUrl = selectedDocument.kind === 'PDF'
     ? assetUrl ?? selectedDocument.externalUrl
     : null;
 
-  const stats = useMemo(() => {
-    const totalDocs = documents.length;
-    const totalMinutes = documents.reduce((acc, doc) => acc + (doc.readTimeMinutes ?? 0), 0);
-    const readCount = documents.reduce((acc, doc) => acc + (readDocumentIds.has(doc.id) ? 1 : 0), 0);
-
-    return {
-      totalDocs,
-      totalMinutes,
-      readCount,
-    };
-  }, [documents, readDocumentIds]);
-
   return (
-    <div className="mx-auto w-full max-w-xl space-y-4 pb-28 sm:pb-32 lg:max-w-none">
-      {/* 1. Hero Section */}
-      <DocumentHero totalCount={documents.length} />
-
-      {/* 2. Card Thống kê tài liệu */}
-      <DocumentStats stats={stats} />
-
-      {/* 2b. Heatmap nhịp học 30 ngày mini */}
-      {heatmapDays.length > 0 && (
-        <div className="lg:max-w-[340px]">
-          <StudyHeatmap days={heatmapDays} />
-        </div>
-      )}
-
-      {/* 3 & 4. Sticky Search & Filter Bar */}
-      <div className="sticky top-[68px] z-30 space-y-2 rounded-[20px] bg-[#fffaf3]/95 p-2 backdrop-blur-md transition-all border border-[#eedecf]/80 shadow-2xs">
-        <DocumentSearchAndFilter query={searchQuery} onQueryChange={setSearchQuery} />
+    <div className="mx-auto w-full max-w-xl space-y-3 pb-4 lg:max-w-none">
+      <div className="sticky top-[60px] z-30 space-y-2 rounded-[18px] border border-[#e8e3f2] bg-[#f8f7fc]/95 p-1.5 shadow-2xs backdrop-blur-md">
+        <DocumentSearchAndFilter
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          onToggleFilter={() => setIsFilterSheetOpen(true)}
+          isFilterActive={readFilter !== 'all' || selectedModule !== 'all'}
+        />
         <DocumentCategoryBar
           categories={categories}
           selectedCategory={selectedCategory}
@@ -293,7 +267,6 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
       </div>
 
       <div className="space-y-3 lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start lg:gap-4 lg:space-y-0">
-        {/* 5. Danh sách tài liệu */}
         <div className="space-y-3">
           {filteredDocuments.length > 0 ? (
             filteredDocuments.map((doc) => (
@@ -317,20 +290,20 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
           )}
         </div>
 
-        <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4 lg:sticky lg:top-[84px] lg:p-5">
+        <section className="rounded-2xl border border-[#e8e3f2] bg-white p-4 lg:sticky lg:top-[84px] lg:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Trình xem tài liệu</p>
-              <h3 className="mt-1 text-base font-black text-[#172033]">{selectedDocument.title}</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6f45d8]">Trình xem tài liệu</p>
+              <h3 className="mt-1 text-base font-black text-[#252333]">{selectedDocument.title}</h3>
             </div>
-            <button type="button" onClick={() => void toggleBookmark(selectedDocument.id)} aria-pressed={bookmarkedDocumentIds.has(selectedDocument.id)} className={cn('inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-black', bookmarkedDocumentIds.has(selectedDocument.id) ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-[#e8dccb] bg-white text-[#7b8796] hover:border-amber-300')}><Bookmark size={15} className={bookmarkedDocumentIds.has(selectedDocument.id) ? 'fill-amber-500' : ''} />{bookmarkedDocumentIds.has(selectedDocument.id) ? 'Đã lưu' : 'Lưu tài liệu'}</button>
+            <button type="button" onClick={() => void toggleBookmark(selectedDocument.id)} aria-pressed={bookmarkedDocumentIds.has(selectedDocument.id)} className={cn('inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-black', bookmarkedDocumentIds.has(selectedDocument.id) ? 'border-[#6f45d8] bg-[#f3efff] text-[#6f45d8]' : 'border-[#e8e3f2] bg-white text-[#858091] hover:border-[#b8a5e8] hover:text-[#6f45d8]')}><Bookmark size={15} className={bookmarkedDocumentIds.has(selectedDocument.id) ? 'fill-[#6f45d8]' : ''} />{bookmarkedDocumentIds.has(selectedDocument.id) ? 'Đã lưu' : 'Lưu tài liệu'}</button>
             {selectedDocument.kind === 'PDF' && viewerUrl && (
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold text-emerald-700">
                 Đang xem trong app
               </span>
             )}
             {selectedDocument.kind !== 'PDF' && !assetUrl && selectedDocument.externalUrl && (
-              <a href={selectedDocument.externalUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-orange-200 px-3 py-2 text-xs font-bold text-orange-700 hover:bg-orange-50">Mở tài liệu</a>
+              <a href={selectedDocument.externalUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-[#b8a5e8] px-3 py-2 text-xs font-bold text-[#6f45d8] hover:bg-[#f3efff]">Mở tài liệu</a>
             )}
           </div>
           {isAssetLoading && <p className="mt-3 text-sm text-[#5f6b7c]">Đang tạo liên kết xem tài liệu…</p>}
@@ -340,10 +313,10 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
             <iframe
               title={`Trình xem PDF: ${selectedDocument.title}`}
               src={viewerUrl}
-              className="mt-3 h-[32rem] w-full rounded-xl border border-[#e8dccb] bg-white lg:h-[min(70vh,48rem)]"
+              className="mt-3 h-[32rem] w-full rounded-xl border border-[#e8e3f2] bg-white lg:h-[min(70vh,48rem)]"
             />
           ) : selectedDocument.kind !== 'PDF' && selectedDocument.contentMarkdown ? (
-            <div ref={documentContentRef} onMouseUp={captureSelectedText} onKeyUp={captureSelectedText} tabIndex={0} className="mt-3 max-h-[32rem] overflow-y-auto rounded-xl border border-[#e8dccb] bg-white p-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+            <div ref={documentContentRef} onMouseUp={captureSelectedText} onKeyUp={captureSelectedText} tabIndex={0} className="mt-3 max-h-[32rem] overflow-y-auto rounded-xl border border-[#e8e3f2] bg-white p-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]">
               <MarkdownViewer source={selectedDocument.contentMarkdown} />
             </div>
           ) : !isAssetLoading && !assetError && (
@@ -352,11 +325,11 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[#e8dccb] bg-[#fffaf3] p-4">
-        <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Ghi chú riêng</p><h3 className="mt-1 text-base font-black text-[#172033]">{selectedDocument.title}</h3></div><span className="text-xs font-bold text-[#95a0af]">{annotations.length} ghi chú</span></div>
-        {selectedText && <p className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">Đoạn đã chọn: "{selectedText.text}"</p>}
+      <section className="rounded-2xl border border-[#e8e3f2] bg-white p-4">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6f45d8]">Ghi chú riêng</p><h3 className="mt-1 text-base font-black text-[#252333]">{selectedDocument.title}</h3></div><span className="text-xs font-bold text-[#858091]">{annotations.length} ghi chú</span></div>
+        {selectedText && <p className="mt-3 rounded-xl bg-[#f3efff] px-3 py-2 text-xs font-semibold text-[#5f37c6]">Đoạn đã chọn: "{selectedText.text}"</p>}
         <form onSubmit={handleSaveNote} className="mt-3 flex flex-col gap-2">
-          <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="min-h-20 w-full rounded-xl border border-[#e8dccb] bg-white px-3 py-2 text-sm text-[#172033] outline-none focus:border-orange-400" />
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="min-h-20 w-full rounded-xl border border-[#e8e3f2] bg-white px-3 py-2 text-sm text-[#252333] outline-none focus:border-[#6f45d8] focus:ring-2 focus:ring-[#6f45d8]/15" />
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Màu ghi chú">
               <span className="text-xs font-bold text-[#7b8796]">Màu:</span>
@@ -376,17 +349,32 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
                   className={cn(
                     'h-7 w-7 rounded-full border-2 transition-transform',
                     color.cls,
-                    noteColor === color.id ? 'scale-110 ring-2 ring-orange-400 ring-offset-2' : 'opacity-70 hover:opacity-100',
+                    noteColor === color.id ? 'scale-110 ring-2 ring-[#6f45d8] ring-offset-2' : 'opacity-70 hover:opacity-100',
                   )}
                 />
               ))}
             </div>
-            <button type="submit" disabled={!note.trim() || isSavingNote} className="rounded-xl bg-orange-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-50 sm:ml-auto">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
+            <button type="submit" disabled={!note.trim() || isSavingNote} className="rounded-xl bg-[#6f45d8] px-4 py-2 text-sm font-bold text-white hover:bg-[#5f37c6] disabled:opacity-50 sm:ml-auto">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
           </div>
         </form>
         {annotationError && <p className="mt-2 text-xs font-semibold text-red-700">{annotationError}</p>}
-        {annotations.length > 0 && <ul className="mt-3 space-y-2">{annotations.map((annotation) => <li key={annotation.id} className={cn('rounded-xl border-l-4 bg-[#fffdf8] px-3 py-2 text-sm text-[#5f6b7c]', annotation.color === 'yellow' ? 'border-yellow-300' : annotation.color === 'green' ? 'border-green-300' : annotation.color === 'blue' ? 'border-blue-300' : 'border-pink-300')}><div className="flex items-start justify-between gap-3"><div>{annotation.selectedText && <p className="mb-1 text-xs font-bold text-orange-800">"{annotation.selectedText}"</p>}<p>{annotation.note}</p></div><div className="flex shrink-0 gap-2 text-xs font-bold"><button type="button" onClick={() => { setEditingAnnotation(annotation); setEditDraft(annotation.note); }} className="rounded-lg px-2 py-2 text-orange-700 hover:bg-orange-50">Sửa</button><button type="button" onClick={() => setDeletingAnnotation(annotation)} className="rounded-lg px-2 py-2 text-red-700 hover:bg-red-50">Xóa</button></div></div></li>)}</ul>}
+        {annotations.length > 0 && <ul className="mt-3 space-y-2">{annotations.map((annotation) => <li key={annotation.id} className={cn('rounded-xl border-l-4 bg-[#f8f7fc] px-3 py-2 text-sm text-[#475467]', annotation.color === 'yellow' ? 'border-yellow-300' : annotation.color === 'green' ? 'border-green-300' : annotation.color === 'blue' ? 'border-blue-300' : 'border-pink-300')}><div className="flex items-start justify-between gap-3"><div>{annotation.selectedText && <p className="mb-1 text-xs font-bold text-[#5f37c6]">"{annotation.selectedText}"</p>}<p>{annotation.note}</p></div><div className="flex shrink-0 gap-2 text-xs font-bold"><button type="button" onClick={() => { setEditingAnnotation(annotation); setEditDraft(annotation.note); }} className="rounded-lg px-2 py-2 text-[#6f45d8] hover:bg-[#f3efff]">Sửa</button><button type="button" onClick={() => setDeletingAnnotation(annotation)} className="rounded-lg px-2 py-2 text-red-700 hover:bg-red-50">Xóa</button></div></div></li>)}</ul>}
       </section>
+
+      <DocumentFilterSheet
+        open={isFilterSheetOpen}
+        readFilter={readFilter}
+        selectedModule={selectedModule}
+        modules={modules}
+        onReadFilterChange={setReadFilter}
+        onModuleChange={setSelectedModule}
+        onReset={() => {
+          setReadFilter('all');
+          setSelectedModule('all');
+        }}
+        onApply={() => setIsFilterSheetOpen(false)}
+        onClose={() => setIsFilterSheetOpen(false)}
+      />
 
       {/* Bottom sheet sửa / xóa ghi chú */}
       {typeof document !== 'undefined' &&
@@ -409,23 +397,23 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', stiffness: 400, damping: 36 }}
                   onClick={(event) => event.stopPropagation()}
-                  className="w-full rounded-t-[28px] border-t border-orange-200/90 bg-[#fffaf5] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-24px_60px_rgba(15,23,42,0.25)]"
+                  className="w-full rounded-t-[28px] border-t border-[#e8e3f2] bg-white p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-24px_60px_rgba(37,35,51,0.18)]"
                 >
-                  <span aria-hidden="true" className="mx-auto block h-1.5 w-10 rounded-full bg-[#e8dccb]" />
+                  <span aria-hidden="true" className="mx-auto block h-1.5 w-10 rounded-full bg-[#e8e3f2]" />
                   {editingAnnotation ? (
                     <>
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-700">Sửa ghi chú</p>
-                          <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#172033]">{selectedDocument.title}</h4>
+                          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#6f45d8]">Sửa ghi chú</p>
+                          <h4 id="annotation-sheet-title" className="mt-0.5 font-[var(--font-heading)] text-lg font-black text-[#252333]">{selectedDocument.title}</h4>
                         </div>
-                        <button type="button" onClick={closeAnnotationSheet} aria-label="Đóng" className="flex h-9 w-9 items-center justify-center rounded-xl border border-orange-200 bg-white text-[#7b8796] hover:text-[#d83a00]">✕</button>
+                        <button type="button" onClick={closeAnnotationSheet} aria-label="Đóng" className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e3f2] bg-white text-[#858091] hover:bg-[#f3efff] hover:text-[#6f45d8]">✕</button>
                       </div>
-                      {editingAnnotation.selectedText && <p className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">"{editingAnnotation.selectedText}"</p>}
-                      <textarea value={editDraft} onChange={(event) => setEditDraft(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="mt-3 min-h-24 w-full rounded-xl border border-[#e8dccb] bg-white px-3 py-2 text-sm text-[#172033] outline-none focus:border-orange-400" />
+                      {editingAnnotation.selectedText && <p className="mt-3 rounded-xl bg-[#f3efff] px-3 py-2 text-xs font-semibold text-[#5f37c6]">"{editingAnnotation.selectedText}"</p>}
+                      <textarea value={editDraft} onChange={(event) => setEditDraft(event.target.value)} placeholder="Ghi lại điểm cần nhớ…" className="mt-3 min-h-24 w-full rounded-xl border border-[#e8e3f2] bg-white px-3 py-2 text-sm text-[#252333] outline-none focus:border-[#6f45d8] focus:ring-2 focus:ring-[#6f45d8]/15" />
                       <div className="mt-4 flex gap-2">
-                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
-                        <button type="button" disabled={!editDraft.trim() || isSavingNote} onClick={() => void handleSaveEditedNote()} className="min-h-11 flex-1 rounded-xl bg-orange-700 px-4 text-sm font-bold text-white disabled:opacity-50">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
+                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8e3f2] bg-white px-4 text-sm font-bold text-[#475467] hover:bg-[#f8f7fc]">Hủy</button>
+                        <button type="button" disabled={!editDraft.trim() || isSavingNote} onClick={() => void handleSaveEditedNote()} className="min-h-11 flex-1 rounded-xl bg-[#6f45d8] px-4 text-sm font-bold text-white hover:bg-[#5f37c6] disabled:opacity-50">{isSavingNote ? 'Đang lưu…' : 'Lưu ghi chú'}</button>
                       </div>
                     </>
                   ) : deletingAnnotation ? (
@@ -439,7 +427,7 @@ export function DocumentsPanel({ courseId, documents, selectedDocument, onSelect
                       </div>
                       <p className="mt-3 text-sm leading-6 text-[#5f6b7c]">Hành động này không thể hoàn tác. Ghi chú sẽ bị xóa vĩnh viễn.</p>
                       <div className="mt-4 flex gap-2">
-                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8dccb] bg-white px-4 text-sm font-bold text-[#5f6b7c] hover:bg-orange-50">Hủy</button>
+                        <button type="button" onClick={closeAnnotationSheet} className="min-h-11 flex-1 rounded-xl border border-[#e8e3f2] bg-white px-4 text-sm font-bold text-[#475467] hover:bg-[#f8f7fc]">Hủy</button>
                         <button type="button" onClick={() => void handleConfirmDelete()} className="min-h-11 flex-1 rounded-xl bg-red-600 px-4 text-sm font-bold text-white hover:bg-red-700">Xóa</button>
                       </div>
                     </>

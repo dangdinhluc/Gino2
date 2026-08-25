@@ -949,6 +949,24 @@
   }
 }
 
+.gino2-skeleton-shimmer {
+  background: linear-gradient(90deg, #f1eefa 0%, #faf8ff 50%, #f1eefa 100%);
+  background-size: 200% 100%;
+  animation: gino2-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes gino2-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gino2-skeleton-shimmer {
+    animation: none;
+    background: #f1eefa;
+  }
+}
+
 /* Dashboard clone: dark library shell, Tokutei copy, real local progress. */
 .dashboard-page {
   --dashboard-ink: #f9f0e2;

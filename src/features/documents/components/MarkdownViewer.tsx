@@ -28,9 +28,9 @@ function inlineToNodes(text: string, keyPrefix: string): ReactNode[] {
     }
     const token = match[0];
     if (token.startsWith('`')) {
-      nodes.push(<code key={`${keyPrefix}-c${counter++}`} className="rounded bg-[#fff1e6] px-1.5 py-0.5 font-mono text-[0.85em] text-[#c2410c]">{token.slice(1, -1)}</code>);
+      nodes.push(<code key={`${keyPrefix}-c${counter++}`} className="rounded bg-[#f3efff] px-1.5 py-0.5 font-mono text-[0.85em] text-[#5f37c6]">{token.slice(1, -1)}</code>);
     } else if (token.startsWith('**')) {
-      nodes.push(<strong key={`${keyPrefix}-b${counter++}`} className="font-bold text-[#172033]">{token.slice(2, -2)}</strong>);
+      nodes.push(<strong key={`${keyPrefix}-b${counter++}`} className="font-bold text-[#252333]">{token.slice(2, -2)}</strong>);
     } else {
       nodes.push(<em key={`${keyPrefix}-i${counter++}`} className="italic text-[#5f6b7c]">{token.slice(1, -1)}</em>);
     }
@@ -121,7 +121,7 @@ export function MarkdownViewer({ source }: { source: string }) {
       if (/^(\s*[-*_]\s*){3,}$/.test(trimmed)) {
         flushList();
         flushParagraph();
-        rendered.push(<hr key={`hr-${keyCounter++}`} className="my-5 border-[#f1e7dc]" />);
+        rendered.push(<hr key={`hr-${keyCounter++}`} className="my-5 border-[#e8e3f2]" />);
         continue;
       }
 
@@ -131,7 +131,7 @@ export function MarkdownViewer({ source }: { source: string }) {
         flushParagraph();
         const content = trimmed.replace(/^>\s?/, '');
         rendered.push(
-          <blockquote key={`bq-${keyCounter++}`} className="mt-3 border-l-4 border-orange-300 bg-orange-50/60 px-4 py-2 text-[#5f6b7c]">
+          <blockquote key={`bq-${keyCounter++}`} className="mt-3 border-l-4 border-[#b8a5e8] bg-[#f3efff] px-4 py-2 text-[#5f6b7c]">
             {inlineToNodes(content, `bq-${keyCounter}`)}
           </blockquote>,
         );
@@ -184,9 +184,9 @@ export function MarkdownViewer({ source }: { source: string }) {
   return (
     <div className="space-y-4">
       {hasToc && (
-        <details className="group rounded-xl border border-[#e8dccb] bg-[#fffdf8] p-3" open>
+        <details className="group rounded-xl border border-[#e8e3f2] bg-[#f8f7fc] p-3" open>
           <summary className="flex cursor-pointer items-center gap-2 text-sm font-bold text-[#5f6b7c]">
-            <List size={15} className="text-orange-600" /> Mục lục
+            <List size={15} className="text-[#6f45d8]" /> Mục lục
             <span className="ml-auto text-xs font-semibold text-[#95a0af]">{toc.length} mục</span>
           </summary>
           <nav className="mt-3 space-y-1" aria-label="Mục lục tài liệu">
@@ -194,7 +194,7 @@ export function MarkdownViewer({ source }: { source: string }) {
               <a
                 key={entry.id}
                 href={`#${entry.id}`}
-                className="block truncate rounded-lg px-2 py-1 text-sm text-[#5f6b7c] transition-colors hover:bg-orange-50 hover:text-[#d83a00]"
+                className="block truncate rounded-lg px-2 py-1 text-sm text-[#5f6b7c] transition-colors hover:bg-[#f3efff] hover:text-[#6f45d8]"
                 style={{ paddingLeft: `${(entry.level - 1) * 12 + 8}px` }}
               >
                 {entry.text}

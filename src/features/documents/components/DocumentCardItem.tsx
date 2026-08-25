@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Bookmark, CheckCircle2, ExternalLink, FileText, Headphones, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Bookmark, ExternalLink, FileText, Headphones, MoreVertical } from 'lucide-react';
 import type { CourseDocumentItem } from '@/src/features/courses/courseLearning.types';
 import { MarkdownViewer } from '@/src/features/documents/components/MarkdownViewer';
 import { createSignedDocumentUrl } from '@/src/features/documents/repositories/documentAnnotationRepository';
@@ -79,20 +79,20 @@ export function DocumentCardItem({
 
   const reader = isReaderOpen && typeof window !== 'undefined'
     ? createPortal(
-        <div className="fixed inset-0 z-[120] flex flex-col bg-[#f8f8fb]" role="dialog" aria-modal="true" aria-label={`Trình đọc ${document.title}`}>
-          <header className="sticky top-0 z-10 flex min-h-[56px] items-center gap-2 border-b border-[#e8e8ef] bg-white/98 px-3 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[120] flex flex-col bg-[#f8f7fc]" role="dialog" aria-modal="true" aria-label={`Trình đọc ${document.title}`}>
+          <header className="sticky top-0 z-10 flex min-h-[56px] items-center gap-2 border-b border-[#e8e3f2] bg-white/98 px-3 backdrop-blur-xl">
             <button
               type="button"
               onClick={() => setIsReaderOpen(false)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#34353b] hover:bg-[#f4f2f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#252333] hover:bg-[#f3efff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
               aria-label="Quay lại danh sách tài liệu"
             >
               <ArrowLeft size={18} />
             </button>
 
             <div className="min-w-0 flex-1">
-              <strong className="block truncate text-[12px] font-extrabold text-[#292a30]">{document.title}</strong>
-              <span className="mt-0.5 block truncate text-[9px] font-medium text-[#9698a1]">{document.module} · {document.kind}</span>
+              <strong className="block truncate text-[12px] font-extrabold text-[#252333]">{document.title}</strong>
+              <span className="mt-0.5 block truncate text-[9px] font-medium text-[#858091]">{document.module} · {document.kind}</span>
             </div>
 
             {readerUrl && (
@@ -128,8 +128,8 @@ export function DocumentCardItem({
             ) : readerUrl ? (
               <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
                 <FileText size={28} className="text-[#6f45d8]" />
-                <strong className="text-[12px] font-extrabold text-[#303138]">Tài liệu mở bằng trình xem ngoài</strong>
-                <a href={readerUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#6f45d8] px-4 text-[11px] font-extrabold text-white">
+                <strong className="text-[12px] font-extrabold text-[#252333]">Tài liệu mở bằng trình xem ngoài</strong>
+                <a href={readerUrl} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#6f45d8] px-4 text-[11px] font-extrabold text-white hover:bg-[#5f37c6]">
                   MỞ TÀI LIỆU <ExternalLink size={13} />
                 </a>
               </div>
@@ -146,11 +146,11 @@ export function DocumentCardItem({
     <>
       <article
         onClick={openReader}
-        className={`flex min-h-[72px] cursor-pointer items-center gap-3 rounded-[13px] border bg-white px-3 py-2.5 transition-all ${
-          isSelected ? 'border-[#cfc2ee] shadow-[0_0_0_1px_rgba(111,69,216,.08)]' : 'border-[#e9e9ef] hover:border-[#d9d2e8]'
+        className={`group flex cursor-pointer items-start gap-3 rounded-[16px] border bg-white px-3 py-3 transition-colors ${
+          isSelected ? 'border-[#6f45d8]' : 'border-[#e8e3f2] hover:border-[#cfc2ee]'
         }`}
       >
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] ${isAudio ? 'bg-[#eaf5ff] text-[#4c86c6]' : 'bg-[#f5f2fb] text-[#7652cc]'}`}>
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isAudio ? 'bg-[#eaf5ff] text-[#4c86c6]' : 'bg-[#f3efff] text-[#6f45d8]'}`}>
           <Icon size={18} />
         </span>
 
@@ -162,20 +162,25 @@ export function DocumentCardItem({
           }}
           className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8]"
         >
-          <strong className="block truncate text-[11px] font-extrabold text-[#303138]">{document.title}</strong>
-          <span className="mt-1 flex items-center gap-1.5 text-[9px] font-medium text-[#92949d]">
-            <span>{document.module}</span><span>·</span><span>{document.kind}</span>
+          <strong className="block truncate text-[12px] font-extrabold text-[#252333]">{document.title}</strong>
+          <span className="mt-1 block truncate text-[10px] font-medium text-[#858091]">
+            {document.summary || document.preview}
           </span>
-          {isRead && <span className="mt-1 inline-flex items-center gap-1 text-[8px] font-bold text-[#43a56d]"><CheckCircle2 size={10} /> Đã xem</span>}
+          <span className="mt-2 flex flex-wrap items-center gap-1.5 text-[9px] font-bold text-[#858091]">
+            <span>{document.module}</span><span>·</span><span>{document.kind}</span>
+            {document.readTime && <span className="rounded-full bg-[#f3efff] px-2 py-1 text-[#6f45d8]">{document.readTime}</span>}
+            {document.size && document.size !== 'Tài liệu' && <span className="rounded-full bg-[#f3efff] px-2 py-1 text-[#6f45d8]">{document.size}</span>}
+            {isRead && <span className="rounded-full bg-[#f3efff] px-2 py-1 text-[#6f45d8]">Đã xem</span>}
+          </span>
         </button>
 
         <div className="flex shrink-0 items-center gap-1">
-          {isBookmarked && <Bookmark size={13} className="fill-[#8a6ad5] text-[#8a6ad5]" aria-label="Đã lưu" />}
+          {isBookmarked && <Bookmark size={15} className="fill-[#6f45d8] text-[#6f45d8]" aria-label="Đã lưu" />}
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); onMenu?.(document.id); }}
             aria-label="Tùy chọn tài liệu"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9b9da5] hover:bg-[#f5f4f8]"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#858091] hover:bg-[#f3efff]"
           >
             <MoreVertical size={15} />
           </button>
