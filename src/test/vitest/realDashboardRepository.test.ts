@@ -1,11 +1,22 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/src/features/courses/repositories/coursesRepository', () => ({ fetchPublishedCourses: vi.fn() }));
-vi.mock('@/src/features/profile/repositories/profileRepository', () => ({ fetchLearnerProfile: vi.fn() }));
-vi.mock('@/src/features/dashboard/repositories/learnerDashboardRepository', () => ({ fetchDailyLearningPlan: vi.fn() }));
-vi.mock('@/src/features/dashboard/repositories/learnerStatsRepository', () => ({ fetchLearnerStats: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  fetchPublishedCourses: vi.fn(),
+  fetchLearnerProfile: vi.fn(),
+  fetchDailyLearningPlan: vi.fn(),
+  fetchLearnerStats: vi.fn(),
+}));
 
-import { mapRealDashboardData } from '@/src/features/dashboard/repositories/realDashboardRepository';
+vi.mock('@/src/features/courses/repositories/coursesRepository', () => ({ fetchPublishedCourses: mocks.fetchPublishedCourses }));
+vi.mock('@/src/features/profile/repositories/profileRepository', () => ({ fetchLearnerProfile: mocks.fetchLearnerProfile }));
+vi.mock('@/src/features/dashboard/repositories/learnerDashboardRepository', () => ({ fetchDailyLearningPlan: mocks.fetchDailyLearningPlan }));
+vi.mock('@/src/features/dashboard/repositories/learnerStatsRepository', () => ({ fetchLearnerStats: mocks.fetchLearnerStats }));
+
+import {
+  clearRealDashboardCache,
+  fetchRealDashboardData,
+  mapRealDashboardData,
+} from '@/src/features/dashboard/repositories/realDashboardRepository';
 
 const profile = { displayName: 'Learner', email: 'learner@example.com', targetLevel: 'Tokutei Gino' };
 const stats = {
@@ -26,6 +37,23 @@ const plan = {
   nextLesson: { id: 'lesson-1', title: 'Lesson thật', courseId: 'course-1', courseTitle: 'Khóa học thật' },
   weakAssessment: { id: 'assessment-1', title: 'Nghe hiểu', score: 72, courseId: 'course-1' },
 };
+
+const enrolledCourse = {
+  id: 'course-1',
+  title: 'Khóa học thật',
+  level: 'N3',
+  description: 'Mô tả',
+  progress: 42,
+  totalLessons: 10,
+  image: '',
+  themeColor: null,
+  isEnrolled: true,
+};
+
+afterEach(() => {
+  clearRealDashboardCache();
+  vi.clearAllMocks();
+});
 
 describe('mapRealDashboardData', () => {
   it('keeps empty learner data empty instead of creating course or progress values', () => {
@@ -83,5 +111,34 @@ describe('mapRealDashboardData', () => {
 
     expect(result.activeCourse?.id).toBe('course-2');
     expect(result.courses.map((course) => course.id)).toEqual(['course-2']);
+  });
+
+  it('keeps the Home screen usable when optional stats fail', async () => {
+    mocks.fetchLearnerProfile.mockResolvedValue(profile);
+    mocks.fetchPublishedCourses.mockResolvedValue([enrolledCourse]);
+    mocks.fetchLearnerStats.mockRejectedValue(new Error('stats unavailable'));
+    mocks.fetchDailyLearningPlan.mockResolvedValue(plan);
+
+    const result = await fetchRealDashboardData('user-1', 'course-1');
+
+    expect(result.activeCourse?.title).toBe('Khóa học thật');
+    expect(result.stats).toMatchObject({ streak: 0, xp: 0, learnedWords: 0 });
+    expect(result.warnings).toEqual(['stats']);
+    expect(mocks.fetchPublishedCourses).toHaveBeenCalledWith('user-1');
+  });
+
+  it('reuses fresh user-scoped Dashboard data without refetching', async () => {
+    mocks.fetchLearnerProfile.mockResolvedValue(profile);
+    mocks.fetchPublishedCourses.mockResolvedValue([enrolledCourse]);
+    mocks.fetchLearnerStats.mockResolvedValue(stats);
+    mocks.fetchDailyLearningPlan.mockResolvedValue(plan);
+
+    const first = await fetchRealDashboardData('user-1', 'course-1');
+    vi.clearAllMocks();
+    const second = await fetchRealDashboardData('user-1', 'course-1');
+
+    expect(second).toBe(first);
+    expect(mocks.fetchLearnerProfile).not.toHaveBeenCalled();
+    expect(mocks.fetchPublishedCourses).not.toHaveBeenCalled();
   });
 });

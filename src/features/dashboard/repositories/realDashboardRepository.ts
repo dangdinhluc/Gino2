@@ -36,6 +36,7 @@ export interface RealDashboardData {
     title: string;
     accuracy: number;
   }>;
+  warnings?: Array<'stats' | 'plan'>;
 }
 
 interface RealDashboardSources {
@@ -43,9 +44,57 @@ interface RealDashboardSources {
   stats: LearnerStatsSnapshot;
   plan: DailyLearningPlan;
   courses: CourseListEntry[];
+  warnings?: Array<'stats' | 'plan'>;
 }
 
-export function mapRealDashboardData({ profile, stats, plan, courses }: RealDashboardSources, activeCourseId?: string): RealDashboardData {
+export interface RealDashboardCacheEntry {
+  data: RealDashboardData;
+  fetchedAt: number;
+}
+
+export const REAL_DASHBOARD_CACHE_STALE_TIME_MS = 45_000;
+const dashboardCache = new Map<string, RealDashboardCacheEntry>();
+const dashboardRequests = new Map<string, Promise<RealDashboardData>>();
+
+function dashboardCacheKey(userId: string, activeCourseId: string): string {
+  return `${userId}:${activeCourseId}`;
+}
+
+export function readRealDashboardCache(userId: string, activeCourseId: string): RealDashboardCacheEntry | null {
+  return dashboardCache.get(dashboardCacheKey(userId, activeCourseId)) ?? null;
+}
+
+export function clearRealDashboardCache(userId?: string): void {
+  if (!userId) {
+    dashboardCache.clear();
+    return;
+  }
+
+  for (const key of dashboardCache.keys()) {
+    if (key.startsWith(`${userId}:`)) dashboardCache.delete(key);
+  }
+}
+
+function emptyStats(): LearnerStatsSnapshot {
+  return {
+    totalXp: 0,
+    weeklyXp: 0,
+    dailyXp: 0,
+    reviewedToday: 0,
+    totalReviews: 0,
+    currentStreak: 0,
+    masteredVocabulary: 0,
+    dueVocabulary: 0,
+    weeklyActivity: [],
+    topicMastery: [],
+  };
+}
+
+function emptyPlan(dueVocabulary = 0): DailyLearningPlan {
+  return { goalMinutes: 20, dueVocabulary, nextLesson: null, weakAssessment: null };
+}
+
+export function mapRealDashboardData({ profile, stats, plan, courses, warnings = [] }: RealDashboardSources, activeCourseId?: string): RealDashboardData {
   const enrolledCourses = courses.filter((course) => course.isEnrolled === true);
   const activeCourseEntry = activeCourseId
     ? enrolledCourses.find((course) => course.id === activeCourseId) ?? null
@@ -88,16 +137,50 @@ export function mapRealDashboardData({ profile, stats, plan, courses }: RealDash
     weakPoints: plan.weakAssessment
       ? [{ title: plan.weakAssessment.title, accuracy: plan.weakAssessment.score }]
       : [],
+    warnings,
   };
 }
 
-export async function fetchRealDashboardData(userId: string, activeCourseId: string): Promise<RealDashboardData> {
-  const [profile, stats, plan, courses] = await Promise.all([
-    fetchLearnerProfile(userId),
-    fetchLearnerStats(),
-    fetchDailyLearningPlan(),
-    fetchPublishedCourses(),
-  ]);
+export async function fetchRealDashboardData(
+  userId: string,
+  activeCourseId: string,
+  options: { force?: boolean } = {},
+): Promise<RealDashboardData> {
+  const key = dashboardCacheKey(userId, activeCourseId);
+  const cached = readRealDashboardCache(userId, activeCourseId);
+  if (!options.force && cached && Date.now() - cached.fetchedAt < REAL_DASHBOARD_CACHE_STALE_TIME_MS) {
+    return cached.data;
+  }
 
-  return mapRealDashboardData({ profile, stats, plan, courses }, activeCourseId);
+  const inFlight = dashboardRequests.get(key);
+  if (inFlight) return inFlight;
+
+  const request = (async () => {
+    // Profile and courses are required to render the Home shell. The other
+    // sources are useful enhancements and must not blank an otherwise usable page.
+    const [profile, courses] = await Promise.all([
+      fetchLearnerProfile(userId),
+      fetchPublishedCourses(userId),
+    ]);
+    const [statsResult, planResult] = await Promise.allSettled([
+      fetchLearnerStats(),
+      fetchDailyLearningPlan(),
+    ]);
+    const warnings: Array<'stats' | 'plan'> = [];
+    const stats = statsResult.status === 'fulfilled' ? statsResult.value : emptyStats();
+    const plan = planResult.status === 'fulfilled' ? planResult.value : emptyPlan(stats.dueVocabulary);
+    if (statsResult.status === 'rejected') warnings.push('stats');
+    if (planResult.status === 'rejected') warnings.push('plan');
+
+    const data = mapRealDashboardData({ profile, stats, plan, courses, warnings }, activeCourseId);
+    dashboardCache.set(key, { data, fetchedAt: Date.now() });
+    return data;
+  })();
+
+  dashboardRequests.set(key, request);
+  try {
+    return await request;
+  } finally {
+    dashboardRequests.delete(key);
+  }
 }

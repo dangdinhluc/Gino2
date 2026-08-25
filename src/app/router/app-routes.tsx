@@ -4,6 +4,7 @@ import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { ProtectedRoute } from '@/src/features/auth/components/ProtectedRoute';
 import { CourseEntryRedirect } from '@/src/features/courses/components/CourseEntryRedirect';
 import { ActiveCourseGuard } from '@/src/features/courses/components/ActiveCourseGuard';
+import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
 
 const TodayPage = lazy(() => import('@/src/features/dashboard/pages/TodayPage'));
 const DashboardPage = lazy(() => import('@/src/features/dashboard/pages/DashboardPage'));
@@ -31,7 +32,7 @@ const CommunityPage = lazy(() => import('@/src/features/social/pages/CommunityPa
 const NotificationCenterPage = lazy(() => import('@/src/features/notifications/pages/NotificationCenterPage'));
 
 const routeLoading = <main className="grid min-h-[45vh] place-items-center text-sm font-bold text-[#5F6B7C]">Đang mở màn hình…</main>;
-const screen = (content: ReactNode) => <Suspense fallback={routeLoading}>{content}</Suspense>;
+const screen = (content: ReactNode, fallback: ReactNode = routeLoading) => <Suspense fallback={fallback}>{content}</Suspense>;
 
 export function AppRoutes() {
   return (
@@ -44,7 +45,7 @@ export function AppRoutes() {
       }
     >
       <Route index element={<CourseEntryRedirect />} />
-      <Route path="dashboard" element={screen(<TodayPage />)} />
+      <Route path="dashboard" element={screen(<TodayPage />, <DashboardLoading />)} />
       <Route path="progress" element={screen(<DashboardPage />)} />
       <Route path="courses" element={screen(<CourseListPage />)} />
       <Route path="enrollments" element={screen(<PackageCatalogPage />)} />

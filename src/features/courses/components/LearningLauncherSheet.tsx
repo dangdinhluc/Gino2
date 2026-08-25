@@ -25,6 +25,8 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
   const navigate = useNavigate();
   const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
   const activeCourseStatus = useActiveCourseStore((state) => state.status);
+  const activeCourseError = useActiveCourseStore((state) => state.error);
+  const retryActiveCourse = useActiveCourseStore((state) => state.retry);
   const meta = useCourseLearningMeta(
     activeCourseId ?? undefined,
     isOpen && activeCourseStatus === 'ready' && Boolean(activeCourseId),
@@ -114,7 +116,16 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
             </div>
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 touch-pan-y">
-              {activeCourseStatus !== 'ready' && (
+              {activeCourseStatus === 'error' && (
+                <div className="rounded-[22px] border border-red-200 bg-red-50 p-4 text-center" role="alert">
+                  <p className="text-[12px] font-bold text-red-700">{activeCourseError ?? 'Không tải được khóa học đang học.'}</p>
+                  <button type="button" onClick={() => void retryActiveCourse()} className="mt-3 min-h-11 rounded-full bg-white px-4 text-[11px] font-black text-red-700 shadow-xs">
+                    Thử lại
+                  </button>
+                </div>
+              )}
+
+              {activeCourseStatus !== 'ready' && activeCourseStatus !== 'error' && (
                 <div className="space-y-3 rounded-[22px] border border-[#eae6f4] bg-white p-4" role="status">
                   <div className="h-4 w-2/3 animate-pulse rounded-full bg-[#eeeaf8]" />
                   <div className="h-3 w-full animate-pulse rounded-full bg-[#f4f1fb]" />

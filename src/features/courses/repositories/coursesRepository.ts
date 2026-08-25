@@ -32,9 +32,9 @@ export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0, isEnro
   };
 }
 
-export async function fetchPublishedCourses(): Promise<CourseListEntry[]> {
+export async function fetchPublishedCourses(userId?: string): Promise<CourseListEntry[]> {
   const client = requireSupabase();
-  const userId = await requireUserId(client);
+  const authenticatedUserId = userId ?? await requireUserId(client);
   const { data, error } = await client
     .from('courses')
     .select('id, title, level, description, status, theme_color, order_index, lessons(count)')
@@ -51,7 +51,7 @@ export async function fetchPublishedCourses(): Promise<CourseListEntry[]> {
   const { data: enrollments, error: enrollmentError } = await client
     .from('enrollments')
     .select('course_id, progress_percent')
-    .eq('user_id', userId)
+    .eq('user_id', authenticatedUserId)
     .in('status', ['active', 'completed']);
   if (enrollmentError) throw new Error(enrollmentError.message);
   for (const enrollment of enrollments ?? []) {

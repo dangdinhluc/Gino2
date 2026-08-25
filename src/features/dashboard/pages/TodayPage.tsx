@@ -5,24 +5,29 @@ import { Menu, Flame, Info, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 import { useRealDashboard } from '@/src/features/dashboard/hooks/useRealDashboard';
+import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
 import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 import { assets } from '@/src/shared/lib/assets';
 
 export default function TodayPage() {
-  const { data, loading, error, refetch } = useRealDashboard();
+  const { data, loading, refreshing, error, reason, refetch } = useRealDashboard();
   const navigate = useNavigate();
   const [claimingReward, setClaimingReward] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const [rewardToast, setRewardToast] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !error && !data) {
+    if (reason === 'no-course') {
       navigate('/app/courses', { replace: true });
     }
-  }, [data, error, loading, navigate]);
+  }, [navigate, reason]);
 
   if (loading) return <DashboardLoading />;
-  if (error || !data) return <DashboardError onRetry={refetch} />;
+  if (reason === 'no-course') return <DashboardLoading />;
+  if (error && !data) {
+    return <DashboardError message={reason === 'active-course' ? 'Không thể xác định khóa học đang học. Dữ liệu của bạn vẫn được giữ nguyên.' : undefined} onRetry={refetch} />;
+  }
+  if (!data) return <DashboardError onRetry={refetch} />;
 
   const { profile, activeCourse, today, stats } = data;
   const dueCount = today.vocabularyDue;
@@ -47,6 +52,12 @@ export default function TodayPage() {
 
   return (
     <div className="mx-auto w-full max-w-[500px] space-y-4 px-3 pb-28 pt-2 sm:px-4">
+      {(refreshing || error || data.warnings?.length) ? (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e7def8] bg-[#faf8ff] px-3.5 py-2.5 text-[11px] font-semibold text-[#6f6680]" role={error ? 'alert' : 'status'}>
+          <span>{error ? 'Dữ liệu đang được giữ lại trong lúc kết nối được khôi phục.' : refreshing ? 'Đang cập nhật dữ liệu học…' : 'Một số số liệu phụ chưa sẵn sàng.'}</span>
+          {error ? <button type="button" onClick={refetch} className="shrink-0 font-black text-[#6f45d8]">Thử lại</button> : null}
+        </div>
+      ) : null}
       {/* Toast thông báo thưởng */}
       <AnimatePresence>
         {rewardToast && (
@@ -367,30 +378,12 @@ export default function TodayPage() {
   );
 }
 
-function DashboardLoading() {
-  return (
-    <div
-      className="mx-auto w-full max-w-[500px] space-y-4 px-3 pb-28 pt-2 sm:px-4"
-      aria-busy="true"
-      aria-label="Đang tải Dashboard"
-    >
-      <div className="h-80 animate-pulse rounded-[30px] bg-[#eee9f7]" />
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
-      </div>
-      <div className="h-40 animate-pulse rounded-[26px] bg-[#eee9f7]" />
-    </div>
-  );
-}
-
-function DashboardError({ onRetry }: { onRetry: () => void }) {
+function DashboardError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-[500px] items-center justify-center px-4 pb-28 pt-2">
       <div className="w-full rounded-[26px] border border-[#ece7f5] bg-white p-6 text-center shadow-sm">
         <strong className="block text-[16px] font-black text-[#202129]">Không thể tải dữ liệu</strong>
-        <p className="mt-1 text-[12px] font-medium text-[#606272]">Vui lòng thử lại sau giây lát.</p>
+        <p className="mt-1 text-[12px] font-medium text-[#606272]">{message ?? 'Vui lòng thử lại sau giây lát.'}</p>
         <button
           type="button"
           onClick={onRetry}

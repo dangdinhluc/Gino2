@@ -74,6 +74,28 @@ describe('CourseEntryRedirect component', () => {
 
     expect(screen.getByTestId('location')).toHaveTextContent('/app/courses/course-1/workspace?tab=exams');
   });
+
+  it('does not redirect when active-course loading fails and exposes retry', () => {
+    const retry = vi.fn();
+    mockUseActiveCourse.mockReturnValue({
+      activeCourseId: 'course-1',
+      status: 'error',
+      error: 'Tạm thời không kết nối được.',
+      retry,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <CourseEntryRedirect />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Tạm thời không kết nối được.');
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/dashboard');
+    fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('LearningLauncherSheet component', () => {

@@ -13,10 +13,16 @@ function reloadWithFreshDocument(): void {
   window.location.replace(url.toString());
 }
 
-function isChunkLoadError(error: Error): boolean {
+export function isChunkLoadError(error: Error): boolean {
   return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(
     error.message,
   );
+}
+
+export function claimChunkReloadAttempt(storage: Storage): boolean {
+  if (storage.getItem(CHUNK_RELOAD_KEY) === '1') return false;
+  storage.setItem(CHUNK_RELOAD_KEY, '1');
+  return true;
 }
 
 export class AppErrorBoundary extends Component<{ children: ReactNode }, AppErrorBoundaryState> {
@@ -28,15 +34,27 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, AppErro
     return { hasError: true, errorMessage: error?.message || 'Unknown application error' };
   }
 
+  componentDidMount(): void {
+    // A fresh document reached the app successfully, so the one-shot guard
+    // can be cleared for the next independent stale-chunk incident.
+    try {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has('gino2_reload')) return;
+      window.sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+      url.searchParams.delete('gino2_reload');
+      window.history.replaceState(window.history.state, '', url.toString());
+    } catch {
+      // URL/history/storage may be restricted in embedded browsers.
+    }
+  }
+
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error('Unhandled application error', error, info);
 
     if (!isChunkLoadError(error)) return;
 
     try {
-      const alreadyReloaded = window.sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
-      if (!alreadyReloaded) {
-        window.sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+      if (claimChunkReloadAttempt(window.sessionStorage)) {
         reloadWithFreshDocument();
         return;
       }

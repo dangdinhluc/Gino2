@@ -9,6 +9,7 @@ import type { CourseListEntry } from '@/src/features/courses/repositories/course
 import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 import { useCourseList } from '@/src/features/courses/hooks/useCourseList';
 import { useCourseStats } from '@/src/features/courses/hooks/useCourseStats';
+import { ActiveCourseErrorState } from '@/src/features/courses/components/ActiveCourseErrorState';
 
 const ALL = 'Tất cả';
 
@@ -82,6 +83,10 @@ export default function CourseListPage() {
     } finally {
       setBusyCourseId(null);
     }
+  }
+
+  if (activeCourse.status === 'error') {
+    return <ActiveCourseErrorState message={activeCourse.error} onRetry={() => void activeCourse.retry()} />;
   }
 
   if (activeCourse.status !== 'ready' || courseList.status === 'loading') {

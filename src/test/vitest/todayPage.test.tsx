@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RealDashboardData } from '@/src/features/dashboard/repositories/realDashboardRepository';
 
@@ -67,6 +67,11 @@ function renderToday() {
   );
 }
 
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location">{location.pathname}</output>;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.useRealDashboard.mockReturnValue({
@@ -125,5 +130,46 @@ describe('TodayPage', () => {
       'href',
       '/app/courses/course-1/workspace?tab=vocabulary',
     );
+  });
+
+  it('keeps stale Dashboard content visible while a refresh is failing', () => {
+    const refetch = vi.fn();
+    mocks.useRealDashboard.mockReturnValue({
+      data: {
+        ...emptyDashboard,
+        activeCourse: { id: 'course-1', title: 'Khóa học thật', progress: 40, nextLesson: null },
+      },
+      loading: false,
+      refreshing: false,
+      error: new Error('Tạm thời mất kết nối'),
+      reason: 'dashboard',
+      refetch,
+    });
+
+    renderToday();
+
+    expect(screen.getByText('Khóa học thật')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Dữ liệu đang được giữ lại');
+    fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('redirects only when the hook positively reports no course', async () => {
+    mocks.useRealDashboard.mockReturnValue({
+      data: null,
+      loading: false,
+      error: null,
+      reason: 'no-course',
+      refetch: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <TodayPage />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/app/courses'));
   });
 });
