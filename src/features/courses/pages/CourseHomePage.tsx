@@ -1,23 +1,40 @@
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Flame, Headphones } from 'lucide-react';
-import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import {
+  useCourseDocuments,
+  useCourseExams,
+  useCourseLearningMeta,
+  useCoursePractice,
+  useCourseVocabulary,
+} from '@/src/features/courses/hooks/useCourseLearningModules';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 
 export default function CourseHomePage() {
   const { id } = useParams();
-  const workspace = useCourseLearningWorkspace(id);
+  const meta = useCourseLearningMeta(id);
+  const modulesEnabled = Boolean(meta.data?.course.id === id);
+  const vocabularyState = useCourseVocabulary(id, modulesEnabled && Boolean(meta.data?.featureConfig.vocabulary));
+  const documentsState = useCourseDocuments(id, modulesEnabled && Boolean(meta.data?.featureConfig.documents));
+  const practiceState = useCoursePractice(id, modulesEnabled && Boolean(meta.data?.featureConfig.practice));
+  const examsState = useCourseExams(id, modulesEnabled && Boolean(meta.data?.featureConfig.exams));
   const streak = useProgressStore((state) => state.streak);
+  const isLoading = meta.isLoading || (modulesEnabled && [vocabularyState, documentsState, practiceState, examsState].some((state) => state.isLoading || (!state.data && !state.loadError)));
+  const loadError = meta.loadError ?? vocabularyState.loadError ?? documentsState.loadError ?? practiceState.loadError ?? examsState.loadError;
 
-  if (workspace.isLoading) {
+  if (isLoading) {
     return <div className="mx-auto flex min-h-[60vh] max-w-[760px] items-center justify-center px-4 text-[11px] font-semibold text-[#8b8e98]">Đang tải khóa học…</div>;
   }
 
-  if (workspace.loadError || !workspace.data) {
-    return <div className="mx-auto mt-8 flex min-h-[40vh] max-w-xl items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 text-center text-[11px] font-semibold text-red-700">{workspace.loadError ?? 'Không tải được khóa học.'}</div>;
+  if (loadError || !meta.data) {
+    return <div className="mx-auto mt-8 flex min-h-[40vh] max-w-xl items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 text-center text-[11px] font-semibold text-red-700">{loadError ?? 'Không tải được khóa học.'}</div>;
   }
 
-  const { course, vocabulary, reviewQuestions, documents, exams, podcasts, featureConfig } = workspace.data;
+  const { course, featureConfig } = meta.data;
+  const vocabulary = vocabularyState.data?.vocabulary ?? [];
+  const reviewQuestions = practiceState.data?.reviewQuestions ?? [];
+  const documents = documentsState.data?.documents ?? [];
+  const exams = examsState.data?.exams ?? [];
   const progress = Math.max(0, Math.min(100, course.progress));
   const coursePath = `/app/courses/${course.id}/workspace`;
   const learnedVocabulary = vocabulary.filter((item) => item.status === 'remembered' || item.status === 'learning').length;
@@ -46,7 +63,7 @@ export default function CourseHomePage() {
         </div>
         <div className="flex items-center gap-1.5">
           <span className="inline-flex h-8 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2.5 text-[10px] font-bold text-[#646771]"><Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak}</span>
-          {podcasts.length > 0 && <Link to={`${coursePath}?tab=documents`} className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ececf2] bg-white text-[#6f45d8]" aria-label="Mở audio khóa học"><Headphones size={14} /></Link>}
+          {meta.data.podcastCount > 0 && <Link to={`${coursePath}?tab=documents`} className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ececf2] bg-white text-[#6f45d8]" aria-label="Mở audio khóa học"><Headphones size={14} /></Link>}
         </div>
       </header>
 

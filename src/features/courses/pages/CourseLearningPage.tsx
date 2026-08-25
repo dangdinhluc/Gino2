@@ -12,8 +12,16 @@ import {
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { ArrowLeft, Flame, Headphones, LayoutGrid } from 'lucide-react';
-import { type CourseLearningWorkspaceData, type CoursePodcastItem } from '@/src/features/courses/courseLearning.types';
-import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { type CourseLearningMeta, type CoursePodcastItem } from '@/src/features/courses/courseLearning.types';
+import {
+  useCourseDocuments,
+  useCourseExams,
+  useCourseGames,
+  useCourseLearningMeta,
+  useCoursePodcasts,
+  useCoursePractice,
+  useCourseVocabulary,
+} from '@/src/features/courses/hooks/useCourseLearningModules';
 import { CourseLearningSkeleton } from '@/src/features/courses/components/loading/CourseLearningSkeleton';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
@@ -29,6 +37,7 @@ interface CourseLearningHeaderProps {
   activeTabPanelLabelId: string;
   courseTitle?: string | null;
   activePodcast?: CoursePodcastItem;
+  hasPodcast?: boolean;
   isPodcastOpen: boolean;
   isPodcastPlaying: boolean;
   streak: number | null;
@@ -44,6 +53,7 @@ function CourseLearningHeader({
   activeTabPanelLabelId,
   courseTitle,
   activePodcast,
+  hasPodcast = false,
   isPodcastOpen,
   isPodcastPlaying,
   streak,
@@ -91,7 +101,7 @@ function CourseLearningHeader({
           >
             <LayoutGrid size={18} strokeWidth={2.2} aria-hidden="true" />
           </button>
-          {activePodcast && (
+          {(activePodcast || hasPodcast) && (
             <button
               type="button"
               onClick={() => onOpenPodcast?.()}
@@ -141,10 +151,19 @@ function CourseLearningShell({ activeTab, children }: { activeTab: CourseWorkspa
   );
 }
 
-function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearningWorkspaceData }) {
+function CourseLearningModuleError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <section role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-5 py-8 text-center">
+      <p className="text-sm font-semibold text-red-700">{message}</p>
+      <button type="button" onClick={onRetry} className="mt-4 min-h-11 rounded-full bg-white px-4 text-xs font-extrabold text-red-700 shadow-xs">Thử lại</button>
+    </section>
+  );
+}
+
+function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { course, vocabulary, reviewQuestions, documents, exams, podcasts, featureConfig } = workspace;
+  const { course, featureConfig } = meta;
   const tabs = useMemo(() => {
     const visibleTabs = getVisibleCourseWorkspaceTabs(featureConfig);
     return visibleTabs.length > 0 ? visibleTabs : [...courseWorkspaceTabs];
@@ -152,14 +171,20 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   const requestedTab = tabs.find((tab) => tab.id === searchParams.get('tab'))?.id ?? null;
 
   const [activeTab, setActiveTab] = useState<CourseWorkspaceSection>(requestedTab ?? tabs[0]?.id ?? 'vocabulary');
+  const vocabularyState = useCourseVocabulary(course.id, activeTab === 'vocabulary');
+  const documentsState = useCourseDocuments(course.id, activeTab === 'documents');
+  const practiceState = useCoursePractice(course.id, activeTab === 'practice');
+  const gamesState = useCourseGames(course.id, activeTab === 'games');
+  const examsState = useCourseExams(course.id, activeTab === 'exams');
   const [vocabularySearchQuery, setVocabularySearchQuery] = useState('');
   const [vocabularyCategory, setVocabularyCategory] = useState('all');
   const [expandedVocabularyId, setExpandedVocabularyId] = useState<string | null>(null);
   const [showFurigana, setShowFurigana] = useState(true);
   const [showRomaji, setShowRomaji] = useState(true);
-  const [selectedDocumentId, setSelectedDocumentId] = useState(documents[0]?.id ?? '');
+  const [selectedDocumentId, setSelectedDocumentId] = useState('');
   const [isPodcastOpen, setIsPodcastOpen] = useState(false);
-  const [activePodcastId, setActivePodcastId] = useState(podcasts[0]?.id ?? '');
+  const podcastsState = useCoursePodcasts(course.id, isPodcastOpen);
+  const [activePodcastId, setActivePodcastId] = useState('');
   const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
   const [isModeSheetOpen, setIsModeSheetOpen] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
@@ -169,6 +194,13 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   const vocabularyAudioRef = useRef<HTMLAudioElement | null>(null);
   const ttsTimerRef = useRef<number | null>(null);
   const streak = learnerStats?.currentStreak ?? null;
+  const vocabulary = useMemo(() => vocabularyState.data?.vocabulary ?? [], [vocabularyState.data]);
+  const documents = useMemo(() => documentsState.data?.documents ?? [], [documentsState.data]);
+  const reviewQuestions = useMemo(() => practiceState.data?.reviewQuestions ?? [], [practiceState.data]);
+  const practiceVocabulary = useMemo(() => practiceState.data?.vocabulary ?? [], [practiceState.data]);
+  const gamesVocabulary = useMemo(() => gamesState.data?.vocabulary ?? [], [gamesState.data]);
+  const exams = useMemo(() => examsState.data?.exams ?? [], [examsState.data]);
+  const podcasts = useMemo(() => podcastsState.data?.podcasts ?? [], [podcastsState.data]);
 
   useEffect(() => {
     let cancelled = false;
@@ -223,14 +255,27 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
   const selectedDocument = documents.find((item) => item.id === selectedDocumentId) ?? documents[0];
   const activePodcast = podcasts.find((podcast) => podcast.id === activePodcastId) ?? podcasts[0];
   const activeTabDefinition = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
+  const activeModuleState = activeTab === 'vocabulary'
+    ? vocabularyState
+    : activeTab === 'documents'
+      ? documentsState
+      : activeTab === 'practice'
+        ? practiceState
+        : activeTab === 'games'
+          ? gamesState
+          : examsState;
+  const activeModuleLoading = activeModuleState.isLoading || (!activeModuleState.data && !activeModuleState.loadError);
+  const activeModuleError = activeModuleState.loadError;
+  const retryActiveModule = activeModuleState.retry;
+  const showLoadingStatus = useDelayedLoadingStatus(activeModuleLoading);
 
   useEffect(() => {
     setVocabularySearchQuery('');
     setVocabularyCategory('all');
     setExpandedVocabularyId(null);
-    setSelectedDocumentId(documents[0]?.id ?? '');
+    setSelectedDocumentId('');
     setIsPodcastOpen(false);
-    setActivePodcastId(podcasts[0]?.id ?? '');
+    setActivePodcastId('');
     setIsPodcastPlaying(false);
     setHeardVocabularyId(null);
 
@@ -238,7 +283,15 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
     vocabularyAudioRef.current = null;
     if (ttsTimerRef.current) window.clearTimeout(ttsTimerRef.current);
     stopSpeaking();
-  }, [course.id, documents, podcasts, vocabulary]);
+  }, [course.id]);
+
+  useEffect(() => {
+    if (!selectedDocumentId && documents[0]) setSelectedDocumentId(documents[0].id);
+  }, [documents, selectedDocumentId]);
+
+  useEffect(() => {
+    if (!activePodcastId && podcasts[0]) setActivePodcastId(podcasts[0].id);
+  }, [activePodcastId, podcasts]);
 
   useEffect(() => {
     return () => {
@@ -302,6 +355,7 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
         activeTabPanelLabelId={activeTabPanelLabelId}
         courseTitle={course.title}
         activePodcast={activePodcast}
+        hasPodcast={meta.podcastCount > 0}
         isPodcastOpen={isPodcastOpen}
         isPodcastPlaying={isPodcastPlaying}
         streak={streak}
@@ -321,50 +375,57 @@ function CourseLearningWorkspaceContent({ workspace }: { workspace: CourseLearni
       />
 
       <main className={cn('course-workspace-main mx-auto w-full max-w-[760px]', activeTab === 'practice' || activeTab === 'exams' ? 'lg:max-w-none' : '')}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            className="course-workspace-panel"
-            key={activeTab}
-            id={`course-workspace-panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={activeTabPanelLabelId}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.14 }}
-          >
-            {activeTab === 'vocabulary' && (
-              <div className="space-y-3">
-                {vocabularyAudioError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{vocabularyAudioError}</p>}
-                <VocabularyPanel
-                  expandedVocabularyId={expandedVocabularyId}
-                  filteredVocabulary={filteredVocabulary}
-                  categoryOptions={vocabularyCategories}
-                  selectedCategory={vocabularyCategory}
-                  heardVocabularyId={heardVocabularyId}
-                  searchQuery={vocabularySearchQuery}
-                  showFurigana={showFurigana}
-                  showRomaji={showRomaji}
-                  onAudio={handleVocabularyAudio}
-                  onSearchChange={setVocabularySearchQuery}
-                  onCategoryChange={(categoryId) => {
-                    setVocabularyCategory(categoryId);
-                    setVocabularySearchQuery('');
-                    setExpandedVocabularyId(null);
-                  }}
-                  onToggleFurigana={() => setShowFurigana((value) => !value)}
-                  onToggleRomaji={() => setShowRomaji((value) => !value)}
-                  onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
-                />
-              </div>
-            )}
-            {activeTab === 'documents' && selectedDocument && <DocumentsPanel courseId={course.id} documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
-            {activeTab === 'documents' && !selectedDocument && <div className="rounded-xl border border-dashed border-[#e6e2ec] bg-white px-4 py-8 text-center text-sm text-[#8b8e98]">Khóa học chưa có tài liệu.</div>}
-            {activeTab === 'practice' && <CoursePracticePanel courseTitle={course.title} vocabulary={vocabulary} reviewQuestions={reviewQuestions} />}
-            {activeTab === 'games' && <GamesPanel courseId={course.id} courseTitle={course.title} vocabulary={vocabulary} />}
-            {activeTab === 'exams' && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
-          </motion.div>
-        </AnimatePresence>
+        {activeModuleLoading ? (
+          <CourseLearningSkeleton activeTab={activeTab} showStatus={showLoadingStatus} />
+        ) : activeModuleError ? (
+          <CourseLearningModuleError message={activeModuleError} onRetry={retryActiveModule} />
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              className="course-workspace-panel"
+              key={activeTab}
+              id={`course-workspace-panel-${activeTab}`}
+              role="tabpanel"
+              aria-labelledby={activeTabPanelLabelId}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.14 }}
+            >
+              {activeTab === 'vocabulary' && vocabularyState.data && (
+                <div className="space-y-3">
+                  {vocabularyAudioError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{vocabularyAudioError}</p>}
+                  <VocabularyPanel
+                    courseId={course.id}
+                    expandedVocabularyId={expandedVocabularyId}
+                    filteredVocabulary={filteredVocabulary}
+                    categoryOptions={vocabularyCategories}
+                    selectedCategory={vocabularyCategory}
+                    heardVocabularyId={heardVocabularyId}
+                    searchQuery={vocabularySearchQuery}
+                    showFurigana={showFurigana}
+                    showRomaji={showRomaji}
+                    onAudio={handleVocabularyAudio}
+                    onSearchChange={setVocabularySearchQuery}
+                    onCategoryChange={(categoryId) => {
+                      setVocabularyCategory(categoryId);
+                      setVocabularySearchQuery('');
+                      setExpandedVocabularyId(null);
+                    }}
+                    onToggleFurigana={() => setShowFurigana((value) => !value)}
+                    onToggleRomaji={() => setShowRomaji((value) => !value)}
+                    onToggleVocabulary={(vocabularyId) => setExpandedVocabularyId((currentId) => (currentId === vocabularyId ? null : vocabularyId))}
+                  />
+                </div>
+              )}
+              {activeTab === 'documents' && documentsState.data && selectedDocument && <DocumentsPanel courseId={course.id} documents={documents} selectedDocument={selectedDocument} onSelectDocument={setSelectedDocumentId} />}
+              {activeTab === 'documents' && documentsState.data && !selectedDocument && <div className="rounded-xl border border-dashed border-[#e6e2ec] bg-white px-4 py-8 text-center text-sm text-[#8b8e98]">Khóa học chưa có tài liệu.</div>}
+              {activeTab === 'practice' && practiceState.data && <CoursePracticePanel courseId={course.id} courseTitle={course.title} vocabulary={practiceVocabulary} reviewQuestions={reviewQuestions} />}
+              {activeTab === 'games' && gamesState.data && <GamesPanel courseId={course.id} courseTitle={course.title} vocabulary={gamesVocabulary} />}
+              {activeTab === 'exams' && examsState.data && <ExamsPanel exams={exams} onStartExam={handleStartExam} />}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       {activePodcast && (
@@ -404,26 +465,26 @@ function useDelayedLoadingStatus(isLoading: boolean) {
 export default function CourseLearningWorkspace() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const workspace = useCourseLearningWorkspace(id);
+  const meta = useCourseLearningMeta(id);
   const loadingTab = getLoadingTab(searchParams.get('tab'));
-  const showLoadingStatus = useDelayedLoadingStatus(workspace.isLoading);
+  const showLoadingStatus = useDelayedLoadingStatus(meta.isLoading);
 
-  if (workspace.isLoading) {
+  if (meta.isLoading) {
     return (
       <CourseLearningShell activeTab={loadingTab}>
         <CourseLearningSkeleton activeTab={loadingTab} showStatus={showLoadingStatus} />
       </CourseLearningShell>
     );
   }
-  if (workspace.loadError || !workspace.data) {
+  if (meta.loadError || !meta.data) {
     return (
       <CourseLearningShell activeTab={loadingTab}>
         <section role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-5 py-8 text-center text-sm font-semibold text-red-700">
-          {workspace.loadError ?? 'Không tải được workspace khóa học.'}
+          {meta.loadError ?? 'Không tải được thông tin khóa học.'}
         </section>
       </CourseLearningShell>
     );
   }
 
-  return <CourseLearningWorkspaceContent workspace={workspace.data} />;
+  return <CourseLearningWorkspaceContent meta={meta.data} />;
 }

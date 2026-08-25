@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, Clock3, FileText, Lock, Send } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
 import { fetchAssessmentPaper, fetchAssessmentUnlockState, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
 
 const deadlineKey = (assessmentId: string) => `gino2:assessment-deadline:${assessmentId}`;
@@ -105,6 +106,7 @@ export default function ExamRunner() {
     setIsSubmitting(true);
     try {
       const result = await submitAssessment(assessmentId, selectedAnswers);
+      invalidateCourseLearningCache(paper.courseId, 'exams');
       window.localStorage.removeItem(deadlineKey(assessmentId));
       navigate(`/app/exams/${assessmentId}/result`, { state: { result } });
     } catch (error: unknown) {

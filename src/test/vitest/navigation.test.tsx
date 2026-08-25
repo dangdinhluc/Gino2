@@ -15,7 +15,7 @@ vi.mock('@/src/features/courses/hooks/useActiveCourse', () => ({
 }));
 
 vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
-  fetchCourseLearningWorkspace: vi.fn().mockResolvedValue({
+  fetchCourseLearningMeta: vi.fn().mockResolvedValue({
     course: {
       id: 'course-1',
       title: 'Tokutei Nhà hàng',
@@ -24,12 +24,6 @@ vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
       currentModule: 'Bài 8: てあります',
       progress: 62,
     },
-    vocabulary: [{ id: 'vocab-1', status: 'new' }],
-    reviewQuestions: [{ id: 'question-1' }],
-    documents: [{ id: 'document-1' }],
-    games: [],
-    exams: [{ id: 'exam-1' }],
-    podcasts: [],
     featureConfig: {
       vocabulary: true,
       documents: true,
@@ -37,6 +31,7 @@ vi.mock('@/src/features/courses/repositories/courseLearningRepository', () => ({
       games: true,
       exams: true,
     },
+    podcastCount: 0,
   }),
 }));
 

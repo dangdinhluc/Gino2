@@ -13,6 +13,12 @@ export interface CourseLearningCourse {
   progress: number;
 }
 
+export interface CourseLearningMeta {
+  course: CourseLearningCourse;
+  featureConfig: CourseFeatureFlags;
+  podcastCount: number;
+}
+
 export interface CourseVocabularyItem {
   id: string;
   word: string;
@@ -90,13 +96,28 @@ export interface CoursePodcastItem {
   storagePath?: string | null;
 }
 
-export interface CourseLearningWorkspaceData {
-  course: CourseLearningCourse;
+export interface CourseVocabularyData {
+  vocabulary: CourseVocabularyItem[];
+}
+
+export interface CourseDocumentsData {
+  documents: CourseDocumentItem[];
+}
+
+export interface CoursePracticeData {
   vocabulary: CourseVocabularyItem[];
   reviewQuestions: CourseReviewQuestion[];
-  documents: CourseDocumentItem[];
+}
+
+export interface CourseGamesData {
+  vocabulary: CourseVocabularyItem[];
   games: CourseGameItem[];
+}
+
+export interface CourseExamsData {
   exams: CourseExamItem[];
+}
+
+export interface CoursePodcastsData {
   podcasts: CoursePodcastItem[];
-  featureConfig: CourseFeatureFlags;
 }

@@ -5,6 +5,7 @@ import {
   submitVocabularyRating,
 } from '@/src/features/courses/repositories/learningProgressRepository';
 import type { CourseReviewQuestion, CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
+import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
 import { CoursePracticeSetup } from './practice/CoursePracticeSetup';
 import { CoursePracticeSession } from './practice/CoursePracticeSession';
 import { CoursePracticeResult } from './practice/CoursePracticeResult';
@@ -18,10 +19,12 @@ const modeLabels: Record<PracticeMode, string> = {
 };
 
 export function CoursePracticePanel({
+  courseId,
   courseTitle,
   vocabulary,
   reviewQuestions,
 }: {
+  courseId: string;
   courseTitle: string;
   vocabulary: CourseVocabularyItem[];
   reviewQuestions: CourseReviewQuestion[];
@@ -88,6 +91,7 @@ export function CoursePracticePanel({
         isCorrect = option === activeQuestion.correctAnswer;
         vibrate(isCorrect ? [20, 40, 60] : [60, 30, 60]);
         await submitVocabularyRating(activeQuestion.vocabularyId ?? '', isCorrect ? 'good' : 'again');
+        invalidateCourseLearningCache(courseId, 'vocabulary');
         setAnswers((current) => ({
           ...current,
           [activeQuestion.id]: {
@@ -101,6 +105,7 @@ export function CoursePracticePanel({
         const optionId = activeQuestion.optionIds?.[option];
         if (!optionId) throw new Error('Không xác định được lựa chọn của câu hỏi.');
         const result = await submitReviewAnswer(activeQuestion.id.replace(/^question-/, ''), optionId);
+        invalidateCourseLearningCache(courseId, 'practice');
         isCorrect = result.isCorrect;
         vibrate(isCorrect ? [20, 40, 60] : [60, 30, 60]);
         setAnswers((current) => ({

@@ -5,7 +5,7 @@ import { FlappyVocab } from '@/src/features/games/FlappyVocab';
 import { MemoryMatch } from '@/src/features/games/MemoryMatch';
 import { VocabSprint } from '@/src/features/games/VocabSprint';
 import { WordBuilder } from '@/src/features/games/WordBuilder';
-import { useCourseLearningWorkspace } from '@/src/features/courses/hooks/useCourseLearningWorkspace';
+import { useCourseLearningMeta, useCourseGames } from '@/src/features/courses/hooks/useCourseLearningModules';
 import { generateFlappyRounds, generateVocabRounds } from '@/src/features/games/generators/fromCourseVocab';
 import { generateMemoryRounds } from '@/src/features/games/generators/fromCourseVocabMemory';
 import { generateBuilderRounds } from '@/src/features/games/generators/fromCourseVocabBuilder';
@@ -35,8 +35,10 @@ export default function GameScreen() {
   const activeCourseStatus = useActiveCourseStore((state) => state.status);
   const courseId = activeCourseId ?? undefined;
   const gameType = normalizeGameType(gameId);
-  const workspace = useCourseLearningWorkspace(courseId);
-  const vocabulary = workspace.data?.vocabulary ?? [];
+  const canLoad = activeCourseStatus === 'ready' && Boolean(courseId) && requestedCourseId === courseId && Boolean(gameType);
+  const meta = useCourseLearningMeta(courseId, canLoad);
+  const games = useCourseGames(courseId, canLoad);
+  const vocabulary = useMemo(() => games.data?.vocabulary ?? [], [games.data]);
   const vocabRounds = useMemo(() => generateVocabRounds(vocabulary), [vocabulary]);
   const flappyRounds = useMemo(() => generateFlappyRounds(vocabulary), [vocabulary]);
   const memoryRounds = useMemo(() => generateMemoryRounds(vocabulary), [vocabulary]);
@@ -44,13 +46,13 @@ export default function GameScreen() {
 
   if (activeCourseStatus !== 'ready') return <GameState message="Đang mở khóa đang học…" />;
   if (!courseId || requestedCourseId !== courseId || !gameType) return <Navigate to="/app/courses" replace />;
-  if (workspace.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo="/app/dashboard" />;
-  if (workspace.loadError || !workspace.data) return <GameState message={workspace.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo="/app/dashboard" />;
+  if (meta.isLoading || games.isLoading) return <GameState message="Đang tải dữ liệu game từ khóa học…" returnTo="/app/dashboard" />;
+  if (meta.loadError || games.loadError || !meta.data || !games.data) return <GameState message={meta.loadError ?? games.loadError ?? 'Không tìm thấy khóa học đã ghi danh.'} returnTo="/app/dashboard" />;
   if (vocabulary.length < 4) return <GameState message="Khóa học cần ít nhất 4 từ vựng đã xuất bản để mở game." returnTo="/app/dashboard" />;
   if ((gameType === 'vocab-sprint' && !vocabRounds.length) || (gameType === 'flappy-vocab' && !flappyRounds.length) || (gameType === 'memory-match' && !memoryRounds.length) || (gameType === 'word-builder' && !builderRounds.length)) return <GameState message="Nội dung từ vựng hiện chưa phù hợp với game này." returnTo="/app/dashboard" />;
 
   const returnTo = '/app/dashboard';
-  const courseTitle = workspace.data.course.title;
+  const courseTitle = meta.data.course.title;
   if (gameType === 'vocab-sprint') return <VocabSprint courseId={courseId} rounds={vocabRounds} returnTo={returnTo} courseTitle={courseTitle} />;
   if (gameType === 'flappy-vocab') return <FlappyVocab courseId={courseId} rounds={flappyRounds} returnTo={returnTo} courseTitle={courseTitle} />;
   if (gameType === 'memory-match') return <MemoryMatch courseId={courseId} rounds={memoryRounds} returnTo={returnTo} courseTitle={courseTitle} />;

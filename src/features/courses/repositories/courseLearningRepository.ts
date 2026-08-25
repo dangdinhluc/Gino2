@@ -2,11 +2,17 @@ import { requireSupabase, requireUserId } from '@/src/features/supabase/lib/supa
 import { TOKUTEI_VOCAB } from '@/src/data/tokutei/vocabDeck';
 import { resolveCourseFeatureConfig } from '@/src/features/courses/lib/courseCapabilities';
 import type {
+  CourseDocumentsData,
   CourseDocumentItem,
   CourseExamItem,
-  CourseLearningWorkspaceData,
+  CourseExamsData,
+  CourseGamesData,
+  CourseLearningMeta,
   CoursePodcastItem,
+  CoursePodcastsData,
+  CoursePracticeData,
   CourseReviewQuestion,
+  CourseVocabularyData,
   CourseVocabularyItem,
   VocabularyStatus,
 } from '@/src/features/courses/courseLearning.types';
@@ -48,63 +54,78 @@ function enrichJapaneseFromDeck(
   return {};
 }
 
+interface VocabularyRow {
+  id: string;
+  term: string;
+  translation: string;
+  example_sentence?: string | null;
+  pronunciation?: string | null;
+  reading?: string | null;
+  audio_url?: string | null;
+  tags?: string[] | null;
+}
+
+interface LessonVocabularyRow {
+  position: number;
+  vocabulary_items: VocabularyRow | null;
+}
+
+interface CourseLessonRow {
+  id?: string;
+  title?: string;
+  order_index: number;
+  lesson_vocabulary?: LessonVocabularyRow[];
+}
+
+interface CourseModuleRow {
+  id?: string;
+  title: string;
+  order_index: number;
+  lessons?: CourseLessonRow[];
+}
+
+interface CourseDocumentRow {
+  id: string;
+  title: string;
+  document_type: string;
+  external_url: string | null;
+  content_markdown: string;
+  read_time_minutes: number;
+  summary: string;
+  metadata: Record<string, unknown> | null;
+  storage_path: string | null;
+  created_at: string;
+}
+
+interface CoursePodcastRow {
+  id: string;
+  title: string;
+  summary: string;
+  duration_minutes: number;
+  external_url: string | null;
+  storage_path: string | null;
+  created_at: string;
+}
+
+interface AssessmentRow {
+  id: string;
+  title: string;
+  assessment_type: string;
+  passing_score: number;
+  order_index: number;
+}
+
 interface CourseWorkspaceRow {
   id: string;
   title: string;
   level: string;
   description: string;
   feature_config?: Record<string, unknown> | null;
-  course_modules?: Array<{
-    id: string;
-    title: string;
-    order_index: number;
-    lessons?: Array<{
-      id: string;
-      title: string;
-      order_index: number;
-      lesson_vocabulary?: Array<{
-        position: number;
-        vocabulary_items: {
-          id: string;
-          term: string;
-          translation: string;
-          example_sentence: string | null;
-          pronunciation: string | null;
-          reading: string | null;
-          audio_url: string | null;
-          tags: string[];
-        } | null;
-      }>;
-    }>;
-  }>;
-  documents?: Array<{
-    id: string;
-    title: string;
-    document_type: string;
-    external_url: string | null;
-    content_markdown: string;
-    read_time_minutes: number;
-    summary: string;
-    metadata: Record<string, unknown> | null;
-    storage_path: string | null;
-    created_at: string;
-  }>;
-  podcast_episodes?: Array<{
-    id: string;
-    title: string;
-    summary: string;
-    duration_minutes: number;
-    external_url: string | null;
-    storage_path: string | null;
-    created_at: string;
-  }>;
-  assessments?: Array<{
-    id: string;
-    title: string;
-    assessment_type: string;
-    passing_score: number;
-    order_index: number;
-  }>;
+  course_modules?: CourseModuleRow[];
+  documents?: CourseDocumentRow[];
+  podcast_episodes?: CoursePodcastRow[];
+  assessments?: AssessmentRow[];
+  podcast_count?: number;
 }
 
 interface LearnerWorkspaceProgress {
@@ -132,24 +153,40 @@ function minutesLabel(minutes: number): string {
   return `${minutes} phút`;
 }
 
-function mapWorkspace(
-  row: CourseWorkspaceRow,
-  progress: LearnerWorkspaceProgress,
-  reviewRows: ReviewQuestionRow[],
-): Omit<CourseLearningWorkspaceData, 'featureConfig'> {
-  const modules = [...(row.course_modules ?? [])].sort((a, b) => a.order_index - b.order_index);
+function sortedModules(row: CourseWorkspaceRow): CourseModuleRow[] {
+  return [...(row.course_modules ?? [])].sort((a, b) => a.order_index - b.order_index);
+}
+
+function mapCourseMeta(row: CourseWorkspaceRow, enrollmentPercent: number): CourseLearningMeta {
+  const modules = sortedModules(row);
+  return {
+    course: {
+      id: row.id,
+      title: row.title,
+      level: row.level,
+      description: row.description,
+      currentModule: modules[0]?.title ?? 'Nội dung khóa học',
+      progress: enrollmentPercent,
+    },
+    featureConfig: resolveCourseFeatureConfig(row.feature_config),
+    podcastCount: row.podcast_count ?? row.podcast_episodes?.length ?? 0,
+  };
+}
+
+function mapVocabularyItems(row: CourseWorkspaceRow, progress = new Map<string, VocabularyStatus>()): CourseVocabularyItem[] {
+  const modules = sortedModules(row);
   const lessons = modules.flatMap((module) =>
     [...(module.lessons ?? [])]
       .sort((a, b) => a.order_index - b.order_index)
       .map((lesson) => ({ ...lesson, moduleTitle: module.title })),
   );
 
-  const vocabulary = lessons.flatMap((lesson) =>
+  return lessons.flatMap((lesson) =>
     [...(lesson.lesson_vocabulary ?? [])]
       .sort((a, b) => a.position - b.position)
       .flatMap(({ vocabulary_items: item }) => {
         if (!item) return [];
-        const status = progress.vocabulary.get(item.id) ?? 'new';
+        const status = progress.get(item.id) ?? 'new';
         return [{
           id: item.id,
           word: item.term,
@@ -166,8 +203,10 @@ function mapWorkspace(
         } satisfies CourseVocabularyItem];
       }),
   );
+}
 
-  const reviewQuestions = reviewRows.flatMap((question) => {
+function mapReviewQuestions(reviewRows: ReviewQuestionRow[]): CourseReviewQuestion[] {
+  return reviewRows.flatMap((question) => {
     if (!Array.isArray(question.options)) return [];
     const optionIds: Record<string, string> = {};
     const options = question.options.flatMap((option) => {
@@ -188,15 +227,18 @@ function mapWorkspace(
       source: question.source,
     } satisfies CourseReviewQuestion];
   });
+}
 
-  const documents = (row.documents ?? []).map((document) => ({
+function mapDocuments(row: CourseWorkspaceRow): CourseDocumentItem[] {
+  const moduleTitle = sortedModules(row)[0]?.title ?? row.title;
+  return (row.documents ?? []).map((document) => ({
     id: document.id,
     title: document.title,
     kind: document.document_type.toLowerCase() === 'pdf' ? 'PDF' : 'Post',
     size: typeof document.metadata?.pages === 'number' ? `${document.metadata.pages} trang` : 'Tài liệu',
     publishedAt: document.created_at.slice(0, 10),
     readTime: minutesLabel(document.read_time_minutes),
-    module: modules[0]?.title ?? row.title,
+    module: moduleTitle,
     summary: document.summary,
     preview: document.content_markdown || document.summary,
     tags: [document.document_type.toUpperCase()],
@@ -205,8 +247,10 @@ function mapWorkspace(
     readTimeMinutes: document.read_time_minutes,
     storagePath: document.storage_path,
   } satisfies CourseDocumentItem));
+}
 
-  const podcasts = (row.podcast_episodes ?? []).map((podcast, index) => ({
+function mapPodcasts(rows: CoursePodcastRow[]): CoursePodcastItem[] {
+  return rows.map((podcast, index) => ({
     id: podcast.id,
     title: podcast.title,
     episode: `Episode ${String(index + 1).padStart(2, '0')}`,
@@ -216,8 +260,10 @@ function mapWorkspace(
     externalUrl: podcast.external_url,
     storagePath: podcast.storage_path,
   } satisfies CoursePodcastItem));
+}
 
-  const exams = [...(row.assessments ?? [])]
+function mapExams(rows: AssessmentRow[], progress: Pick<LearnerWorkspaceProgress, 'assessmentScores' | 'assessmentPassed'>): CourseExamItem[] {
+  return [...rows]
     .sort((a, b) => a.order_index - b.order_index)
     .map((assessment, index, all) => {
       const latestScore = progress.assessmentScores.get(assessment.id);
@@ -243,106 +289,211 @@ function mapWorkspace(
         ...(latestScore === undefined ? {} : { latestScore }),
       } satisfies CourseExamItem;
     });
-
-  return {
-    course: {
-      id: row.id,
-      title: row.title,
-      level: row.level,
-      description: row.description,
-      currentModule: modules[0]?.title ?? 'Nội dung khóa học',
-      progress: progress.enrollmentPercent,
-    },
-    vocabulary,
-    reviewQuestions,
-    documents,
-    games: [],
-    exams,
-    podcasts,
-  };
 }
 
-async function fetchLearnerProgress(courseId: string): Promise<LearnerWorkspaceProgress> {
+const VOCABULARY_COURSE_SELECT = `
+  id,
+  course_modules(title, order_index, lessons(
+    order_index,
+    lesson_vocabulary(position, vocabulary_items(
+      id, term, translation, example_sentence, pronunciation, reading, audio_url, tags
+    ))
+  ))
+`;
+
+const PRACTICE_COURSE_SELECT = `
+  id,
+  course_modules(title, order_index, lessons(
+    order_index,
+    lesson_vocabulary(position, vocabulary_items(
+      id, term, translation, example_sentence, pronunciation, reading
+    ))
+  ))
+`;
+
+const GAMES_COURSE_SELECT = `
+  id,
+  course_modules(title, order_index, lessons(
+    order_index,
+    lesson_vocabulary(position, vocabulary_items(id, term, translation))
+  ))
+`;
+
+function vocabularyIds(row: CourseWorkspaceRow): string[] {
+  return Array.from(new Set(sortedModules(row).flatMap((module) =>
+    (module.lessons ?? []).flatMap((lesson) =>
+      (lesson.lesson_vocabulary ?? []).flatMap(({ vocabulary_items: item }) => item ? [item.id] : []),
+    ),
+  )));
+}
+
+export async function fetchCourseLearningMeta(courseId: string): Promise<CourseLearningMeta | null> {
   const client = requireSupabase();
   const userId = await requireUserId(client);
-
-  const [enrollment, vocabulary, attempts] = await Promise.all([
-    client.from('enrollments').select('progress_percent').eq('course_id', courseId).eq('user_id', userId).maybeSingle(),
-    client.from('vocabulary_progress').select('vocabulary_item_id, status').eq('user_id', userId),
-    client.from('assessment_attempts').select('assessment_id, score, passed, attempted_at').eq('user_id', userId).order('attempted_at', { ascending: false }),
-  ]);
-
-  const firstError = [enrollment.error, vocabulary.error, attempts.error].find(Boolean);
-  if (firstError) throw new Error(firstError.message);
-
-  const assessmentScores = new Map<string, number>();
-  const assessmentPassed = new Set<string>();
-  for (const attempt of attempts.data ?? []) {
-    if (!assessmentScores.has(attempt.assessment_id)) assessmentScores.set(attempt.assessment_id, attempt.score);
-    if (attempt.passed) assessmentPassed.add(attempt.assessment_id);
-  }
-
-  return {
-    enrollmentPercent: Math.round(Number(enrollment.data?.progress_percent ?? 0)),
-    vocabulary: new Map((vocabulary.data ?? []).map((item) => [item.vocabulary_item_id, mapVocabularyProgress(item.status)])),
-    assessmentScores,
-    assessmentPassed,
-  };
-}
-
-export async function fetchCourseLearningWorkspace(
-  courseId: string,
-): Promise<CourseLearningWorkspaceData | null> {
-  const client = requireSupabase();
-
-  const [courseResult, progress, reviewResult] = await Promise.all([
+  const [courseResult, enrollmentResult] = await Promise.all([
     client
       .from('courses')
-      .select(`
-        id, title, level, description, feature_config,
-        course_modules(id, title, order_index, lessons(
-          id, title, order_index,
-          lesson_vocabulary(position, vocabulary_items(id, term, translation, example_sentence, pronunciation, reading, audio_url, tags))
-        )),
-        documents(id, title, document_type, content_markdown, external_url, read_time_minutes, storage_path, summary, metadata, created_at),
-        podcast_episodes(id, title, summary, duration_minutes, external_url, storage_path, created_at),
-        assessments(id, title, assessment_type, passing_score, order_index)
-      `)
+      .select('id, title, level, description, feature_config, course_modules(title, order_index), podcast_episodes(count)')
       .eq('id', courseId)
       .eq('status', 'published')
       .maybeSingle(),
-    fetchLearnerProgress(courseId),
+    client
+      .from('enrollments')
+      .select('progress_percent')
+      .eq('course_id', courseId)
+      .eq('user_id', userId)
+      .maybeSingle(),
+  ]);
+
+  if (courseResult.error) throw new Error(courseResult.error.message);
+  if (enrollmentResult.error) throw new Error(enrollmentResult.error.message);
+  if (!courseResult.data) return null;
+
+  const selected = courseResult.data as unknown as CourseWorkspaceRow & { podcast_episodes?: Array<{ count?: number }> };
+  const row: CourseWorkspaceRow = {
+    ...selected,
+    podcast_count: selected.podcast_episodes?.[0]?.count ?? 0,
+  };
+  return mapCourseMeta(row, Math.max(0, Math.min(100, Math.round(Number(enrollmentResult.data?.progress_percent ?? 0)))));
+}
+
+export async function fetchCourseVocabulary(courseId: string): Promise<CourseVocabularyData | null> {
+  const client = requireSupabase();
+  const [courseResult, userId] = await Promise.all([
+    client
+      .from('courses')
+      .select(VOCABULARY_COURSE_SELECT)
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle(),
+    requireUserId(client),
+  ]);
+
+  if (courseResult.error) throw new Error(courseResult.error.message);
+  if (!courseResult.data) return null;
+
+  const row = courseResult.data as unknown as CourseWorkspaceRow;
+  const ids = vocabularyIds(row);
+  const progressResult = ids.length > 0
+    ? await client
+      .from('vocabulary_progress')
+      .select('vocabulary_item_id, status')
+      .eq('user_id', userId)
+      .in('vocabulary_item_id', ids)
+    : { data: [], error: null };
+  if (progressResult.error) throw new Error(progressResult.error.message);
+
+  const progress = new Map((progressResult.data ?? []).map((item) => [item.vocabulary_item_id, mapVocabularyProgress(item.status)]));
+  return { vocabulary: mapVocabularyItems(row, progress) };
+}
+
+export async function fetchCourseDocuments(courseId: string): Promise<CourseDocumentsData | null> {
+  const client = requireSupabase();
+  const [courseResult, documentsResult] = await Promise.all([
+    client
+      .from('courses')
+      .select('id, title, course_modules(title, order_index)')
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle(),
+    client
+      .from('documents')
+      .select('id, title, document_type, content_markdown, external_url, read_time_minutes, storage_path, summary, metadata, created_at')
+      .eq('course_id', courseId)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false }),
+  ]);
+
+  if (courseResult.error) throw new Error(courseResult.error.message);
+  if (documentsResult.error) throw new Error(documentsResult.error.message);
+  if (!courseResult.data) return null;
+
+  const row = {
+    ...(courseResult.data as unknown as CourseWorkspaceRow),
+    documents: (documentsResult.data ?? []) as unknown as CourseDocumentRow[],
+  } satisfies CourseWorkspaceRow;
+  return { documents: mapDocuments(row) };
+}
+
+export async function fetchCoursePractice(courseId: string): Promise<CoursePracticeData | null> {
+  const client = requireSupabase();
+  const [courseResult, reviewResult] = await Promise.all([
+    client
+      .from('courses')
+      .select(PRACTICE_COURSE_SELECT)
+      .eq('id', courseId)
+      .eq('status', 'published')
+      .maybeSingle(),
     client.rpc('get_course_review_questions', { target_course_id: courseId }),
   ]);
 
   if (courseResult.error) throw new Error(courseResult.error.message);
   if (reviewResult.error) throw new Error(reviewResult.error.message);
   if (!courseResult.data) return null;
-  const row = courseResult.data as unknown as CourseWorkspaceRow;
-  const featureConfig = resolveCourseFeatureConfig(row.feature_config);
-  const hasLessons = row.course_modules?.some((module) => (module.lessons?.length ?? 0) > 0);
-  if (!hasLessons) {
-    throw new Error('Nội dung khóa học chưa hoàn thiện để có thể học an toàn.');
-  }
-  if (featureConfig.documents && !row.documents?.length) {
-    throw new Error('Nội dung tài liệu khóa học chưa hoàn thiện.');
-  }
-  if (featureConfig.exams && !row.assessments?.length) {
-    throw new Error('Nội dung thi thử khóa học chưa hoàn thiện.');
-  }
 
-  const workspace = mapWorkspace(
-    row,
-    progress,
-    (reviewResult.data ?? []) as unknown as ReviewQuestionRow[],
-  );
-  if (featureConfig.vocabulary && !workspace.vocabulary.length) {
-    throw new Error('Nội dung từ vựng khóa học chưa hoàn thiện.');
+  const row = courseResult.data as unknown as CourseWorkspaceRow;
+  return {
+    vocabulary: mapVocabularyItems(row),
+    reviewQuestions: mapReviewQuestions((reviewResult.data ?? []) as unknown as ReviewQuestionRow[]),
+  };
+}
+
+export async function fetchCourseGames(courseId: string): Promise<CourseGamesData | null> {
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('courses')
+    .select(GAMES_COURSE_SELECT)
+    .eq('id', courseId)
+    .eq('status', 'published')
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  return { vocabulary: mapVocabularyItems(data as unknown as CourseWorkspaceRow), games: [] };
+}
+
+export async function fetchCourseExams(courseId: string): Promise<CourseExamsData | null> {
+  const client = requireSupabase();
+  const userId = await requireUserId(client);
+  const { data, error } = await client
+    .from('assessments')
+    .select('id, title, assessment_type, passing_score, order_index')
+    .eq('course_id', courseId)
+    .eq('status', 'published')
+    .order('order_index', { ascending: true });
+  if (error) throw new Error(error.message);
+
+  const assessments = (data ?? []) as unknown as AssessmentRow[];
+  const ids = assessments.map((assessment) => assessment.id);
+  const attemptsResult = ids.length > 0
+    ? await client
+      .from('assessment_attempts')
+      .select('assessment_id, score, passed, attempted_at')
+      .eq('user_id', userId)
+      .in('assessment_id', ids)
+      .order('attempted_at', { ascending: false })
+    : { data: [], error: null };
+  if (attemptsResult.error) throw new Error(attemptsResult.error.message);
+
+  const assessmentScores = new Map<string, number>();
+  const assessmentPassed = new Set<string>();
+  for (const attempt of attemptsResult.data ?? []) {
+    if (!assessmentScores.has(attempt.assessment_id)) assessmentScores.set(attempt.assessment_id, attempt.score);
+    if (attempt.passed) assessmentPassed.add(attempt.assessment_id);
   }
-  if (featureConfig.practice && !workspace.reviewQuestions.length) {
-    throw new Error('Nội dung ôn tập khóa học chưa hoàn thiện.');
-  }
-  return { ...workspace, featureConfig };
+  return { exams: mapExams(assessments, { assessmentScores, assessmentPassed }) };
+}
+
+export async function fetchCoursePodcasts(courseId: string): Promise<CoursePodcastsData | null> {
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('podcast_episodes')
+    .select('id, title, summary, duration_minutes, external_url, storage_path, created_at')
+    .eq('course_id', courseId)
+    .eq('status', 'published')
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return { podcasts: mapPodcasts((data ?? []) as unknown as CoursePodcastRow[]) };
 }
 
 export async function createSignedCourseAssetUrl(path: string, expiresInSeconds = 300): Promise<string> {

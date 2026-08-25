@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronRight, Loader2, X } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { CourseLearningWorkspaceData } from '@/src/features/courses/courseLearning.types';
-import { fetchCourseLearningWorkspace } from '@/src/features/courses/repositories/courseLearningRepository';
+import { useCourseLearningMeta } from '@/src/features/courses/hooks/useCourseLearningModules';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
-import { type CourseWorkspaceSection } from '@/src/features/courses/lib/courseWorkspaceNavigation';
+import { courseWorkspaceTabs } from '@/src/features/courses/lib/courseWorkspaceNavigation';
 import { useActiveCourseStore } from '@/src/features/courses/store/activeCourseStore';
 import { assets } from '@/src/shared/lib/assets';
 
@@ -14,31 +13,22 @@ interface LearningLauncherSheetProps {
   onClose: () => void;
 }
 
-function moduleSummary(section: CourseWorkspaceSection, workspace: CourseLearningWorkspaceData): string {
-  switch (section) {
-    case 'vocabulary': {
-      const dueCount = workspace.vocabulary.filter((item) => item.status !== 'remembered').length;
-      return dueCount > 0 ? `${dueCount} từ cần học` : 'Đã ôn xong hôm nay';
-    }
-    case 'documents':
-      return workspace.documents.length > 0 ? `${workspace.documents.length} tài liệu` : 'Tài liệu theo khóa';
-    case 'practice':
-      return workspace.reviewQuestions.length > 0 ? `${workspace.reviewQuestions.length} câu hỏi` : 'Bài tập theo khóa';
-    case 'games':
-      return workspace.games.length > 0 ? `${workspace.games.length} trò chơi` : 'Học bằng trò chơi';
-    case 'exams':
-      return workspace.exams.length > 0 ? `${workspace.exams.length} đề thi` : 'Đề thi của khóa';
-  }
-}
+const modeDescriptions = {
+  vocabulary: 'Học từ mới trong khóa',
+  documents: 'Tài liệu của khóa',
+  practice: 'Luyện theo nội dung khóa',
+  games: 'Học qua trò chơi',
+  exams: 'Kiểm tra kiến thức',
+} as const;
 
 export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheetProps) {
   const navigate = useNavigate();
   const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
   const activeCourseStatus = useActiveCourseStore((state) => state.status);
-  const [workspace, setWorkspace] = useState<CourseLearningWorkspaceData | null>(null);
-  const [loadedCourseId, setLoadedCourseId] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const meta = useCourseLearningMeta(
+    activeCourseId ?? undefined,
+    isOpen && activeCourseStatus === 'ready' && Boolean(activeCourseId),
+  );
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -61,47 +51,10 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen || activeCourseStatus !== 'ready' || !activeCourseId || loadedCourseId === activeCourseId) {
-      return undefined;
-    }
-
-    let cancelled = false;
-    setWorkspace(null);
-    setLoadError(null);
-    setIsLoading(true);
-
-    fetchCourseLearningWorkspace(activeCourseId)
-      .then((data) => {
-        if (cancelled) return;
-        if (!data) {
-          setLoadError('Không tìm thấy nội dung khóa học đang học.');
-        } else {
-          setWorkspace(data);
-        }
-        setLoadedCourseId(activeCourseId);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setLoadError(error instanceof Error ? error.message : 'Không tải được nội dung khóa học.');
-        setLoadedCourseId(activeCourseId);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      setIsLoading(false);
-    };
-  }, [activeCourseId, activeCourseStatus, isOpen, loadedCourseId]);
-
-  const activeWorkspace = workspace?.course.id === activeCourseId ? workspace : null;
+  const activeCourseMeta = meta.data?.course.id === activeCourseId ? meta.data : null;
   const visibleTabs = useMemo(
-    () => activeWorkspace
-      ? getVisibleCourseWorkspaceTabs(activeWorkspace.featureConfig)
-      : [],
-    [activeWorkspace],
+    () => activeCourseMeta ? getVisibleCourseWorkspaceTabs(activeCourseMeta.featureConfig) : [...courseWorkspaceTabs],
+    [activeCourseMeta],
   );
   const firstTab = visibleTabs[0]?.id ?? 'vocabulary';
   const workspacePath = activeCourseId ? `/app/courses/${activeCourseId}/workspace` : '/app/courses';
@@ -110,12 +63,6 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
   const navigateTo = (path: string) => {
     onClose();
     navigate(path);
-  };
-
-  const retry = () => {
-    setWorkspace(null);
-    setLoadError(null);
-    setLoadedCourseId(null);
   };
 
   return (
@@ -189,28 +136,28 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                 </div>
               )}
 
-              {activeCourseId && isLoading && !activeWorkspace && (
+              {activeCourseId && meta.isLoading && !activeCourseMeta && (
                 <div className="space-y-3 rounded-[22px] border border-[#eae6f4] bg-white p-4" role="status">
-                  <div className="flex items-center gap-3"><Loader2 size={17} className="animate-spin text-[#6f45d8]" /><span className="text-[12px] font-bold text-[#6f45d8]">Đang mở khóa học…</span></div>
+                  <div className="h-4 w-2/3 animate-pulse rounded-full bg-[#eeeaf8]" />
+                  <div className="h-3 w-1/3 animate-pulse rounded-full bg-[#f4f1fb]" />
                   <div className="h-2 animate-pulse rounded-full bg-[#eeeaf8]" />
-                  <div className="h-14 animate-pulse rounded-2xl bg-[#f7f4fd]" />
                 </div>
               )}
 
-              {activeCourseId && loadError && !isLoading && (
+              {activeCourseId && meta.loadError && !meta.isLoading && (
                 <div className="rounded-[22px] border border-red-200 bg-red-50 p-4 text-center">
-                  <p className="text-[12px] font-bold text-red-700">{loadError}</p>
-                  <button type="button" onClick={retry} className="mt-3 min-h-11 rounded-full bg-white px-4 text-[11px] font-black text-red-700 shadow-xs">Thử lại</button>
+                  <p className="text-[12px] font-bold text-red-700">{meta.loadError}</p>
+                  <button type="button" onClick={meta.retry} className="mt-3 min-h-11 rounded-full bg-white px-4 text-[11px] font-black text-red-700 shadow-xs">Thử lại</button>
                 </div>
               )}
 
-              {activeWorkspace && (
+              {activeCourseMeta && (
                 <>
-                  <section className="rounded-[22px] border border-[#e3d8fb] bg-[#faf8ff] p-4" aria-label={`Khóa học ${activeWorkspace.course.title}`}>
+                  <section className="rounded-[22px] border border-[#e3d8fb] bg-[#faf8ff] p-4" aria-label={`Khóa học ${activeCourseMeta.course.title}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-[15px] font-black text-[#27203d]">{activeWorkspace.course.title}</p>
-                        <p className="mt-1 truncate text-[11px] font-semibold text-[#858091]">{activeWorkspace.course.currentModule}</p>
+                        <p className="truncate text-[15px] font-black text-[#27203d]">{activeCourseMeta.course.title}</p>
+                        <p className="mt-1 truncate text-[11px] font-semibold text-[#858091]">{activeCourseMeta.course.currentModule}</p>
                       </div>
                       <button
                         type="button"
@@ -221,10 +168,10 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                       </button>
                     </div>
                     <div className="mt-3 flex items-center justify-between text-[10px] font-black text-[#6f45d8]">
-                      <span>Tiến độ</span><span>{activeWorkspace.course.progress}%</span>
+                      <span>Tiến độ</span><span>{activeCourseMeta.course.progress}%</span>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eae4f8]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeWorkspace.course.progress} aria-label={`Tiến độ ${activeWorkspace.course.title}`}>
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#6f45d8] to-[#a98af4]" style={{ width: `${activeWorkspace.course.progress}%` }} />
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eae4f8]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeCourseMeta.course.progress} aria-label={`Tiến độ ${activeCourseMeta.course.title}`}>
+                      <div className="h-full rounded-full bg-gradient-to-r from-[#6f45d8] to-[#a98af4]" style={{ width: `${activeCourseMeta.course.progress}%` }} />
                     </div>
                   </section>
 
@@ -235,7 +182,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                   >
                     <span className="min-w-0">
                       <strong className="block text-[13px] font-black">▶ TIẾP TỤC BÀI ĐANG HỌC</strong>
-                      <span className="mt-1 block truncate text-[10px] font-semibold text-white/75">{activeWorkspace.course.currentModule}</span>
+                      <span className="mt-1 block truncate text-[10px] font-semibold text-white/75">{activeCourseMeta.course.currentModule}</span>
                     </span>
                     <ChevronRight size={20} className="shrink-0" />
                   </button>
@@ -251,7 +198,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f6f2ff] p-1.5"><img src={tab.imageIcon} alt="" className="h-full w-full object-contain" /></span>
                         <span className="min-w-0 flex-1">
                           <strong className="block text-[14px] font-extrabold text-[#292a32]">{tab.label}</strong>
-                          <span className="mt-0.5 block truncate text-[11px] font-medium text-[#858794]">{moduleSummary(tab.id, activeWorkspace)}</span>
+                          <span className="mt-0.5 block truncate text-[11px] font-medium text-[#858794]">{modeDescriptions[tab.id]}</span>
                         </span>
                         <ChevronRight size={18} className="shrink-0 text-[#aaa0c3]" />
                       </button>

@@ -6,6 +6,7 @@ import {
   focusRing,
 } from '@/src/features/courses/components/CourseLearningResourcePanels';
 import { type CourseVocabularyItem } from '@/src/features/courses/courseLearning.types';
+import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
 import { submitVocabularyRating, type VocabularyRating } from '@/src/features/courses/repositories/learningProgressRepository';
 import { Confetti } from '@/src/shared/components/Confetti';
 import { cn, vibrate } from '@/src/lib/utils';
@@ -62,6 +63,7 @@ export function VocabularyHeadword({
 }
 
 interface VocabularyPanelProps {
+  courseId: string;
   expandedVocabularyId: string | null;
   filteredVocabulary: CourseVocabularyItem[];
   categoryOptions: VocabularyCategoryOption[];
@@ -93,6 +95,7 @@ export interface VocabularyCategoryOption {
 }
 
 export function VocabularyPanel({
+  courseId,
   expandedVocabularyId,
   filteredVocabulary,
   categoryOptions,
@@ -167,6 +170,7 @@ export function VocabularyPanel({
 
       {view === 'flashcard' ? (
         <VocabularyFlashcards
+          courseId={courseId}
           items={filteredVocabulary}
           showFurigana={showFurigana}
           showRomaji={showRomaji}
@@ -299,6 +303,7 @@ export function VocabularyPanel({
 }
 
 interface VocabularyFlashcardsProps {
+  courseId: string;
   items: CourseVocabularyItem[];
   showFurigana: boolean;
   showRomaji: boolean;
@@ -308,6 +313,7 @@ interface VocabularyFlashcardsProps {
 }
 
 function VocabularyFlashcards({
+  courseId,
   items,
   showFurigana,
   showRomaji,
@@ -349,6 +355,7 @@ function VocabularyFlashcards({
     vibrate(rating === 'again' ? [60, 30, 60] : [20, 40, 60]);
     try {
       await submitVocabularyRating(card.id, rating);
+      invalidateCourseLearningCache(courseId, 'vocabulary');
       setRated((current) => ({ ...current, [card.id]: rating }));
     } catch (reason) {
       setSaveError(reason instanceof Error ? reason.message : 'Không lưu được kết quả ôn từ.');
