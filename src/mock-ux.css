@@ -94,6 +94,26 @@
   outline-color: #bca8ee;
 }
 
+/*
+ * iOS Safari can lose a transformed Motion child when the same fixed ancestor
+ * owns backdrop-filter. The symptom is a blurred vocabulary list with the
+ * detail card missing. Keep the backdrop compositing simple and force the
+ * dialog itself onto the visible layer. The overlay still keeps its dim tint.
+ */
+.fixed.inset-0:has(> [aria-labelledby='vocab-detail-title']) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+[aria-labelledby='vocab-detail-title'] {
+  position: relative;
+  z-index: 1;
+  opacity: 1 !important;
+  -webkit-transform: none !important;
+  transform: none !important;
+}
+
 @media (max-width: 767px) {
   .course-learning-workspace {
     padding-inline: 0.35rem;
