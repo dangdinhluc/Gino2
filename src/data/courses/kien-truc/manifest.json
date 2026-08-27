@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "created_for": "Gino2",
+    "course_scope": "建設・建築｜Kiến trúc & Xây dựng",
+    "language": "ja+vi",
+    "source": {
+      "file": "Câu hỏi Thi kiến trúc gino2",
+      "spreadsheet_id": "1f6YaXcGQ9vQ_Zh_QA2UY7PnjNHsQn1JB7kxSy9tYAZY"
+    },
+    "counts": {
+      "questions": 389,
+      "vocabulary_items": 99,
+      "question_parts": 10,
+      "vocabulary_parts": 2
+    },
+    "quality": {
+      "mapped_correct_answers": 389,
+      "duplicate_question_groups": 1,
+      "duplicate_question_ids": [["kt-q-0054", "kt-q-0056"]]
+    }
+  },
+  "course": {
+    "id": "kien-truc",
+    "slug": "kien-truc-xay-dung",
+    "title": "建設・建築｜Kiến trúc & Xây dựng",
+    "status": "source-data"
+  },
+  "question_files": [
+    "questions/questions_part_01.json",
+    "questions/questions_part_02.json",
+    "questions/questions_part_03.json",
+    "questions/questions_part_04.json",
+    "questions/questions_part_05.json",
+    "questions/questions_part_06.json",
+    "questions/questions_part_07.json",
+    "questions/questions_part_08.json",
+    "questions/questions_part_09.json",
+    "questions/questions_part_10.json"
+  ],
+  "vocabulary_files": [
+    "vocabulary/vocabulary_part_01.json",
+    "vocabulary/vocabulary_part_02.json"
+  ]
+}
