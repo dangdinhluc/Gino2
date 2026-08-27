@@ -1,0 +1,31 @@
+import { useEffect, useState } from 'react';
+import type { Tables } from '@/src/features/supabase/lib/database.types';
+import { replaceAdminGrammarTopicCourses, saveAdminGrammarTopic } from '@/src/features/admin/repositories/adminRepository';
+import { EditorDrawer } from '@/src/features/admin/components/EditorDrawer';
+import { EditorField, EditorSelect, editorControlClass } from '@/src/features/admin/components/course/EditorFields';
+
+type Topic = Tables<'grammar_topics'>;
+type Course = Tables<'courses'>;
+interface TopicDraft { slug: string; title: string; level: string; category: string; summary: string; orderIndex: string; status: string; courseIds: string[]; }
+function draftFor(topic: Topic | null, courseIds: string[]): TopicDraft { return topic ? { slug: topic.slug, title: topic.title, level: topic.level, category: topic.category, summary: topic.summary, orderIndex: String(topic.order_index), status: topic.status, courseIds } : { slug: '', title: '', level: '', category: '', summary: '', orderIndex: '0', status: 'draft', courseIds: [] }; }
+
+export function GrammarTopicEditorDrawer({ open, topic, courses, linkedCourseIds, onClose, onSaved }: { open: boolean; topic: Topic | null; courses: Course[]; linkedCourseIds: string[]; onClose: () => void; onSaved: () => Promise<void> | void }) {
+  const [draft, setDraft] = useState<TopicDraft>(() => draftFor(topic, linkedCourseIds));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { if (open) { setDraft(draftFor(topic, linkedCourseIds)); setError(null); } }, [linkedCourseIds, open, topic]);
+  const set = (key: Exclude<keyof TopicDraft, 'courseIds'>, value: string) => setDraft((current) => ({ ...current, [key]: value }));
+  function toggleCourse(courseId: string): void { setDraft((current) => ({ ...current, courseIds: current.courseIds.includes(courseId) ? current.courseIds.filter((id) => id !== courseId) : [...current.courseIds, courseId] })); }
+  async function save(): Promise<void> {
+    const slug = draft.slug.trim(); const title = draft.title.trim(); const orderIndex = Number(draft.orderIndex);
+    if (!slug || !title) { setError('Hãy nhập slug và tên chủ điểm.'); return; }
+    if (!Number.isFinite(orderIndex) || orderIndex < 0) { setError('Thứ tự cần là số không âm.'); return; }
+    setSaving(true); setError(null);
+    try {
+      const saved = await saveAdminGrammarTopic({ id: topic?.id ?? crypto.randomUUID(), isNew: !topic, slug, title, level: draft.level.trim() || '', category: draft.category.trim() || '', summary: draft.summary.trim() || '', order_index: Math.round(orderIndex), status: draft.status || 'draft' });
+      await replaceAdminGrammarTopicCourses(saved.id, draft.courseIds);
+      await onSaved(); onClose();
+    } catch { setError('Không lưu được chủ điểm ngữ pháp. Vui lòng thử lại.'); } finally { setSaving(false); }
+  }
+  return <EditorDrawer open={open} title={topic ? 'Chỉnh sửa chủ điểm' : 'Tạo chủ điểm ngữ pháp'} description="Quy tắc và ví dụ sẽ được quản lý bên trong chủ điểm sau khi lưu." onRequestClose={onClose} footer={<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" onClick={onClose} disabled={saving} className="min-h-11 rounded-xl border border-[#D9CBB9] bg-white px-4 text-sm font-semibold text-[#315C73]">Hủy</button><button type="button" onClick={() => void save()} disabled={saving} className="min-h-11 rounded-xl bg-[#315C73] px-4 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Đang lưu…' : 'Lưu chủ điểm'}</button></div>}><div className="space-y-4"><div className="grid gap-4 sm:grid-cols-2"><EditorField id="grammar-topic-title" label="Tên chủ điểm" required><input id="grammar-topic-title" value={draft.title} onChange={(event) => set('title', event.target.value)} className={editorControlClass} /></EditorField><EditorField id="grammar-topic-slug" label="Slug" required><input id="grammar-topic-slug" value={draft.slug} onChange={(event) => set('slug', event.target.value)} className={editorControlClass} /></EditorField><EditorField id="grammar-topic-level" label="Cấp độ"><input id="grammar-topic-level" value={draft.level} onChange={(event) => set('level', event.target.value)} className={editorControlClass} /></EditorField><EditorField id="grammar-topic-category" label="Danh mục"><input id="grammar-topic-category" value={draft.category} onChange={(event) => set('category', event.target.value)} className={editorControlClass} /></EditorField></div><EditorField id="grammar-topic-summary" label="Tóm tắt"><textarea id="grammar-topic-summary" value={draft.summary} onChange={(event) => set('summary', event.target.value)} className={`${editorControlClass} min-h-28 resize-y`} /></EditorField><div className="grid gap-4 sm:grid-cols-2"><EditorField id="grammar-topic-order" label="Thứ tự"><input id="grammar-topic-order" type="number" min="0" value={draft.orderIndex} onChange={(event) => set('orderIndex', event.target.value)} className={editorControlClass} /></EditorField><EditorField id="grammar-topic-status" label="Luồng duyệt"><EditorSelect id="grammar-topic-status" value={draft.status} onChange={(value) => set('status', value)}><option value="draft">Nháp</option><option value="in_review">Chờ duyệt</option></EditorSelect></EditorField></div><fieldset><legend className="text-sm font-semibold text-[#334155]">Khóa học liên kết</legend><p className="mt-1 text-xs text-[#7B8796]">Chọn khóa học theo tên; không cần nhập course ID.</p><div className="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-xl border border-[#E4D8C9] bg-white p-2">{courses.map((course) => <label key={course.id} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-2 hover:bg-[#F8F2EA]"><input type="checkbox" checked={draft.courseIds.includes(course.id)} onChange={() => toggleCourse(course.id)} className="size-4 accent-[#315C73]" /><span className="text-sm text-[#172033]">{course.title}</span></label>)}{courses.length === 0 && <p className="p-2 text-sm text-[#5F6B7C]">Chưa có khóa học để liên kết.</p>}</div></fieldset>{error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">{error}</p>}</div></EditorDrawer>;
+}

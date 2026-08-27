@@ -36,6 +36,9 @@ export {
   listAdminLessonVocabulary,
   listAdminModules,
   listAdminVocabulary,
+  listAdminVocabularyFilterOptions,
+  listAdminVocabularyPage,
+  listAdminVocabularyPicker,
   replaceAdminLessonVocabulary,
   saveAdminAudio,
   saveAdminDocument,
@@ -44,8 +47,23 @@ export {
   saveAdminLessonExercise,
   saveAdminModule,
   saveAdminVocabulary,
+  type AdminVocabularyPage,
+  type AdminVocabularyPageOptions,
   updateAdminCourse,
 } from './adminContentRepository';
+
+export {
+  fetchAdminLessonContent,
+  type AdminLessonContent,
+} from './adminLessonRepository';
+
+export {
+  fetchAdminCourseWorkspace,
+  listAdminCourseSummaries,
+  summarizeAdminCourses,
+  type AdminCourseSummary,
+  type AdminCourseWorkspace,
+} from './adminCourseRepository';
 
 export {
   deleteAdminAssessment,
@@ -96,12 +114,14 @@ export {
 
 export {
   fetchAdminLearnerDetail,
+  fetchAdminLearnerProfile,
   inviteAdminStaff,
   listAdminStaff,
   listAdminStudents,
   removeAdminStaffRole,
   setAdminStaffRole,
   uploadAdminCourseAsset,
+  type AdminLearnerProfile,
 } from './adminUsersRepository';
 
 export {

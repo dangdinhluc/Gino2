@@ -33,7 +33,7 @@ export function PublicRoutes() {
       <Route path="/privacy" element={screen(<PrivacyPage />)} />
       <Route path="/admin/login" element={screen(<QuickLoginPage />)} />
       <Route
-        path="/admin"
+        path="/admin/*"
         element={
           <ProtectedRoute area="admin">
             {screen(<AdminDashboardPage />)}

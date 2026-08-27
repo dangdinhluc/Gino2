@@ -1,1 +1,1 @@
-export { default } from './AdminProductionDashboard';
+export { default } from './AdminV2App';

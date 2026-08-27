@@ -22,10 +22,10 @@ export async function saveAdminAssessment(input: AdminDraft<'assessments'>): Pro
   return result.data;
 }
 
-export async function listAdminAssessmentQuestions() {
+export async function listAdminAssessmentQuestions(assessmentId?: string) {
   const { data, error } = await (await requireAdmin()).rpc('get_admin_assessment_questions');
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return assessmentId ? (data ?? []).filter((item) => item.assessment_id === assessmentId) : (data ?? []);
 }
 
 export async function saveAdminAssessmentQuestion(input: AdminDraft<'assessment_questions'>) {
@@ -48,16 +48,19 @@ export async function deleteAdminAssessmentQuestion(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function listAdminReviewQuestions(): Promise<ReviewQuestion[]> {
-  const { data, error } = await (await requireAdmin()).from('review_questions').select('*').order('lesson_id').order('order_index');
+export async function listAdminReviewQuestions(lessonId?: string): Promise<ReviewQuestion[]> {
+  let query = (await requireAdmin()).from('review_questions').select('*').order('lesson_id').order('order_index');
+  if (lessonId) query = query.eq('lesson_id', lessonId);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data ?? [];
 }
 
-export async function listAdminReviewOptions(): Promise<AdminReviewOption[]> {
+export async function listAdminReviewOptions(questionIds?: readonly string[]): Promise<AdminReviewOption[]> {
   const { data, error } = await (await requireAdmin()).rpc('get_admin_review_options');
   if (error) throw new Error(error.message);
-  return data ?? [];
+  const ids = new Set(questionIds?.filter(Boolean) ?? []);
+  return ids.size ? (data ?? []).filter((item) => ids.has(item.question_id)) : (data ?? []);
 }
 
 export async function saveAdminReviewQuestion(input: {

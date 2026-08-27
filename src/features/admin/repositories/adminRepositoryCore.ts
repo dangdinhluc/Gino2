@@ -22,7 +22,7 @@ export function insertDraft<T extends keyof Database['public']['Tables']>(id: st
   return { ...(id ? { id } : {}), ...payload } as TablesInsert<T>;
 }
 
-function safeSearch(value: string): string {
+export function sanitizeAdminSearch(value: string): string {
   return value.normalize('NFKC').replace(/[^\p{L}\p{N}\s_-]/gu, ' ').trim().slice(0, 80);
 }
 
@@ -33,7 +33,7 @@ export async function listAdminTablePage<T extends keyof Database['public']['Tab
     .select('*', { count: 'exact' })
     .order(options.orderBy as never, { ascending: options.ascending ?? false });
   for (const filter of options.filters ?? []) query = query.eq(filter.column as never, filter.value);
-  const needle = safeSearch(options.search ?? '');
+  const needle = sanitizeAdminSearch(options.search ?? '');
   if (needle && options.searchColumns?.length) {
     query = query.or(options.searchColumns.map((column) => `${column}.ilike.*${needle}*`).join(','));
   }

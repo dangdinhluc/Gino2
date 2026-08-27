@@ -1,7 +1,7 @@
-import type { Json, Tables, TablesUpdate } from '@/src/features/supabase/lib/database.types';
+import type { Json, Tables } from '@/src/features/supabase/lib/database.types';
 import { requireAdmin, type AdminLearnerDetail, type AdminStaffMember, type AdminStaffRole } from './adminRepositoryCore';
 
-type Student = Tables<'profiles'>;
+export type AdminLearnerProfile = Tables<'profiles'>;
 type StaffRoleRow = Tables<'admin_roles'>;
 
 function jsonRecord(value: Json | null | undefined): Record<string, Json> {
@@ -12,10 +12,17 @@ function jsonRows(value: Json | null | undefined): Record<string, Json>[] {
   return Array.isArray(value) ? value.flatMap((item) => item && typeof item === 'object' && !Array.isArray(item) ? [item as Record<string, Json>] : []) : [];
 }
 
-export async function listAdminStudents(): Promise<Student[]> {
+export async function listAdminStudents(): Promise<AdminLearnerProfile[]> {
   const { data, error } = await (await requireAdmin()).from('profiles').select('*').eq('profile_role', 'learner').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+export async function fetchAdminLearnerProfile(userId: string): Promise<AdminLearnerProfile> {
+  const { data, error } = await (await requireAdmin()).from('profiles').select('*').eq('user_id', userId).eq('profile_role', 'learner').maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error('Không tìm thấy học viên.');
+  return data;
 }
 
 export async function fetchAdminLearnerDetail(userId: string): Promise<AdminLearnerDetail> {
@@ -67,7 +74,7 @@ export async function listAdminStaff(): Promise<AdminStaffMember[]> {
   return (roles ?? []).map((role) => ({
     ...role,
     displayName: profilesById.get(role.user_id)?.display_name ?? 'Chưa có hồ sơ',
-    email: profilesById.get(role.user_id)?.email ?? role.user_id,
+    email: profilesById.get(role.user_id)?.email ?? 'Email chưa cập nhật',
   }));
 }
 
