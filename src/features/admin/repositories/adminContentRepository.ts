@@ -171,7 +171,7 @@ export async function deleteAdminVocabulary(id: string): Promise<void> {
 }
 
 export async function listAdminDocuments(courseId?: string): Promise<Document[]> {
-  let query = (await requireAdmin()).from('documents').select('*').order('created_at', { ascending: false });
+  let query = (await requireAdmin()).from('documents').select('*').order('created_at', { ascending: false }).limit(200);
   if (courseId) query = query.eq('course_id', courseId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -194,7 +194,7 @@ export async function deleteAdminDocument(id: string): Promise<void> {
 }
 
 export async function listAdminAudio(courseId?: string): Promise<Podcast[]> {
-  let query = (await requireAdmin()).from('podcast_episodes').select('*').order('created_at', { ascending: false });
+  let query = (await requireAdmin()).from('podcast_episodes').select('*').order('created_at', { ascending: false }).limit(200);
   if (courseId) query = query.eq('course_id', courseId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, X } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -33,6 +34,22 @@ export function DocumentFilterSheet({
   onApply,
   onClose,
 }: DocumentFilterSheetProps) {
+  const openerRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = window.requestAnimationFrame(() => dialogRef.current?.querySelector<HTMLElement>('button, [href], input, select')?.focus());
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); onClose(); } };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', onKeyDown);
+      openerRef.current?.focus();
+    };
+  }, [onClose, open]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -44,6 +61,7 @@ export function DocumentFilterSheet({
           onClick={onClose}
         >
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="document-filter-title"

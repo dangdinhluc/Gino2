@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { registerServiceWorker } from './features/notifications/repositories/pushRepository';
 import App from './App.tsx';
 import './index.css';
 import './mock-ux.css';
@@ -13,8 +14,7 @@ function scheduleServiceWorkerRegistration(): void {
   if (!('serviceWorker' in navigator)) return;
 
   const register = () => {
-    const scope = import.meta.env.BASE_URL || '/';
-    void navigator.serviceWorker.register(`${scope}sw.js`, { scope }).catch(() => undefined);
+    void registerServiceWorker();
   };
 
   const schedule = () => {

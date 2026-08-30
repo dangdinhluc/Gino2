@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Exam } from '@/src/features/exams/types';
@@ -28,7 +28,22 @@ export default function ExamCenter() {
   const [query, setQuery] = useState('');
   const [providerFilter, setProviderFilter] = useState('Tất cả');
   const [skillFilter, setSkillFilter] = useState('Tất cả');
+  const filterDialogRef = useRef<HTMLDivElement | null>(null);
+  const filterOpenerRef = useRef<HTMLElement | null>(null);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isFilterSheetOpen) return undefined;
+    filterOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = window.requestAnimationFrame(() => filterDialogRef.current?.querySelector<HTMLElement>('button')?.focus());
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); setIsFilterSheetOpen(false); } };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', onKeyDown);
+      filterOpenerRef.current?.focus();
+    };
+  }, [isFilterSheetOpen]);
   const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
   const activeCourseStatus = useActiveCourseStore((state) => state.status);
 
@@ -197,7 +212,9 @@ export default function ExamCenter() {
             onClick={() => setIsFilterSheetOpen(false)}
           >
             <motion.div
+              ref={filterDialogRef}
               role="dialog"
+              aria-labelledby="exam-filter-title"
               aria-modal="true"
               initial={{ scale: 0.95, y: 16 }}
               animate={{ scale: 1, y: 0 }}
@@ -207,7 +224,7 @@ export default function ExamCenter() {
             >
               <div className="flex items-center justify-between gap-3 border-b border-[#f5ece1] pb-3">
                 <div>
-                  <h3 className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
+                  <h3 id="exam-filter-title" className="font-[var(--font-heading)] text-base font-black text-[#0f172a]">
                     Bộ lọc đề thi Tokutei 🎯
                   </h3>
                   <p className="mt-0.5 text-xs font-semibold text-[#5f6b7c]">Lọc theo loại đề thi hoặc kỹ năng cần ôn</p>
@@ -215,6 +232,7 @@ export default function ExamCenter() {
                 <button
                   type="button"
                   onClick={() => setIsFilterSheetOpen(false)}
+                  aria-label="Đóng bộ lọc đề thi"
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
                 >
                   <X size={16} />

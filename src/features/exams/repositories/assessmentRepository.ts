@@ -423,8 +423,30 @@ function mapLegacyResult(row: {
   };
 }
 
-export async function submitAssessment(assessmentId: string, answers: Record<string, string>): Promise<AssessmentResult> {
-  const v2 = await callUntypedRpc<ResultV2Row[]>('submit_assessment_v2', { target_assessment_id: assessmentId, target_answers: answers });
+export interface AssessmentAttemptStart {
+  attemptId: string;
+  assessmentId: string;
+  startedAt: string;
+  expiresAt: string | null;
+}
+
+type AssessmentAttemptStartRow = {
+  attempt_id: string;
+  assessment_id: string;
+  started_at: string;
+  expires_at: string | null;
+};
+
+export async function startAssessmentAttempt(assessmentId: string): Promise<AssessmentAttemptStart> {
+  const v2 = await callUntypedRpc<AssessmentAttemptStartRow[]>('start_assessment_attempt_v2', { target_assessment_id: assessmentId });
+  if (v2.error) throw new Error(v2.error.message);
+  const row = v2.data?.[0];
+  if (!row) throw new Error('Không thể bắt đầu bài thi.');
+  return { attemptId: row.attempt_id, assessmentId: row.assessment_id, startedAt: row.started_at, expiresAt: row.expires_at };
+}
+
+export async function submitAssessment(assessmentId: string, answers: Record<string, string>, attemptId: string): Promise<AssessmentResult> {
+  const v2 = await callUntypedRpc<ResultV2Row[]>('submit_assessment_v2', { target_assessment_id: assessmentId, target_answers: answers, target_attempt_id: attemptId });
   if (!v2.error) {
     const result = v2.data?.[0];
     if (!result) throw new Error('Không nhận được kết quả chấm điểm từ máy chủ.');

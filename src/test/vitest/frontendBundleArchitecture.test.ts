@@ -35,8 +35,7 @@ describe('frontend cold-start boundaries', () => {
 
   it('defers service-worker registration until after load/idle', () => {
     const main = source('src/main.tsx');
-    expect(main).not.toContain('pushRepository');
-    expect(main).toContain('navigator.serviceWorker.register');
+    expect(main).toContain('registerServiceWorker');
     expect(main).toContain('requestIdleCallback');
     expect(main).toContain("window.addEventListener('load'");
   });

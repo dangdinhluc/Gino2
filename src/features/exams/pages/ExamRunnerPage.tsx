@@ -3,10 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, ChevronLeft, Clock3, FileText, Lock, Send } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { invalidateCourseLearningCache } from '@/src/features/courses/lib/courseLearningCache';
-import { fetchAssessmentPaper, fetchAssessmentUnlockState, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
+import { fetchAssessmentPaper, fetchAssessmentUnlockState, startAssessmentAttempt, submitAssessment, type AssessmentPaper } from '@/src/features/exams/repositories/assessmentRepository';
 import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 
-const deadlineKey = (assessmentId: string) => `gino2:assessment-deadline:${assessmentId}`;
+const attemptKey = (assessmentId: string) => `gino2:assessment-attempt:${assessmentId}`;
 
 function formatRemainingTime(totalSeconds: number): string {
   const safeSeconds = Math.max(0, totalSeconds);
@@ -29,7 +29,10 @@ export default function ExamRunner() {
   const [isQuestionListOpen, setIsQuestionListOpen] = useState(false);
   const [lockState, setLockState] = useState<{ locked: boolean; label?: string } | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const submittingRef = useRef(false);
+  const submitRef = useRef<(forced?: boolean) => Promise<void>>(() => Promise.resolve());
 
   useEffect(() => {
     let cancelled = false;
@@ -39,6 +42,8 @@ export default function ExamRunner() {
     setSelectedAnswers({});
     setLockState(null);
     setRemainingSeconds(null);
+    setAttemptId(null);
+    setExpiresAt(null);
     submittingRef.current = false;
 
     if (!assessmentId) {
@@ -60,6 +65,14 @@ export default function ExamRunner() {
             return;
           }
           setPaper(nextPaper);
+          startAssessmentAttempt(assessmentId).then((attempt) => {
+            if (cancelled) return;
+            setAttemptId(attempt.attemptId);
+            setExpiresAt(attempt.expiresAt);
+            window.localStorage.setItem(attemptKey(assessmentId), attempt.attemptId);
+          }).catch((error: unknown) => {
+            if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Không thể bắt đầu bài thi.');
+          });
         });
       })
       .catch((error: unknown) => {
@@ -70,30 +83,23 @@ export default function ExamRunner() {
   }, [assessmentId]);
 
   useEffect(() => {
-    if (!paper || !assessmentId || !paper.config.durationMinutes) {
+    if (!paper || !attemptId || !expiresAt) {
       setRemainingSeconds(null);
       return;
     }
-
-    const key = deadlineKey(assessmentId);
-    const durationMs = paper.config.durationMinutes * 60_000;
-    const savedDeadline = Number(window.localStorage.getItem(key));
-    const deadline = Number.isFinite(savedDeadline) && savedDeadline > 0
-      ? savedDeadline
-      : Date.now() + durationMs;
-
-    if (!Number.isFinite(savedDeadline) || savedDeadline <= 0) {
-      window.localStorage.setItem(key, String(deadline));
+    const deadline = Date.parse(expiresAt);
+    if (!Number.isFinite(deadline)) {
+      setRemainingSeconds(null);
+      return;
     }
-
     const tick = () => setRemainingSeconds(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
     tick();
     const intervalId = window.setInterval(tick, 1000);
     return () => window.clearInterval(intervalId);
-  }, [assessmentId, paper]);
+  }, [attemptId, expiresAt, paper]);
 
   const submitCurrentAnswers = async (forced = false) => {
-    if (submittingRef.current || !assessmentId || !paper) return;
+    if (submittingRef.current || !assessmentId || !paper || !attemptId) return;
 
     const unanswered = paper.questions.length - Object.keys(selectedAnswers).length;
     if (!forced && unanswered > 0) {
@@ -106,9 +112,9 @@ export default function ExamRunner() {
     submittingRef.current = true;
     setIsSubmitting(true);
     try {
-      const result = await submitAssessment(assessmentId, selectedAnswers);
+      const result = await submitAssessment(assessmentId, selectedAnswers, attemptId);
       invalidateCourseLearningCache(paper.courseId, 'exams');
-      window.localStorage.removeItem(deadlineKey(assessmentId));
+      window.localStorage.removeItem(attemptKey(assessmentId));
       navigate(`/app/exams/${assessmentId}/result`, { state: { result } });
     } catch (error: unknown) {
       submittingRef.current = false;
@@ -117,13 +123,12 @@ export default function ExamRunner() {
       setIsSubmitting(false);
     }
   };
+  submitRef.current = submitCurrentAnswers;
 
   useEffect(() => {
     if (remainingSeconds !== 0 || !paper || submittingRef.current) return;
-    void submitCurrentAnswers(true);
-    // Auto-submit is intentionally triggered only when the countdown reaches zero.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remainingSeconds]);
+    void submitRef.current(true);
+  }, [paper, remainingSeconds]);
 
   const handleExit = () => {
     if (isSubmitting) return;

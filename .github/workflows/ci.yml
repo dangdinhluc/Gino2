@@ -35,8 +35,18 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      - name: Legacy tests
+        run: npm run test:legacy
+
       - name: Type check
         run: npm run typecheck
 
       - name: Build
         run: npm run build
+
+      - name: Verify generated PWA assets
+        run: |
+          test -f dist/manifest.webmanifest
+          test -f dist/sw.js
+          grep -q './assets/app-images/mascot-brand.webp' dist/manifest.webmanifest
+          grep -q "new URL('assets/app-images/game-tanuki.webp', self.registration.scope)" dist/sw.js

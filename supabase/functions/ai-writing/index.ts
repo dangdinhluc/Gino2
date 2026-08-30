@@ -53,9 +53,12 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return isAllowedOrigin(request) ? new Response('ok', { headers: corsHeaders(request) }) : errorResponse('Origin không được phép.', 403, request);
   if (request.method !== 'POST') return errorResponse('Chỉ hỗ trợ POST.', 405, request);
 
+  let quotaReserved = false;
+  let quotaClient: Awaited<ReturnType<typeof authenticate>>['client'] | null = null;
   try {
     assertAllowedOrigin(request);
     const { client, user } = await authenticate(request);
+    quotaClient = client;
     const body = parseJsonBody(await request.json());
     const text = stringField(body, 'text', 1, 10000);
     const courseId = optionalString(body, 'courseId', 160);
@@ -67,6 +70,7 @@ Deno.serve(async (request) => {
 
     const { error: quotaError } = await client.rpc('consume_ai_quota', { target_feature: 'writing' });
     if (quotaError) throw new Error(quotaError.message);
+    quotaReserved = true;
 
     const prompt = [
       'Bạn là giám khảo luyện viết tiếng Nhật cho kỳ Tokutei Gino.',
@@ -91,10 +95,14 @@ Deno.serve(async (request) => {
       .select('id')
       .single();
     if (submissionError) throw new Error(submissionError.message);
+    quotaReserved = false;
     return new Response(JSON.stringify({ ...result, submissionId: submission.id }), {
       headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    if (quotaReserved) {
+      try { await quotaClient?.rpc('refund_ai_quota', { target_feature: 'writing' }); } catch (refundError) { console.error('[ai-writing] quota refund failed', refundError); }
+    }
     return handleError(error, request);
   }
 });

@@ -15,9 +15,10 @@ import { useAiTutorChat } from '@/src/features/ai/hooks/useAiTutorChat';
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.fetchAiConversationHistory.mockResolvedValue([
-    { id: 'message-1', role: 'assistant', text: 'Xin chào' },
-  ]);
+  mocks.fetchAiConversationHistory.mockResolvedValue({
+    conversationId: 'conversation-1',
+    messages: [{ id: 'message-1', role: 'assistant', text: 'Xin chào' }],
+  });
 });
 
 describe('AI tutor loading boundary', () => {

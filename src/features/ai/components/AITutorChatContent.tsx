@@ -12,7 +12,7 @@ interface AITutorChatContentProps {
 
 export default function AITutorChatContent({ open, dialogRef, onClose }: AITutorChatContentProps) {
   const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
-  const { draft, error, handleSubmit, isSending, messages, sendMessage, setDraft } = useAiTutorChat({ enabled: open, courseId: activeCourseId ?? undefined });
+  const { draft, error, handleSubmit, isSending, messages, resetChat, sendMessage, setDraft } = useAiTutorChat({ enabled: open, courseId: activeCourseId ?? undefined });
 
   useEffect(() => {
     if (!open) return undefined;
@@ -43,6 +43,7 @@ export default function AITutorChatContent({ open, dialogRef, onClose }: AITutor
             isSending={isSending}
             messages={messages}
             onClose={onClose}
+            onReset={resetChat}
             onDraftChange={setDraft}
             onSendMessage={sendMessage}
             onSubmit={handleSubmit}

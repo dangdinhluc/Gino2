@@ -77,12 +77,12 @@ export async function unregisterPush(): Promise<void> {
   }
 }
 
-export async function registerServiceWorker(): Promise<void> {
-  if (!('serviceWorker' in navigator)) return;
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return null;
   const scope = import.meta.env.BASE_URL || '/';
   try {
-    await navigator.serviceWorker.register(`${scope}sw.js`, { scope });
+    return await navigator.serviceWorker.register(`${scope}sw.js`, { scope });
   } catch {
-    // Service worker registration is best-effort; push stays disabled without it.
+    return null;
   }
 }

@@ -21,11 +21,12 @@ self.addEventListener('push', (event) => {
   }
 
   const url = self.TokuteiPushUrl.appRelativeRoute(payload.url);
+  const icon = new URL('assets/app-images/game-tanuki.webp', self.registration.scope).href;
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body || undefined,
-      icon: new URL('assets/app-images/game-tanuki.webp', self.registration.scope).href,
-      badge: new URL('assets/app-images/game-tanuki.webp', self.registration.scope).href,
+    self.registration.showNotification(String(payload.title).slice(0, 120), {
+      body: String(payload.body || '').slice(0, 500) || undefined,
+      icon,
+      badge: icon,
       data: { url },
     }),
   );

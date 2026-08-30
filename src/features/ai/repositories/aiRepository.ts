@@ -8,6 +8,11 @@ export interface AiChatMessage {
   text: string;
 }
 
+export interface AiConversationHistory {
+  conversationId?: string;
+  messages: AiChatMessage[];
+}
+
 export interface AiWritingResult {
   submissionId: string;
   score: number;
@@ -37,8 +42,8 @@ async function getAccessToken(): Promise<string> {
 export async function streamAiChat(input: {
   message: string;
   courseId?: string;
-  courseContext?: string;
   conversationId?: string;
+  signal?: AbortSignal;
   onToken: (token: string) => void;
 }): Promise<{ conversationId: string }> {
   const trimmedMessage = input.message.trim();
@@ -54,9 +59,9 @@ export async function streamAiChat(input: {
     body: JSON.stringify({
       message: trimmedMessage,
       courseId: input.courseId,
-      courseContext: input.courseContext,
       conversationId: input.conversationId,
     }),
+    signal: input.signal,
   });
   if (!response.ok || !response.body) {
     let message = 'AI chat không khả dụng.';
@@ -71,6 +76,7 @@ export async function streamAiChat(input: {
   }
 
   const reader = response.body.getReader();
+  input.signal?.addEventListener('abort', () => { void reader.cancel(); }, { once: true });
   const decoder = new TextDecoder();
   let buffer = '';
   let conversationId = input.conversationId ?? '';
@@ -97,17 +103,25 @@ export async function streamAiChat(input: {
   return { conversationId };
 }
 
-export async function fetchAiConversationHistory(conversationId?: string): Promise<AiChatMessage[]> {
+export async function fetchAiConversationHistory(courseId?: string): Promise<AiConversationHistory> {
   if (!supabase) throw new Error('Supabase chưa được cấu hình.');
-  let query = supabase.from('ai_messages').select('id, role, content, created_at').order('created_at', { ascending: true });
-  if (conversationId) query = query.eq('conversation_id', conversationId);
-  const { data, error } = await query;
+  let conversations = supabase.from('ai_conversations').select('id, course_id').order('updated_at', { ascending: false }).limit(1);
+  if (courseId) conversations = conversations.eq('course_id', courseId);
+  else conversations = conversations.is('course_id', null);
+  const { data: conversationRows, error: conversationError } = await conversations;
+  if (conversationError) throw new Error(conversationError.message);
+  const conversationId = conversationRows?.[0]?.id;
+  if (!conversationId) return { messages: [] };
+  const { data, error } = await supabase.from('ai_messages').select('id, role, content, created_at').eq('conversation_id', conversationId).order('created_at', { ascending: true }).limit(100);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((message) => ({
-    id: message.id,
-    role: message.role === 'assistant' ? 'assistant' : 'user',
-    text: message.content,
-  }));
+  return {
+    conversationId,
+    messages: (data ?? []).map((message) => ({
+      id: message.id,
+      role: message.role === 'assistant' ? 'assistant' : 'user',
+      text: message.content,
+    })),
+  };
 }
 
 export async function submitAiWriting(input: {

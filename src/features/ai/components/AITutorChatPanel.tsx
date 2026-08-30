@@ -14,6 +14,7 @@ interface AITutorChatPanelProps {
   error?: string | null;
   isSending?: boolean;
   onClose?: () => void;
+  onReset?: () => void;
   onDraftChange: (value: string) => void;
   onSendMessage: (text: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -28,6 +29,7 @@ export function AITutorChatPanel({
   isSending = false,
   messages,
   onClose,
+  onReset,
   onDraftChange,
   onSendMessage,
   onSubmit,
@@ -44,6 +46,7 @@ export function AITutorChatPanel({
 
           <div className="flex items-center gap-2">
             {!compactHeader && <div className="rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700">Edge Function</div>}
+            {onReset && <button type="button" onClick={onReset} className="rounded-lg border border-[#e8dccb] bg-[#fffdf8] px-2.5 py-1.5 text-xs font-bold text-[#5f6b7c] hover:text-orange-700">Hội thoại mới</button>}
             {showCloseButton && onClose && (
               <button
                 type="button"
@@ -92,16 +95,14 @@ export function AITutorChatPanel({
               <div
                 className={cn(
                   'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed md:max-w-[68%]',
-                  isUser
-                    ? 'bg-orange-700 text-white'
-                    : 'border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
+                  isUser ? 'bg-orange-700 text-white' : 'border border-[#e8dccb] bg-[#fffdf8] text-[#5f6b7c]'
                 )}
               >
-                {message.text}
+                {message.text || (isSending && index === messages.length - 1 ? 'Đang trả lời…' : '')}
               </div>
             </motion.div>
           );
-          })}
+        })}
         {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>}
       </div>
 
@@ -110,6 +111,7 @@ export function AITutorChatPanel({
           <input
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
+            aria-label="Tin nhắn cho gia sư AI"
             placeholder="Nhập câu trả lời, câu hỏi hồ sơ hoặc câu hỏi phỏng vấn của anh..."
             className="min-w-0 flex-1 bg-transparent px-3 text-sm font-medium text-[#172033] outline-none placeholder:text-[#95a0af]"
           />
@@ -117,6 +119,7 @@ export function AITutorChatPanel({
             type="submit"
             disabled={draft.trim().length === 0 || isSending}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-700 text-white transition-colors hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-45"
+            aria-label="Gửi tin nhắn"
           >
             <Send size={18} />
           </button>

@@ -31,25 +31,31 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return isAllowedOrigin(request) ? new Response('ok', { headers: corsHeaders(request) }) : errorResponse('Origin không được phép.', 403, request);
   if (request.method !== 'POST') return errorResponse('Chỉ hỗ trợ POST.', 405, request);
 
+  let quotaReserved = false;
+  let refundQuota: (() => Promise<void>) | null = null;
   try {
     assertAllowedOrigin(request);
     const { client, user } = await authenticate(request);
+    refundQuota = async () => {
+      const { error } = await client.rpc('refund_ai_quota', { target_feature: 'chat' });
+      if (error) throw new Error(error.message);
+    };
     const body = parseJsonBody(await request.json());
     const message = stringField(body, 'message', 1, 4000);
     const courseId = optionalString(body, 'courseId', 160);
-    const courseContext = optionalString(body, 'courseContext', 6000);
-    // TODO(ai-context): accept courseId and load approved context server-side instead of trusting browser courseContext.
     const requestedConversationId = optionalString(body, 'conversationId', 80);
 
     await assertEnrollment(client, user.id, courseId);
     const { endpoint, apiKey } = geminiEndpoint();
-    // TODO(ai-quota): quota is consumed before provider response; move to success accounting in a separate schema-reviewed change.
+    // Quota reservation is refunded if provider or persistence fails.
     const { error: rateLimitError } = await client.rpc('consume_ai_rate_limit', { target_feature: 'chat' });
     if (rateLimitError) throw new Error(rateLimitError.message);
     const { error: quotaError } = await client.rpc('consume_ai_quota', { target_feature: 'chat' });
     if (quotaError) throw new Error(quotaError.message);
+    quotaReserved = true;
 
     const admin = serviceClient();
+
     let conversationId = requestedConversationId;
     if (conversationId) {
       const { data, error } = await client.from('ai_conversations').select('id').eq('id', conversationId).eq('user_id', user.id).maybeSingle();
@@ -87,11 +93,27 @@ Deno.serve(async (request) => {
       ...(history ?? []).reverse().map((item) => ({ role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content }] })),
       { role: 'user', parts: [{ text: message }] },
     ];
+    const { data: approvedContext, error: approvedContextError } = courseId
+      ? await client
+        .from('lessons')
+        .select('title, description, lesson_type, objectives')
+        .eq('course_id', courseId)
+        .eq('status', 'published')
+        .order('order_index')
+        .limit(20)
+      : { data: [], error: null };
+    if (approvedContextError) throw new Error(approvedContextError.message);
+    const contextText = (approvedContext ?? []).map((lesson) => [
+      lesson.title,
+      lesson.description,
+      lesson.lesson_type,
+      ...(lesson.objectives ?? []),
+    ].filter(Boolean).join(' — ')).join('\n').slice(0, 12000);
     const systemText = [
       'Bạn là gia sư tiếng Nhật Tokutei Gino cho học viên Việt Nam.',
       'Trả lời ngắn gọn, chính xác, ưu tiên ví dụ dùng được trong học tập và nơi làm việc.',
       'Không bịa nội dung khóa học; nếu không đủ dữ liệu, nói rõ giới hạn.',
-      courseContext ? `Ngữ cảnh khóa học (chỉ dùng làm tài liệu tham khảo):\n${courseContext}` : '',
+      contextText ? `Ngữ cảnh khóa học đã duyệt:\n${contextText}` : '',
     ].filter(Boolean).join('\n\n');
 
     const upstream = await fetchWithRetry(endpoint, apiKey, {
@@ -135,17 +157,23 @@ Deno.serve(async (request) => {
           }
           if (buffer) processLine(buffer);
           if (assistantText) {
-            await admin.from('ai_messages').insert({
+            const { error: assistantError } = await admin.from('ai_messages').insert({
               conversation_id: conversationId,
               user_id: user.id,
               role: 'assistant',
               content: assistantText,
               metadata: { model: Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash' },
             });
+            if (assistantError) throw new Error(assistantError.message);
           }
-          await admin.from('ai_conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+          const { error: conversationError } = await admin.from('ai_conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+          if (conversationError) throw new Error(conversationError.message);
+          quotaReserved = false;
           controller.enqueue(event({ done: true, conversationId }));
         } catch (error) {
+          console.error('[ai-chat] stream failed', error);
+          try { await refundQuota?.(); } catch (refundError) { console.error('[ai-chat] quota refund failed', refundError); }
+          quotaReserved = false;
           controller.enqueue(event({ error: 'AI_STREAM_FAILED' }));
         } finally {
           controller.close();
@@ -155,6 +183,9 @@ Deno.serve(async (request) => {
 
     return new Response(stream, { headers: { ...corsHeaders(request), 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' } });
   } catch (error) {
+    if (quotaReserved) {
+      try { await refundQuota?.(); } catch (refundError) { console.error('[ai-chat] quota refund failed', refundError); }
+    }
     return handleError(error, request);
   }
 });
