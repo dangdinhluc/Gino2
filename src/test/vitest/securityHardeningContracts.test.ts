@@ -20,11 +20,14 @@ describe('security hardening contracts', () => {
     expect(migration).toContain('d.course_id = (storage.foldername(target_name))[2]');
   });
 
-  it('does not send browser-controlled AI context', () => {
+  it('does not send browser-controlled AI context and refunds failed speaking quota', () => {
     const repository = read('src/features/ai/repositories/aiRepository.ts');
-    const functionSource = read('supabase/functions/ai-chat/index.ts');
+    const chatFunction = read('supabase/functions/ai-chat/index.ts');
+    const speakingFunction = read('supabase/functions/ai-speaking/index.ts');
     expect(repository).not.toContain('coursecontext: input.coursecontext');
-    expect(functionSource).not.toContain("optionalstring(body, 'coursecontext'");
-    expect(functionSource).toContain(".eq('status', 'published')");
+    expect(chatFunction).not.toContain("optionalstring(body, 'coursecontext'");
+    expect(chatFunction).toContain(".eq('status', 'published')");
+    expect(speakingFunction).toContain("target_feature: 'speaking'");
+    expect(speakingFunction).toContain("rpc('refund_ai_quota'");
   });
 });

@@ -163,9 +163,12 @@ Deno.serve(async (request) => {
   let submissionId: string | undefined;
   let userId: string | undefined;
   let admin: ReturnType<typeof serviceClient> | undefined;
+  let quotaClient: Awaited<ReturnType<typeof authenticate>>['client'] | null = null;
+  let quotaReserved = false;
   try {
     assertAllowedOrigin(request);
     const { client, user } = await authenticate(request);
+    quotaClient = client;
     userId = user.id;
     const body = parseJsonBody(await request.json());
     const action = optionalString(body, 'action', 20) ?? 'process';
@@ -208,6 +211,7 @@ Deno.serve(async (request) => {
     if (rateError) throw new Error(rateError.message);
     const { error: quotaError } = await client.rpc('consume_ai_quota', { target_feature: 'speaking' });
     if (quotaError) throw new Error(quotaError.message);
+    quotaReserved = true;
 
     const { error: processingError } = await admin.from('speaking_submissions').update({ status: 'processing', error_code: null }).eq('id', submission.id).eq('user_id', user.id);
     if (processingError) throw new Error(processingError.message);
@@ -223,8 +227,12 @@ Deno.serve(async (request) => {
       .select('id, transcript, result, status')
       .single();
     if (completedError) throw new Error(completedError.message);
+    quotaReserved = false;
     return resultResponse(completed, request);
   } catch (error) {
+    if (quotaReserved) {
+      try { await quotaClient?.rpc('refund_ai_quota', { target_feature: 'speaking' }); } catch (refundError) { console.error('[ai-speaking] quota refund failed', refundError); }
+    }
     if (admin && submissionId && userId) {
       const code = error instanceof Error ? error.message.slice(0, 120) : 'SPEAKING_FAILED';
       await admin.from('speaking_submissions').update({ status: 'failed', error_code: code }).eq('id', submissionId).eq('user_id', userId).neq('status', 'deleted');
