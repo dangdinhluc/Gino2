@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { registerServiceWorker } from './features/notifications/repositories/pushRepository';
 import App from './App.tsx';
 import './index.css';
-import './mock-ux.css';
 import './shared/styles/lightweight-transitions.css';
+import './shared/styles/gino-design-system.css';
 
 type IdleCapableWindow = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
