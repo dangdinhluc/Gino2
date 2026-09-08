@@ -1,0 +1,359 @@
+/*
+ * GINO 2 learner visual system.
+ *
+ * This layer intentionally sits after Tailwind/index.css. It converts legacy
+ * one-off learner styles to the canonical design-system/MASTER.md identity
+ * without coupling visual cleanup to feature/data logic.
+ */
+
+:root {
+  --gino-primary: #c96a1b;
+  --gino-primary-strong: #a95112;
+  --gino-primary-soft: #f9eadb;
+  --gino-secondary: #6f4aa8;
+  --gino-secondary-soft: #f0e9f8;
+  --gino-background: #f7f1e8;
+  --gino-surface: #fff9f2;
+  --gino-surface-raised: #fffdf9;
+  --gino-surface-soft: #f8f2e8;
+  --gino-border: #e8dccb;
+  --gino-border-strong: #ddcfbc;
+  --gino-text: #172033;
+  --gino-text-muted: #5f6b7c;
+  --gino-success: #2f8f6b;
+  --gino-warning: #d68a1f;
+  --gino-danger: #c65b57;
+  --gino-radius-panel: 24px;
+  --gino-radius-control: 14px;
+  --gino-shadow-xs: 0 2px 8px rgb(92 61 35 / 0.05);
+  --gino-shadow-sm: 0 6px 18px rgb(92 61 35 / 0.07);
+  --gino-shadow-md: 0 12px 30px rgb(92 61 35 / 0.1);
+
+  /* Keep Tailwind theme aliases and the older global normalizers aligned. */
+  --font-heading: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: var(--gino-primary);
+  --color-accent: var(--gino-primary);
+  --color-app-bg: var(--gino-background);
+  --color-app-surface: var(--gino-surface);
+  --color-app-surface-soft: var(--gino-surface-soft);
+  --color-app-border: var(--gino-border);
+  --color-app-border-strong: var(--gino-border-strong);
+  --radius-panel: var(--gino-radius-panel);
+  --radius-control: var(--gino-radius-control);
+}
+
+/* ---------- Learner shell ---------- */
+
+[data-gino-visual] {
+  color: var(--gino-text);
+}
+
+[data-gino-visual] .desktop-workspace-main {
+  background: transparent;
+}
+
+[data-gino-visual] .app-route-shell {
+  color: var(--gino-text);
+}
+
+[data-gino-visual] .app-route-shell :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading);
+  color: var(--gino-text);
+}
+
+[data-gino-visual] .app-route-shell .font-extrabold {
+  font-weight: 700;
+}
+
+[data-gino-visual] .app-route-shell :where(
+  [class*="text-[8px]"],
+  [class*="text-[8.5px]"],
+  [class*="text-[9px]"],
+  [class*="text-[9.5px]"],
+  [class*="text-[10px]"]
+) {
+  font-size: 0.6875rem !important;
+  line-height: 1.45 !important;
+}
+
+[data-gino-visual] :where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--gino-primary) !important;
+  outline-offset: 3px;
+}
+
+/* One desktop reading width for compact learner pages. */
+@media (min-width: 768px) {
+  [data-gino-visual="core"] .app-route-shell [class*="max-w-[500px]"] {
+    max-width: 760px !important;
+  }
+}
+
+/* ---------- Radius normalization: two levels only ---------- */
+
+[data-gino-visual] .app-route-shell :where(
+  [class*="rounded-[13px]"],
+  [class*="rounded-[15px]"],
+  [class*="rounded-[16px]"],
+  [class*="rounded-[18px]"]
+) {
+  border-radius: var(--gino-radius-control) !important;
+}
+
+[data-gino-visual] .app-route-shell :where(
+  [class*="rounded-[22px]"],
+  [class*="rounded-[24px]"],
+  [class*="rounded-[26px]"],
+  [class*="rounded-[28px]"],
+  [class*="rounded-[30px]"]
+) {
+  border-radius: var(--gino-radius-panel) !important;
+}
+
+/* Legacy arbitrary shadow stacks made each screen feel like a different app. */
+[data-gino-visual="core"] .app-route-shell [class*="shadow-["] {
+  box-shadow: var(--gino-shadow-sm) !important;
+}
+
+[data-gino-visual="core"] .app-route-shell .gino-toast-enter {
+  box-shadow: var(--gino-shadow-md) !important;
+}
+
+/* ---------- Cold legacy surfaces -> canonical warm surfaces ---------- */
+
+[data-gino-visual="core"] :where(
+  [class*="bg-[#f7f7fb]"],
+  [class*="bg-[#fbfaff]"]
+) {
+  background-color: transparent !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="bg-[#faf8ff]"],
+  [class*="bg-[#f7f5fc]"],
+  [class*="bg-[#f5f1ff]"],
+  [class*="bg-[#f3efff]"],
+  [class*="bg-[#f0e9ff]"],
+  [class*="bg-[#eee6ff]"],
+  [class*="bg-[#e8eef8]"]
+) {
+  background-color: var(--gino-surface-soft) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="border-[#e8e8ef]"],
+  [class*="border-[#e9e9ef]"],
+  [class*="border-[#ececf2]"],
+  [class*="border-[#eeeeF3]"],
+  [class*="border-[#eeeeF3]" i],
+  [class*="border-[#e5e5ec]"],
+  [class*="border-[#ebe7f3]"],
+  [class*="border-[#e7def8]"],
+  [class*="border-[#ece7f5]"],
+  [class*="border-[#ddd5ef]"],
+  [class*="border-[#ddd4f2]"],
+  [class*="border-[#cfc0f1]"],
+  [class*="border-[#d8cdf4]"],
+  [class*="border-[#d7c8f6]"],
+  [class*="border-[#d6c7f5]"],
+  [class*="border-[#c3adfa]"],
+  [class*="border-[#bca8ee]"]
+) {
+  border-color: var(--gino-border) !important;
+}
+
+/* ---------- Core navigation / generic action purple -> GINO primary ---------- */
+
+[data-gino-visual="core"] :where(
+  [class*="text-[#6f45d8]"],
+  [class*="text-[#6e46e6]"],
+  [class*="text-[#7048d4]"],
+  [class*="text-[#7956d2]"],
+  [class*="text-[#8a72c7]"],
+  [class*="text-[#4d356f]"]
+) {
+  color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="bg-[#6f45d8]"],
+  [class*="bg-[#6e46e6]"],
+  [class*="bg-[#7042e6]"],
+  [class*="bg-[#582dd7]"],
+  [class*="bg-[#552ad6]"]
+) {
+  background-color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="hover:text-[#6e46e6]"]:hover,
+  [class*="hover:text-[#6f45d8]"]:hover
+) {
+  color: var(--gino-primary-strong) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="hover:border-[#6e46e6]"]:hover,
+  [class*="hover:border-[#6f45d8]"]:hover
+) {
+  border-color: var(--gino-primary) !important;
+}
+
+/* Common legacy purple gradients used as generic CTAs. AI screens keep purple
+ * because MainLayout marks them data-gino-visual="ai" instead of "core". */
+[data-gino-visual="core"] [class*="from-[#6e46e6]"][class*="to-[#552ad6]"],
+[data-gino-visual="core"] [class*="from-[#7042e6]"][class*="to-[#5a2fd8]"],
+[data-gino-visual="core"] [class*="from-[#6e46e6]"][class*="to-[#582dd7]"],
+[data-gino-visual="core"] [class*="from-[#7c4df2]"][class*="to-[#6035d8]"],
+[data-gino-visual="core"] [class*="from-[#7d4fe0]"][class*="to-[#9a70e6]"] {
+  background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+}
+
+/* Dashboard achievement band: warm and quiet instead of a third purple theme. */
+[data-gino-visual="core"] [class*="from-[#e3d8f8]"][class*="via-[#e9defb]"][class*="to-[#ded0f7]"] {
+  background-image: linear-gradient(90deg, #f6e4d0, #faeee0, #f2dcc6) !important;
+  border-color: var(--gino-border) !important;
+}
+
+/* ---------- Neutral text consistency ---------- */
+
+[data-gino-visual="core"] :where(
+  [class*="text-[#838690]"],
+  [class*="text-[#8b8e98]"],
+  [class*="text-[#9799a3]"],
+  [class*="text-[#777a84]"],
+  [class*="text-[#767886]"],
+  [class*="text-[#747684]"],
+  [class*="text-[#77718a]"],
+  [class*="text-[#6f6680]"],
+  [class*="text-[#686b75]"],
+  [class*="text-[#656775]"],
+  [class*="text-[#626472]"],
+  [class*="text-[#606272]"],
+  [class*="text-[#595b65]"],
+  [class*="text-[#4e505a]"]
+) {
+  color: var(--gino-text-muted) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="text-[#17181d]"],
+  [class*="text-[#191a22]"],
+  [class*="text-[#1e1f24]"],
+  [class*="text-[#1e1f26]"],
+  [class*="text-[#202129]"],
+  [class*="text-[#25262c]"],
+  [class*="text-[#292a30]"],
+  [class*="text-[#33353c]"],
+  [class*="text-[#34353b]"]
+) {
+  color: var(--gino-text) !important;
+}
+
+/* ---------- Bottom navigation ---------- */
+
+[data-gino-visual="core"] .gino-bottom-nav {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 249 242 / 0.97) !important;
+  box-shadow: 0 -8px 28px rgb(92 61 35 / 0.08) !important;
+}
+
+[data-gino-visual="core"] .gino-bottom-nav [data-active="true"] .gino-bottom-nav-label {
+  color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] .gino-bottom-nav [data-active="true"] .gino-bottom-nav-dot {
+  background: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] .gino-quick-learn-badge {
+  background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+  box-shadow: 0 3px 10px rgb(201 106 27 / 0.28) !important;
+}
+
+[data-gino-visual="core"] .gino-quick-learn-ring {
+  border-color: #e6c39f !important;
+  box-shadow: 0 8px 20px rgb(201 106 27 / 0.14) !important;
+}
+
+/* ---------- Course workspace ---------- */
+
+[data-gino-visual="core"] .course-learning-workspace {
+  background: transparent !important;
+  color: var(--gino-text) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-header,
+[data-gino-visual="core"] .course-workspace-desktop-tabs {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 249 242 / 0.96) !important;
+  box-shadow: var(--gino-shadow-xs) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--gino-text-muted) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab:hover {
+  border-color: var(--gino-border-strong) !important;
+  background: var(--gino-primary-soft) !important;
+  color: var(--gino-primary-strong) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab.is-active {
+  border-color: #e6c39f !important;
+  background: var(--gino-primary-soft) !important;
+  color: var(--gino-primary) !important;
+  box-shadow: none !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab-icon {
+  background: var(--gino-surface-soft) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab.is-active .course-workspace-desktop-tab-icon {
+  background: var(--gino-surface-raised) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab-arrow,
+[data-gino-visual="core"] .course-workspace-desktop-tab.is-active .course-workspace-desktop-tab-arrow {
+  color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] [data-course-workspace-background] :where(input, select, textarea) {
+  border-color: var(--gino-border) !important;
+  background: var(--gino-surface-raised) !important;
+}
+
+[data-gino-visual="core"] [data-course-workspace-background] :where(input, select, textarea):focus {
+  border-color: var(--gino-primary) !important;
+  outline-color: var(--gino-primary) !important;
+}
+
+/* Preserve the iOS Safari vocabulary-detail compositing fix that used to live
+ * in mock-ux.css. */
+.fixed.inset-0:has(> [aria-labelledby='vocab-detail-title']) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+[aria-labelledby='vocab-detail-title'] {
+  position: relative;
+  z-index: 1;
+  opacity: 1 !important;
+  -webkit-transform: none !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-gino-visual] *,
+  [data-gino-visual] *::before,
+  [data-gino-visual] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
