@@ -45,8 +45,8 @@ export function MainLayout() {
       >
         {!isFocusRoute && !useTokuteiChrome && (
           <>
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top_right,rgba(201,106,27,0.055),transparent_34%)]" />
-            <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 bg-[radial-gradient(circle_at_center,rgba(111,74,168,0.025),transparent_72%)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top_right,rgba(111,69,216,0.07),transparent_34%)]" />
+            <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 bg-[radial-gradient(circle_at_center,rgba(138,114,199,0.04),transparent_72%)]" />
           </>
         )}
         {useTokuteiChrome && (
