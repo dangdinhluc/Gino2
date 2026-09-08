@@ -1,0 +1,150 @@
+/* GINO 2 purple brand layer.
+ * Loaded after the legacy standardization layers so the mascot-aligned purple
+ * becomes the single learner primary without touching feature/data logic.
+ */
+
+:root {
+  --gino-primary: #6f45d8;
+  --gino-primary-strong: #5631b8;
+  --gino-primary-soft: #eee7ff;
+  --gino-secondary: #8a72c7;
+  --gino-secondary-soft: #f3eefb;
+  --gino-background: #f7f4fc;
+  --gino-surface: #fffcff;
+  --gino-surface-raised: #ffffff;
+  --gino-surface-soft: #f4effb;
+  --gino-border: #e5dcf2;
+  --gino-border-strong: #d6c8ea;
+  --gino-text: #211b35;
+  --gino-text-muted: #6f6880;
+  --gino-shadow-xs: 0 2px 8px rgb(73 48 126 / 0.05);
+  --gino-shadow-sm: 0 6px 18px rgb(73 48 126 / 0.07);
+  --gino-shadow-md: 0 12px 30px rgb(73 48 126 / 0.11);
+
+  --color-primary: var(--gino-primary);
+  --color-accent: var(--gino-primary);
+  --color-app-bg: var(--gino-background);
+  --color-app-surface: var(--gino-surface);
+  --color-app-surface-soft: var(--gino-surface-soft);
+  --color-app-border: var(--gino-border);
+  --color-app-border-strong: var(--gino-border-strong);
+
+  --app-background:
+    linear-gradient(180deg, rgb(252 250 255 / 0.9), rgb(244 238 251 / 0.95)),
+    var(--asset-english-hero-background) center top / cover fixed;
+}
+
+:root[data-app-background='paper'] {
+  --app-background: linear-gradient(135deg, #fdfbff 0%, #f1ebf9 100%);
+}
+
+:root[data-app-background='night'] {
+  --app-background:
+    linear-gradient(135deg, rgb(25 18 39 / 0.9), rgb(57 39 87 / 0.92)),
+    var(--asset-dashboard-library-background) center / cover fixed;
+}
+
+/* Old warm surfaces from the first standardization pass now resolve to the
+ * lavender-neutral brand family. */
+[data-gino-visual="core"] :where(
+  [class*="bg-[#fff9f2]"],
+  [class*="bg-[#fffdf9]"],
+  [class*="bg-[#f8f2e8]"],
+  [class*="bg-[#f9eadb]"]
+) {
+  background-color: var(--gino-surface) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="border-[#e8dccb]"],
+  [class*="border-[#ddcfbc]"],
+  [class*="border-[#e6c39f]"]
+) {
+  border-color: var(--gino-border) !important;
+}
+
+/* Compatibility mapping for components standardized to orange in the previous
+ * pass. This keeps the source readable while the visual source of truth is now
+ * purple. */
+[data-gino-visual="core"] :where(
+  [class*="text-[#c96a1b]"],
+  [class*="text-[#a95112]"]
+) {
+  color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="bg-[#c96a1b]"],
+  [class*="bg-[#a95112]"]
+) {
+  background-color: var(--gino-primary) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="hover:text-[#a95112]"]:hover
+) {
+  color: var(--gino-primary-strong) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="hover:border-[#ddcfbc]"]:hover
+) {
+  border-color: var(--gino-border-strong) !important;
+}
+
+[data-gino-visual="core"] [class*="from-[#c96a1b]"][class*="to-[#a95112]"] {
+  background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+}
+
+/* Dashboard/task gradients from the warm pass become a soft purple family. */
+[data-gino-visual="core"] [class*="from-[#f6e4d0]"][class*="via-[#faeee0]"][class*="to-[#f2dcc6]"] {
+  background-image: linear-gradient(90deg, #ece3fb, #f4effb, #e8ddf8) !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="bg-[#221640]"] {
+  background-color: #2a1d46 !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="from-[#160d2d]"][class*="via-[#1d123b]"][class*="to-[#190f33]"] {
+  background-image: linear-gradient(
+    to top,
+    rgb(42 29 70 / 0.96),
+    rgb(57 39 91 / 0.55),
+    rgb(71 48 113 / 0.28)
+  ) !important;
+}
+
+/* Navigation is one of the strongest brand cues. */
+[data-gino-visual="core"] .gino-bottom-nav {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 252 255 / 0.97) !important;
+  box-shadow: 0 -8px 28px rgb(73 48 126 / 0.09) !important;
+}
+
+[data-gino-visual="core"] .gino-quick-learn-badge {
+  background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+  box-shadow: 0 3px 10px rgb(111 69 216 / 0.3) !important;
+}
+
+[data-gino-visual="core"] .gino-quick-learn-ring {
+  border-color: #cfc0f1 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgb(111 69 216 / 0.18) !important;
+}
+
+/* Course workspace and generic focused controls. */
+[data-gino-visual="core"] .course-workspace-header,
+[data-gino-visual="core"] .course-workspace-desktop-tabs {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 252 255 / 0.96) !important;
+}
+
+[data-gino-visual="core"] .course-workspace-desktop-tab:hover,
+[data-gino-visual="core"] .course-workspace-desktop-tab.is-active {
+  border-color: #cfc0f1 !important;
+  background: var(--gino-primary-soft) !important;
+}
+
+[data-gino-visual="core"] :where(button, a, input, textarea, select):focus-visible {
+  outline-color: var(--gino-primary) !important;
+}
