@@ -64,8 +64,7 @@
 }
 
 /* Compatibility mapping for components standardized to orange in the previous
- * pass. This keeps the source readable while the visual source of truth is now
- * purple. */
+ * pass. */
 [data-gino-visual="core"] :where(
   [class*="text-[#c96a1b]"],
   [class*="text-[#a95112]"]
@@ -96,11 +95,9 @@
   background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
 }
 
-/* Dashboard/task gradients from the warm pass become a soft purple family. */
-[data-gino-visual="core"] [class*="from-[#f6e4d0]"][class*="via-[#faeee0]"][class*="to-[#f2dcc6]"] {
-  background-image: linear-gradient(90deg, #ece3fb, #f4effb, #e8ddf8) !important;
-}
-
+/* Dashboard: the previous pass intentionally neutralized several colorful
+ * blocks. Keep that consistency but shift every neutralized block into the
+ * lavender family instead of beige. */
 [data-gino-route="/app/dashboard"] [class*="bg-[#221640]"] {
   background-color: #2a1d46 !important;
 }
@@ -112,6 +109,21 @@
     rgb(57 39 91 / 0.55),
     rgb(71 48 113 / 0.28)
   ) !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="from-[#f0f7ff]"][class*="to-[#e4f0fc]"],
+[data-gino-route="/app/dashboard"] [class*="from-[#f0fbf0]"][class*="to-[#e3f6e4]"],
+[data-gino-route="/app/dashboard"] [class*="from-[#fdf5ea]"][class*="to-[#faedd9]"] {
+  background-image: linear-gradient(to bottom, #fffcff, #f2ecfa) !important;
+}
+
+[data-gino-visual="core"] [class*="from-[#e3d8f8]"][class*="via-[#e9defb]"][class*="to-[#ded0f7]"] {
+  background-image: linear-gradient(90deg, #ece3fb, #f4effb, #e8ddf8) !important;
+  border-color: var(--gino-border) !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="bg-white/85"] {
+  background-color: rgb(255 252 255 / 0.92) !important;
 }
 
 /* Navigation is one of the strongest brand cues. */
