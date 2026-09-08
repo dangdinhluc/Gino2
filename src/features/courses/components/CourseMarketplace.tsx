@@ -17,10 +17,10 @@ export function CourseMarketplace({ courses, busyCourseId, onEnroll, categories 
     <section aria-labelledby="course-marketplace-title">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8b829e]">Marketplace</p>
-          <h2 id="course-marketplace-title" className="mt-1 text-[20px] font-black tracking-[-.03em] text-[#201b36]">Khám phá khóa học</h2>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5f6b7c]">Marketplace</p>
+          <h2 id="course-marketplace-title" className="mt-1 font-[var(--font-heading)] text-[20px] font-bold tracking-[-.03em] text-[#172033]">Khám phá khóa học</h2>
         </div>
-        <Link to="/app/enrollments" className="inline-flex items-center gap-1 text-[10px] font-black text-[#6f45d8]">Gói học <ArrowRight size={13} /></Link>
+        <Link to="/app/enrollments" className="inline-flex min-h-11 items-center gap-1 text-[11px] font-bold text-[#c96a1b]">Gói học <ArrowRight size={14} /></Link>
       </div>
 
       {categories.length > 1 && onSelectCategory && (
@@ -30,7 +30,7 @@ export function CourseMarketplace({ courses, busyCourseId, onEnroll, categories 
               key={category}
               type="button"
               onClick={() => onSelectCategory(category)}
-              className={category === activeCategory ? 'shrink-0 rounded-full bg-[#7041dc] px-3 py-1.5 text-[10px] font-black text-white' : 'shrink-0 rounded-full border border-[#e8e1f5] bg-white px-3 py-1.5 text-[10px] font-black text-[#777181]'}
+              className={category === activeCategory ? 'min-h-11 shrink-0 rounded-full bg-[#c96a1b] px-3.5 text-[11px] font-bold text-white' : 'min-h-11 shrink-0 rounded-full border border-[#e8dccb] bg-[#fff9f2] px-3.5 text-[11px] font-semibold text-[#5f6b7c]'}
             >
               {category}
             </button>
@@ -41,29 +41,29 @@ export function CourseMarketplace({ courses, busyCourseId, onEnroll, categories 
       {courses.length > 0 ? (
         <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
           {courses.map((course) => (
-            <li key={course.id} className="rounded-[18px] border border-[#eeeaf4] bg-white p-2.5 shadow-[0_3px_12px_rgba(35,25,65,.035)]">
+            <li key={course.id} className="rounded-[24px] border border-[#e8dccb] bg-[#fff9f2] p-3 shadow-[0_3px_12px_rgba(92,61,35,.04)]">
               <div className="flex gap-3">
                 <img src={getCourseThumbnail(course)} alt="" className="h-20 w-20 shrink-0 rounded-[14px] object-cover" />
                 <div className="min-w-0 flex-1">
-                  <span className="rounded-full bg-[#eee7ff] px-2 py-1 text-[9px] font-black text-[#6840ce]">{course.level}</span>
-                  <strong className="mt-2 block line-clamp-2 text-[12px] font-black leading-tight text-[#302a41]">{course.title}</strong>
-                  <span className="mt-1 block text-[9px] font-semibold text-[#8b829e]">{course.totalLessons} bài học</span>
+                  <span className="rounded-full bg-[#f8f2e8] px-2 py-1 text-[11px] font-bold text-[#5f6b7c]">{course.level}</span>
+                  <strong className="mt-2 block line-clamp-2 text-[13px] font-bold leading-tight text-[#172033]">{course.title}</strong>
+                  <span className="mt-1 block text-[11px] font-medium text-[#5f6b7c]">{course.totalLessons} bài học</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onEnroll(course)}
                 disabled={busyCourseId !== null}
-                className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#7041dc] py-2.5 text-[10px] font-black text-white disabled:cursor-wait disabled:opacity-60"
+                className="mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[14px] bg-[#c96a1b] px-3 text-[11px] font-bold text-white transition hover:bg-[#a95112] disabled:cursor-wait disabled:opacity-60"
               >
-                {busyCourseId === course.id ? <Loader2 size={13} className="animate-spin" /> : <ShoppingBag size={13} />}
+                {busyCourseId === course.id ? <Loader2 size={14} className="animate-spin" /> : <ShoppingBag size={14} />}
                 Đăng ký khóa này
               </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-3 rounded-[18px] border border-dashed border-[#d8ccef] bg-white p-5 text-center text-[11px] font-semibold text-[#777181]">Anh đã tham gia tất cả khóa đang mở.</p>
+        <p className="mt-3 rounded-[24px] border border-dashed border-[#ddcfbc] bg-[#fff9f2] p-5 text-center text-[12px] font-medium text-[#5f6b7c]">Bạn đã tham gia tất cả khóa đang mở.</p>
       )}
     </section>
   );
