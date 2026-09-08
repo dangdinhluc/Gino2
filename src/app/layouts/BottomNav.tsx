@@ -71,20 +71,20 @@ export function BottomNav() {
               decoding="async"
               className={`h-9 w-9 object-contain transition-transform duration-200 ${
                 isActive
-                  ? 'scale-110 drop-shadow-[0_4px_8px_rgba(201,106,27,.2)]'
+                  ? 'scale-110 drop-shadow-[0_4px_8px_rgba(111,69,216,.24)]'
                   : 'scale-100 opacity-85'
               }`}
             />
           </span>
           <span
             className={`gino-bottom-nav-label truncate text-[11px] leading-tight transition-colors ${
-              isActive ? 'font-black text-[#c96a1b]' : 'font-semibold text-[#4e505a]'
+              isActive ? 'font-black text-[#6f45d8]' : 'font-semibold text-[#595268]'
             }`}
           >
             {item.label}
           </span>
           <div className="h-1.5 w-1.5 flex items-center justify-center">
-            {isActive && <span className="gino-bottom-nav-dot h-1.5 w-1.5 rounded-full bg-[#c96a1b]" />}
+            {isActive && <span className="gino-bottom-nav-dot h-1.5 w-1.5 rounded-full bg-[#6f45d8]" />}
           </div>
         </div>
       )}
@@ -101,7 +101,7 @@ export function BottomNav() {
 
       <nav
         aria-label="Thanh điều hướng chính"
-        className="gino-bottom-nav fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[1180px] rounded-t-[28px] border-t border-[#e8dccb] bg-[#fff9f2]/98 px-2 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_30px_rgba(92,61,35,0.08)] backdrop-blur-xl lg:hidden"
+        className="gino-bottom-nav fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[1180px] rounded-t-[28px] border-t border-[#e5dcf2] bg-[#fffcff]/98 px-2 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_30px_rgba(73,48,126,0.09)] backdrop-blur-xl lg:hidden"
       >
         <div className="grid grid-cols-5 items-end gap-0">
           {renderNavItem(navItems[0])}
@@ -133,15 +133,15 @@ export function BottomNav() {
                       src={assets.shared.mascots.quickLearnActive}
                       alt="Học ngay"
                       decoding="async"
-                      className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(201,106,27,0.34)]"
+                      className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(111,69,216,0.4)]"
                     />
-                    <span className="gino-quick-learn-badge absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#c96a1b] to-[#a95112] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(201,106,27,0.28)] whitespace-nowrap">
+                    <span className="gino-quick-learn-badge absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#6f45d8] to-[#5631b8] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(111,69,216,0.3)] whitespace-nowrap">
                       <span>⚡</span> Học ngay
                     </span>
                   </div>
                 ) : (
                   <div className="relative flex flex-col items-center">
-                    <span className="gino-quick-learn-ring relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[2.5px] border-[#e6c39f] bg-[#fffdf9] shadow-[0_8px_20px_rgba(201,106,27,0.14)]">
+                    <span className="gino-quick-learn-ring relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[2.5px] border-[#cfc0f1] bg-white shadow-[0_8px_20px_rgba(111,69,216,0.18)]">
                       <img
                         src={assets.shared.mascots.quickLearn}
                         alt="Học ngay"
@@ -149,7 +149,7 @@ export function BottomNav() {
                         className="absolute left-1/2 top-0 h-auto w-[76px] max-w-none -translate-x-1/2"
                       />
                     </span>
-                    <span className="mt-1 truncate text-[11px] font-semibold text-[#4e505a]">
+                    <span className="mt-1 truncate text-[11px] font-semibold text-[#595268]">
                       Học ngay
                     </span>
                     <div className="h-1.5 w-1.5" />
