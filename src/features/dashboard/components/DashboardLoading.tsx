@@ -5,13 +5,13 @@ export function DashboardLoading() {
       aria-busy="true"
       aria-label="Đang tải Dashboard"
     >
-      <div className="h-80 animate-pulse rounded-[30px] bg-[#eee9f7]" />
+      <div className="h-80 animate-pulse rounded-[24px] border border-[#e8dccb] bg-[#f8f2e8]" />
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
-        <div className="h-48 animate-pulse rounded-[24px] bg-[#eee9f7]" />
+        <div className="h-48 animate-pulse rounded-[24px] border border-[#e8dccb] bg-[#fff9f2]" />
+        <div className="h-48 animate-pulse rounded-[24px] border border-[#e8dccb] bg-[#fff9f2]" />
+        <div className="h-48 animate-pulse rounded-[24px] border border-[#e8dccb] bg-[#fff9f2]" />
       </div>
-      <div className="h-40 animate-pulse rounded-[26px] bg-[#eee9f7]" />
+      <div className="h-40 animate-pulse rounded-[24px] border border-[#e8dccb] bg-[#f8f2e8]" />
     </div>
   );
 }
