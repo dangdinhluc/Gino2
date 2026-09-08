@@ -5,6 +5,7 @@ import App from './App.tsx';
 import './index.css';
 import './shared/styles/lightweight-transitions.css';
 import './shared/styles/gino-design-system.css';
+import './shared/styles/gino-page-overrides.css';
 
 type IdleCapableWindow = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
