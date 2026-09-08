@@ -15,10 +15,10 @@ export function MyCourses({ courses, activeCourseId, onSwitch, switchingCourseId
     <section aria-labelledby="my-courses-center-title">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8b829e]">Lộ trình của bạn</p>
-          <h2 id="my-courses-center-title" className="mt-1 text-[20px] font-black tracking-[-.03em] text-[#201b36]">Khóa học của tôi</h2>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5f6b7c]">Lộ trình của bạn</p>
+          <h2 id="my-courses-center-title" className="mt-1 font-[var(--font-heading)] text-[20px] font-bold tracking-[-.03em] text-[#172033]">Khóa học của tôi</h2>
         </div>
-        <span className="rounded-full bg-[#eee7ff] px-2.5 py-1 text-[10px] font-black text-[#6840ce]">{courses.length} khóa</span>
+        <span className="rounded-full bg-[#f9eadb] px-2.5 py-1 text-[11px] font-bold text-[#c96a1b]">{courses.length} khóa</span>
       </div>
 
       <ul className="mt-3 space-y-2.5">
@@ -27,28 +27,28 @@ export function MyCourses({ courses, activeCourseId, onSwitch, switchingCourseId
           return (
             <li key={course.id}>
               <div
-                className={isActive ? 'group flex items-center gap-3 rounded-[18px] border border-[#cdb9f5] bg-white p-2.5 shadow-[0_5px_16px_rgba(112,65,220,.12)] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7041dc]' : 'group flex items-center gap-3 rounded-[18px] border border-[#eeeaf4] bg-white p-2.5 shadow-[0_3px_12px_rgba(35,25,65,.035)] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7041dc]'}
+                className={isActive ? 'group flex items-center gap-3 rounded-[24px] border border-[#e6c39f] bg-[#fff9f2] p-3 shadow-[0_6px_18px_rgba(201,106,27,.08)] transition hover:-translate-y-0.5' : 'group flex items-center gap-3 rounded-[24px] border border-[#e8dccb] bg-[#fff9f2] p-3 shadow-[0_3px_12px_rgba(92,61,35,.04)] transition hover:-translate-y-0.5'}
               >
                 <Link to={'/app/courses/' + course.id + '/learn'} aria-label={'Mở chi tiết ' + course.title} className="flex min-w-0 flex-1 items-center gap-3">
                   <img src={getCourseThumbnail(course)} alt="" className="h-14 w-14 shrink-0 rounded-[14px] object-cover" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
-                      <strong className="truncate text-[13px] font-black text-[#252333]">{course.title}</strong>
-                      {isActive && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#eee7ff] px-2 py-1 text-[9px] font-black text-[#6840ce]"><Check size={10} /> Đang học</span>}
+                      <strong className="truncate text-[13px] font-bold text-[#172033]">{course.title}</strong>
+                      {isActive && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#f9eadb] px-2 py-1 text-[11px] font-bold text-[#c96a1b]"><Check size={11} /> Đang học</span>}
                     </span>
-                    <span className="mt-1 block text-[10px] font-semibold text-[#777181]">{course.level} · {course.totalLessons} bài học</span>
+                    <span className="mt-1 block text-[11px] font-medium text-[#5f6b7c]">{course.level} · {course.totalLessons} bài học</span>
                     <span className="mt-2 flex items-center gap-2">
-                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#eeeaf5]"><span className="block h-full rounded-full bg-[#7544df]" style={{ width: String(course.progress) + '%' }} /></span>
-                      <span className="text-[10px] font-black text-[#6f45d8]">{course.progress}%</span>
+                      <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#efe4d5]"><span className="block h-full rounded-full bg-[#c96a1b]" style={{ width: String(course.progress) + '%' }} /></span>
+                      <span className="text-[11px] font-bold text-[#c96a1b]">{course.progress}%</span>
                     </span>
                   </span>
                 </Link>
                 {isActive ? (
-                  <Link to={'/app/courses/' + course.id + '/learn'} aria-label={'Mở chi tiết ' + course.title} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#7041dc] text-white shadow-2xs">
-                    <ChevronRight size={17} aria-hidden="true" />
+                  <Link to={'/app/courses/' + course.id + '/learn'} aria-label={'Mở chi tiết ' + course.title} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#c96a1b] text-white shadow-[0_3px_10px_rgba(201,106,27,.2)]">
+                    <ChevronRight size={18} aria-hidden="true" />
                   </Link>
                 ) : (
-                  <button type="button" onClick={() => onSwitch(course.id)} disabled={switchingCourseId !== null} className="shrink-0 rounded-full bg-[#7041dc] px-2.5 py-2 text-[9px] font-black text-white disabled:cursor-wait disabled:opacity-60">
+                  <button type="button" onClick={() => onSwitch(course.id)} disabled={switchingCourseId !== null} className="min-h-11 shrink-0 rounded-[14px] bg-[#c96a1b] px-3 text-[11px] font-bold text-white disabled:cursor-wait disabled:opacity-60">
                     {switchingCourseId === course.id ? 'Đang chuyển…' : 'Chuyển'}
                   </button>
                 )}
