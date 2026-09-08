@@ -36,6 +36,7 @@ export function MainLayout() {
   return (
     <div
       data-gino-visual={visualMode}
+      data-gino-route={location.pathname}
       className={`app-layout-root flex ${isFocusRoute ? 'focus-mode-layout' : 'h-[100dvh] min-h-0 overflow-hidden'}`}
     >
       <main
