@@ -60,7 +60,10 @@ export function BottomNav() {
       className="relative flex min-w-0 flex-1 items-center justify-center"
     >
       {({ isActive }) => (
-        <div className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1 transition-transform duration-150 active:scale-[0.92]">
+        <div
+          data-active={isActive ? 'true' : 'false'}
+          className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1 transition-transform duration-150 active:scale-[0.92]"
+        >
           <span className="relative flex h-10 w-12 items-center justify-center rounded-xl transition-all">
             <img
               src={item.icon}
@@ -68,20 +71,20 @@ export function BottomNav() {
               decoding="async"
               className={`h-9 w-9 object-contain transition-transform duration-200 ${
                 isActive
-                  ? 'scale-110 drop-shadow-[0_4px_8px_rgba(111,69,216,.22)]'
+                  ? 'scale-110 drop-shadow-[0_4px_8px_rgba(201,106,27,.2)]'
                   : 'scale-100 opacity-85'
               }`}
             />
           </span>
           <span
-            className={`truncate text-[11px] leading-tight transition-colors ${
-              isActive ? 'font-black text-[#6f45d8]' : 'font-semibold text-[#4e505a]'
+            className={`gino-bottom-nav-label truncate text-[11px] leading-tight transition-colors ${
+              isActive ? 'font-black text-[#c96a1b]' : 'font-semibold text-[#4e505a]'
             }`}
           >
             {item.label}
           </span>
           <div className="h-1.5 w-1.5 flex items-center justify-center">
-            {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#6f45d8]" />}
+            {isActive && <span className="gino-bottom-nav-dot h-1.5 w-1.5 rounded-full bg-[#c96a1b]" />}
           </div>
         </div>
       )}
@@ -98,7 +101,7 @@ export function BottomNav() {
 
       <nav
         aria-label="Thanh điều hướng chính"
-        className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[1180px] rounded-t-[28px] border-t border-[#ebe7f3] bg-white/98 px-2 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_30px_rgba(30,20,55,0.06)] backdrop-blur-xl lg:hidden"
+        className="gino-bottom-nav fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[1180px] rounded-t-[28px] border-t border-[#e8dccb] bg-[#fff9f2]/98 px-2 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-8px_30px_rgba(92,61,35,0.08)] backdrop-blur-xl lg:hidden"
       >
         <div className="grid grid-cols-5 items-end gap-0">
           {renderNavItem(navItems[0])}
@@ -130,15 +133,15 @@ export function BottomNav() {
                       src={assets.shared.mascots.quickLearnActive}
                       alt="Học ngay"
                       decoding="async"
-                      className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(147,75,255,0.5)]"
+                      className="h-[74px] w-[74px] object-contain drop-shadow-[0_8px_20px_rgba(201,106,27,0.34)]"
                     />
-                    <span className="absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#6e46e6] to-[#582dd7] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(110,70,230,0.45)] whitespace-nowrap">
+                    <span className="gino-quick-learn-badge absolute -bottom-1 flex items-center gap-1 rounded-full bg-gradient-to-r from-[#c96a1b] to-[#a95112] px-2.5 py-0.5 text-[9px] font-black text-white shadow-[0_3px_10px_rgba(201,106,27,0.28)] whitespace-nowrap">
                       <span>⚡</span> Học ngay
                     </span>
                   </div>
                 ) : (
                   <div className="relative flex flex-col items-center">
-                    <span className="relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[2.5px] border-[#d8cdf4] bg-white shadow-[0_8px_20px_rgba(111,69,216,0.18)]">
+                    <span className="gino-quick-learn-ring relative flex h-[62px] w-[62px] items-center justify-center overflow-hidden rounded-full border-[2.5px] border-[#e6c39f] bg-[#fffdf9] shadow-[0_8px_20px_rgba(201,106,27,0.14)]">
                       <img
                         src={assets.shared.mascots.quickLearn}
                         alt="Học ngay"
