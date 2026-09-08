@@ -1,0 +1,65 @@
+/* Page-level refinements allowed by design-system/MASTER.md.
+ * Keep these route-scoped so semantic colors in other features remain intact. */
+
+/* ---------- Dashboard / Hôm nay ---------- */
+
+[data-gino-route="/app/dashboard"] [class*="bg-[#221640]"] {
+  background-color: #172033 !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="from-[#160d2d]"][class*="via-[#1d123b]"][class*="to-[#190f33]"] {
+  background-image: linear-gradient(
+    to top,
+    rgb(23 32 51 / 0.96),
+    rgb(23 32 51 / 0.52),
+    rgb(23 32 51 / 0.28)
+  ) !important;
+}
+
+[data-gino-route="/app/dashboard"] :where(
+  [class*="bg-[#f8f4ff]"],
+  [class*="bg-[#f0ebf8]"]
+) {
+  background-color: var(--gino-surface-soft) !important;
+}
+
+[data-gino-route="/app/dashboard"] :where(
+  [class*="border-[#d7c8f6]"],
+  [class*="border-[#eee8f7]"],
+  [class*="border-[#d6e7fc]"],
+  [class*="border-[#d3ecd5]"],
+  [class*="border-[#fbe5cb]"]
+) {
+  border-color: var(--gino-border) !important;
+}
+
+/* The three daily-task cards used three unrelated blue/green/orange themes.
+ * Keep their illustrations, but make the cards share one calm surface and one
+ * action accent so the section reads as a single component family. */
+[data-gino-route="/app/dashboard"] [class*="from-[#f0f7ff]"][class*="to-[#e4f0fc]"],
+[data-gino-route="/app/dashboard"] [class*="from-[#f0fbf0]"][class*="to-[#e3f6e4]"],
+[data-gino-route="/app/dashboard"] [class*="from-[#fdf5ea]"][class*="to-[#faedd9]"] {
+  background-image: linear-gradient(to bottom, #fffdf9, #f8f2e8) !important;
+}
+
+[data-gino-route="/app/dashboard"] :where(
+  [class*="text-[#2d6fd8]"],
+  [class*="text-[#2d9e48]"],
+  [class*="text-[#d6791e]"]
+) {
+  color: var(--gino-primary) !important;
+}
+
+[data-gino-route="/app/dashboard"] [class*="bg-white/85"] {
+  background-color: rgb(255 249 242 / 0.92) !important;
+}
+
+/* ---------- Shared learner structural surfaces ---------- */
+
+[data-gino-visual="core"] .app-route-shell :where(section, article)[class*="bg-white"] {
+  background-color: var(--gino-surface) !important;
+}
+
+[data-gino-visual="core"] .app-route-shell :where(section, article)[class*="border-[#e3e3ea]"] {
+  border-color: var(--gino-border) !important;
+}
