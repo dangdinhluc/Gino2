@@ -17,6 +17,10 @@ export interface AuthRouteDecisionInput {
   isSupabaseConfigured: boolean;
 }
 
+export function getPublicLearnerEntryPath(isAuthenticated: boolean): '/app/dashboard' | '/login' {
+  return isAuthenticated ? '/app/dashboard' : '/login';
+}
+
 export function decideAuthRouteAccess({ area, isAuthenticated, isAdmin, staffRoleStatus, isSupabaseConfigured }: AuthRouteDecisionInput): AuthRouteDecision {
   if (!isSupabaseConfigured) {
     return { status: 'setup-required', reason: 'missing-supabase-config' };

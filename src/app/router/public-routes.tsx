@@ -21,7 +21,7 @@ export function PublicRoutes() {
   return (
     <>
       <Route path="/" element={screen(<LandingPage />)} />
-      <Route path="/login" element={screen(<QuickLoginPage />)} />
+      <Route path="/login" element={screen(<LoginPage area="learner" />)} />
       <Route path="/quick-login" element={screen(<QuickLoginPage />)} />
       <Route path="/login/learner" element={screen(<LoginPage area="learner" />)} />
       <Route path="/login/admin" element={screen(<LoginPage area="admin" />)} />
@@ -31,7 +31,7 @@ export function PublicRoutes() {
       <Route path="/onboarding" element={screen(<OnboardingPage />)} />
       <Route path="/terms" element={screen(<TermsPage />)} />
       <Route path="/privacy" element={screen(<PrivacyPage />)} />
-      <Route path="/admin/login" element={screen(<QuickLoginPage />)} />
+      <Route path="/admin/login" element={screen(<LoginPage area="admin" />)} />
       <Route
         path="/admin/*"
         element={

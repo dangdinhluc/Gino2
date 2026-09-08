@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { GraduationCap, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 
@@ -8,6 +8,8 @@ export default function QuickLoginPage() {
   if (auth.isLoading) {
     return <main className="grid min-h-screen place-items-center bg-[#F7F1E8] text-sm font-bold text-[#5F6B7C]">Đang kiểm tra phiên đăng nhập…</main>;
   }
+
+  if (auth.isAuthenticated) return <Navigate to="/app/dashboard" replace />;
 
   if (!auth.isSupabaseConfigured) {
     return <main className="grid min-h-screen place-items-center bg-[#F7F1E8] px-4"><section className="max-w-md rounded-3xl border border-[#E4D8C9] bg-[#FFFCF7] p-7 text-center shadow-sm"><h1 className="text-2xl font-black text-[#172033]">Cần cấu hình Supabase Cloud</h1><p className="mt-3 text-sm leading-6 text-[#5F6B7C]">Ứng dụng production không mở dữ liệu local khi Cloud chưa sẵn sàng.</p></section></main>;
