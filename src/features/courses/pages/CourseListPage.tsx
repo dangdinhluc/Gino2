@@ -15,8 +15,7 @@ import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 const ALL = 'Tất cả';
 
 function courseCategory(course: CourseListEntry): string {
-  // Use factual CMS data instead of guessing a category from the title/description.
-  return course.level?.trim() || 'Khác';
+  return course.category?.trim() || course.level?.trim() || 'Khác';
 }
 
 function enrollmentErrorMessage(error: unknown): string {
