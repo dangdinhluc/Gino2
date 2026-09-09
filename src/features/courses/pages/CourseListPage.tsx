@@ -15,12 +15,8 @@ import { PageLoading } from '@/src/shared/components/loading/PageLoading';
 const ALL = 'Tất cả';
 
 function courseCategory(course: CourseListEntry): string {
-  const searchable = (course.title + ' ' + course.description).toLowerCase();
-  if (/(tokutei|ginou|ssw)/.test(searchable)) return 'Tokutei';
-  if (/(giao tiếp|kaiwa|speaking|hội thoại)/.test(searchable)) return 'Giao tiếp';
-  if (/(ngữ pháp|grammar)/.test(searchable)) return 'Ngữ pháp';
-  if (/(kanji|漢字)/.test(searchable)) return 'Kanji';
-  return course.level || 'Khác';
+  // Use factual CMS data instead of guessing a category from the title/description.
+  return course.level?.trim() || 'Khác';
 }
 
 function enrollmentErrorMessage(error: unknown): string {
@@ -47,8 +43,8 @@ export default function CourseListPage() {
     () => category === ALL ? discover : discover.filter((course) => courseCategory(course) === category),
     [category, discover],
   );
-  const activeCourseId = activeCourse.activeCourseId ?? enrolled[0]?.id ?? null;
-  const shouldShowSelector = activeCourse.status === 'ready' && enrolled.length === 0;
+  const activeCourseId = activeCourse.activeCourseId;
+  const shouldShowSelector = activeCourse.status === 'ready' && !activeCourseId;
 
   useEffect(() => {
     if (window.location.hash !== '#my-courses-center-title') return;
