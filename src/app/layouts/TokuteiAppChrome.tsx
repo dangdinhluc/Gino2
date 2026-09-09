@@ -45,7 +45,8 @@ export function TokuteiAppChrome() {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        openSearch();
+        setHasOpenedSearch(true);
+        setIsSearchOpen(true);
       }
     };
     window.addEventListener('keydown', handleShortcut);
