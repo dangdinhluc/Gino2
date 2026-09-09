@@ -77,7 +77,9 @@ beforeEach(() => {
   mocks.useRealDashboard.mockReturnValue({
     data: emptyDashboard,
     loading: false,
+    refreshing: false,
     error: null,
+    reason: null,
     refetch: vi.fn(),
   });
 });
@@ -90,11 +92,21 @@ describe('TodayPage', () => {
 
     expect(screen.getByText('Xin chào, Học viên!')).toBeInTheDocument();
     expect(screen.getByText('Bạn chưa có khóa học')).toBeInTheDocument();
-    expect(screen.getByText('Hôm nay chưa có từ cần ôn')).toBeInTheDocument();
+    expect(screen.getByText('Chưa có từ cần ôn')).toBeInTheDocument();
     expect(screen.getByText('0 XP')).toBeInTheDocument();
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText(/Thời gian học/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Minna no Nihongo/)).not.toBeInTheDocument();
     expect(screen.queryByText('12/24')).not.toBeInTheDocument();
+  });
+
+  it('opens real task information instead of rendering a dead info control', () => {
+    renderToday();
+
+    const infoButton = screen.getByRole('button', { name: 'Thông tin nhiệm vụ' });
+    expect(screen.queryByText(/GINO ưu tiên ba việc/)).not.toBeInTheDocument();
+    fireEvent.click(infoButton);
+    expect(screen.getByText(/GINO ưu tiên ba việc/)).toBeInTheDocument();
+    expect(infoButton).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('does not toast success when claiming the daily reward fails', async () => {
@@ -120,7 +132,9 @@ describe('TodayPage', () => {
         },
       },
       loading: false,
+      refreshing: false,
       error: null,
+      reason: null,
       refetch: vi.fn(),
     });
 
@@ -149,15 +163,32 @@ describe('TodayPage', () => {
     renderToday();
 
     expect(screen.getByText('Khóa học thật')).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('Dữ liệu đang được giữ lại');
+    expect(screen.getByRole('alert')).toHaveTextContent('Dữ liệu cũ đang được giữ lại');
     fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows unavailable partial stats as a dash instead of fabricated zero', () => {
+    mocks.useRealDashboard.mockReturnValue({
+      data: { ...emptyDashboard, warnings: ['stats'] },
+      loading: false,
+      refreshing: false,
+      error: null,
+      reason: null,
+      refetch: vi.fn(),
+    });
+
+    renderToday();
+
+    expect(screen.getByText(/Một số số liệu chưa tải được/)).toBeInTheDocument();
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
   });
 
   it('redirects only when the hook positively reports no course', async () => {
     mocks.useRealDashboard.mockReturnValue({
       data: null,
       loading: false,
+      refreshing: false,
       error: null,
       reason: 'no-course',
       refetch: vi.fn(),
