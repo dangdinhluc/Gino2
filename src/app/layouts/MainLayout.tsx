@@ -16,9 +16,8 @@ export function MainLayout() {
   const isFocusRoute = isCourseFocusRoute || isFlashcardFocusRoute || isExamRunnerRoute;
   const isPrimaryAppRoute = /^\/app\/(dashboard|courses|practice|profile)\/?$/.test(location.pathname);
   const isDashboardRoute = location.pathname === '/app/dashboard';
-  const isTokuteiMenuRoute = /^\/app\/(enrollments|review|exams|settings)(?:\/|$)/.test(location.pathname);
   const isAiRoute = /^\/app\/(ai-lab|ai-speak)(?:\/|$)/.test(location.pathname);
-  const useTokuteiChrome = !isFocusRoute && !isPrimaryAppRoute && isTokuteiMenuRoute;
+  const useTokuteiChrome = !isFocusRoute;
   const hideAITutor = isPrimaryAppRoute || isCourseFocusRoute || isFlashcardFocusRoute || isExamRunnerRoute;
   const showAITutor = !hideAITutor;
   const visualMode = isAiRoute ? 'ai' : 'core';
@@ -43,7 +42,7 @@ export function MainLayout() {
         ref={mainRef}
         className={`desktop-workspace-main relative min-w-0 ${isFocusRoute ? 'focus-mode-main' : 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain'} ${useTokuteiChrome ? 'tokutei-app-main' : ''}`}
       >
-        {!isFocusRoute && !useTokuteiChrome && (
+        {!isFocusRoute && (
           <>
             <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top_right,rgba(111,69,216,0.07),transparent_34%)]" />
             <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 bg-[radial-gradient(circle_at_center,rgba(138,114,199,0.04),transparent_72%)]" />
