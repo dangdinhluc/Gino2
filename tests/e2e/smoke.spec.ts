@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test';
 test.describe('production smoke', () => {
   test('@smoke landing page loads', async ({ page }) => {
     await page.goto('./');
-    await expect(page.getByRole('heading', { name: /Học tiếng Nhật.*Tokutei/i })).toBeVisible();
+    const heroTitle = page.locator('#landing-v2-title');
+    await expect(heroTitle).toBeVisible();
+    await expect(heroTitle).toContainText('Học vững hôm nay.');
+    await expect(heroTitle).toContainText('Vững bước ngày mai.');
   });
 
   test('@smoke learner login is reachable', async ({ page }) => {
