@@ -95,52 +95,63 @@ export async function deleteAdminLesson(id: string): Promise<void> {
 }
 
 export async function listAdminVocabulary(): Promise<VocabularyItem[]> {
-  const { data, error } = await (await requireAdmin()).from('vocabulary_items').select('*').order('created_at', { ascending: false });
+  const { data, error } = await (await requireAdmin()).from('vocabulary_items').select('*').order('term');
   if (error) throw new Error(error.message);
   return data ?? [];
 }
 
-export async function listAdminVocabularyPicker(options: { search?: string; limit?: number } = {}): Promise<VocabularyItem[]> {
+export async function listAdminVocabularyPicker(search = '', selectedIds: readonly string[] = []): Promise<VocabularyItem[]> {
   const client = await requireAdmin();
-  const limit = Math.min(100, Math.max(1, options.limit ?? 40));
-  let query = client.from('vocabulary_items').select('*').order('created_at', { ascending: false }).limit(limit);
-  const sanitized = sanitizeAdminSearch(options.search);
-  if (sanitized) query = query.or(`japanese.ilike.%${sanitized}%,reading.ilike.%${sanitized}%,meaning.ilike.%${sanitized}%`);
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return data ?? [];
+  const selected = [...new Set(selectedIds.filter(Boolean))];
+  const needle = sanitizeAdminSearch(search);
+  let query = client.from('vocabulary_items').select('*').order('term').limit(50);
+  if (needle) query = query.or(`term.ilike.*${needle}*,reading.ilike.*${needle}*,translation.ilike.*${needle}*`);
+  const [searchResult, selectedResult] = await Promise.all([
+    query,
+    selected.length ? client.from('vocabulary_items').select('*').in('id', selected) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (searchResult.error) throw new Error(searchResult.error.message);
+  if (selectedResult.error) throw new Error(selectedResult.error.message);
+  const byId = new Map<string, VocabularyItem>();
+  for (const item of [...(selectedResult.data ?? []), ...(searchResult.data ?? [])]) byId.set(item.id, item);
+  return [...byId.values()];
 }
 
 export async function listAdminVocabularyFilterOptions(): Promise<{ levels: string[]; tags: string[] }> {
-  const { data, error } = await (await requireAdmin()).from('vocabulary_items').select('level,tags');
+  const { data, error } = await (await requireAdmin()).from('vocabulary_items').select('level, tags');
   if (error) throw new Error(error.message);
-  const levels = Array.from(new Set((data ?? []).map((row) => row.level).filter(Boolean))).sort();
-  const tags = Array.from(new Set((data ?? []).flatMap((row) => row.tags ?? []).filter(Boolean))).sort();
-  return { levels, tags };
+  const levels = new Set<string>();
+  const tags = new Set<string>();
+  for (const item of data ?? []) {
+    if (item.level?.trim()) levels.add(item.level.trim());
+    for (const tag of item.tags ?? []) if (tag.trim()) tags.add(tag.trim());
+  }
+  return { levels: [...levels].sort(), tags: [...tags].sort((left, right) => left.localeCompare(right, 'vi')) };
 }
 
-export async function listAdminVocabularyPage(options: AdminVocabularyPageOptions): Promise<AdminVocabularyPage> {
+export async function listAdminVocabularyPage({ page, pageSize, search = '', level = '', tag = '', courseId = '' }: AdminVocabularyPageOptions): Promise<AdminVocabularyPage> {
   const client = await requireAdmin();
-  const page = Math.max(1, options.page);
-  const pageSize = Math.min(100, Math.max(1, options.pageSize));
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-  let query = client.from('vocabulary_items').select('*', { count: 'exact' });
-  const sanitized = sanitizeAdminSearch(options.search);
-  if (sanitized) query = query.or(`japanese.ilike.%${sanitized}%,reading.ilike.%${sanitized}%,meaning.ilike.%${sanitized}%`);
-  if (options.level) query = query.eq('level', options.level);
-  if (options.tag) query = query.contains('tags', [options.tag]);
-  if (options.courseId) {
-    const { data: lessonVocabulary, error: relationError } = await client
-      .from('lesson_vocabulary')
-      .select('vocabulary_item_id,lessons!inner(course_id)')
-      .eq('lessons.course_id', options.courseId);
-    if (relationError) throw new Error(relationError.message);
-    const ids = Array.from(new Set((lessonVocabulary ?? []).map((row) => row.vocabulary_item_id)));
-    if (ids.length === 0) return { rows: [], total: 0 };
-    query = query.in('id', ids);
+  let vocabularyIds: string[] | null = null;
+  if (courseId) {
+    const { data: lessons, error: lessonError } = await client.from('lessons').select('id').eq('course_id', courseId);
+    if (lessonError) throw new Error(lessonError.message);
+    const lessonIds = (lessons ?? []).map((lesson) => lesson.id);
+    if (!lessonIds.length) return { rows: [], total: 0 };
+    const { data: links, error: linkError } = await client.from('lesson_vocabulary').select('vocabulary_item_id').in('lesson_id', lessonIds);
+    if (linkError) throw new Error(linkError.message);
+    vocabularyIds = [...new Set((links ?? []).map((link) => link.vocabulary_item_id))];
+    if (!vocabularyIds.length) return { rows: [], total: 0 };
   }
-  const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
+
+  const size = Math.max(1, Math.min(Math.round(pageSize), 100));
+  const currentPage = Math.max(0, Math.round(page));
+  const needle = sanitizeAdminSearch(search);
+  let query = client.from('vocabulary_items').select('*', { count: 'exact' }).order('term');
+  if (vocabularyIds) query = query.in('id', vocabularyIds);
+  if (level) query = query.eq('level', level);
+  if (tag) query = query.contains('tags', [tag]);
+  if (needle) query = query.or(`term.ilike.*${needle}*,reading.ilike.*${needle}*,translation.ilike.*${needle}*`);
+  const { data, error, count } = await query.range(currentPage * size, (currentPage + 1) * size - 1);
   if (error) throw new Error(error.message);
   return { rows: data ?? [], total: count ?? 0 };
 }
@@ -161,7 +172,7 @@ export async function deleteAdminVocabulary(id: string): Promise<void> {
 }
 
 export async function listAdminDocuments(courseId?: string): Promise<Document[]> {
-  let query = (await requireAdmin()).from('documents').select('*').order('created_at', { ascending: false });
+  let query = (await requireAdmin()).from('documents').select('*').order('created_at', { ascending: false }).limit(200);
   if (courseId) query = query.eq('course_id', courseId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -183,8 +194,10 @@ export async function deleteAdminDocument(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function listAdminAudio(): Promise<Podcast[]> {
-  const { data, error } = await (await requireAdmin()).from('podcast_episodes').select('*').order('created_at', { ascending: false });
+export async function listAdminAudio(courseId?: string): Promise<Podcast[]> {
+  let query = (await requireAdmin()).from('podcast_episodes').select('*').order('created_at', { ascending: false }).limit(200);
+  if (courseId) query = query.eq('course_id', courseId);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data ?? [];
 }
@@ -205,7 +218,7 @@ export async function deleteAdminAudio(id: string): Promise<void> {
 }
 
 export async function listAdminLessonAssets(lessonId?: string): Promise<LessonAsset[]> {
-  let query = (await requireAdmin()).from('lesson_assets').select('*').order('sort_order');
+  let query = (await requireAdmin()).from('lesson_assets').select('*').order('created_at', { ascending: false });
   if (lessonId) query = query.eq('lesson_id', lessonId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -227,42 +240,38 @@ export async function deleteAdminLessonAsset(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function listAdminLessonVocabulary(lessonId: string): Promise<LessonVocabulary[]> {
-  const { data, error } = await (await requireAdmin()).from('lesson_vocabulary').select('*').eq('lesson_id', lessonId).order('order_index');
+export async function listAdminLessonExercises(lessonId?: string): Promise<AdminLessonExercise[]> {
+  const { data, error } = await (await requireAdmin()).rpc('get_admin_lesson_exercises');
+  if (error) throw new Error(error.message);
+  return lessonId ? (data ?? []).filter((item) => item.lesson_id === lessonId) : (data ?? []);
+}
+
+export async function saveAdminLessonExercise(input: AdminDraft<'lesson_exercises'>): Promise<void> {
+  const client = await requireAdmin();
+  const { id, isNew, ...payload } = input;
+  const result = id && !isNew
+    ? await client.from('lesson_exercises').update(payload as TablesUpdate<'lesson_exercises'>).eq('id', id)
+    : await client.from('lesson_exercises').insert(insertDraft<'lesson_exercises'>(id, payload));
+  if (result.error) throw new Error(result.error.message);
+}
+
+export async function deleteAdminLessonExercise(id: string): Promise<void> {
+  const { error } = await (await requireAdmin()).from('lesson_exercises').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function listAdminLessonVocabulary(lessonId?: string): Promise<LessonVocabulary[]> {
+  let query = (await requireAdmin()).from('lesson_vocabulary').select('*').order('lesson_id').order('position');
+  if (lessonId) query = query.eq('lesson_id', lessonId);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data ?? [];
 }
 
 export async function replaceAdminLessonVocabulary(lessonId: string, vocabularyIds: string[]): Promise<void> {
-  const client = await requireAdmin();
-  const { error: deleteError } = await client.from('lesson_vocabulary').delete().eq('lesson_id', lessonId);
-  if (deleteError) throw new Error(deleteError.message);
-  if (vocabularyIds.length === 0) return;
-  const { error } = await client.from('lesson_vocabulary').insert(vocabularyIds.map((vocabularyItemId, orderIndex) => ({
-    lesson_id: lessonId,
-    vocabulary_item_id: vocabularyItemId,
-    order_index: orderIndex,
-  })));
-  if (error) throw new Error(error.message);
-}
-
-export async function listAdminLessonExercises(lessonId: string): Promise<AdminLessonExercise[]> {
-  const { data, error } = await (await requireAdmin()).from('lesson_exercises').select('*').eq('lesson_id', lessonId).order('order_index');
-  if (error) throw new Error(error.message);
-  return (data ?? []) as AdminLessonExercise[];
-}
-
-export async function saveAdminLessonExercise(input: AdminDraft<'lesson_exercises'>): Promise<AdminLessonExercise> {
-  const client = await requireAdmin();
-  const { id, isNew, ...payload } = input;
-  const result = id && !isNew
-    ? await client.from('lesson_exercises').update(payload as TablesUpdate<'lesson_exercises'>).eq('id', id).select('*').single()
-    : await client.from('lesson_exercises').insert(insertDraft<'lesson_exercises'>(id, payload)).select('*').single();
-  if (result.error) throw new Error(result.error.message);
-  return result.data as AdminLessonExercise;
-}
-
-export async function deleteAdminLessonExercise(id: string): Promise<void> {
-  const { error } = await (await requireAdmin()).from('lesson_exercises').delete().eq('id', id);
+  const { error } = await (await requireAdmin()).rpc('admin_replace_lesson_vocabulary', {
+    target_lesson_id: lessonId,
+    target_vocabulary_ids: [...new Set(vocabularyIds.filter(Boolean))],
+  });
   if (error) throw new Error(error.message);
 }
