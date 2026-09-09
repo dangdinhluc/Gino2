@@ -9,15 +9,23 @@ export interface SupabaseCourseRow {
   status: string;
   theme_color: string | null;
   order_index: number;
+  feature_config: unknown;
   lessons?: Array<{ count: number }> | null;
 }
 
 export interface CourseListEntry extends Course {
   themeColor: string | null;
+  category: string;
   isEnrolled?: boolean;
 }
 
-const COURSE_LIST_SELECT = 'id, title, level, description, status, theme_color, order_index, lessons(count)';
+const COURSE_LIST_SELECT = 'id, title, level, description, status, theme_color, order_index, feature_config, lessons(count)';
+
+function courseCategoryFromConfig(value: unknown, fallback: string): string {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return fallback;
+  const category = (value as Record<string, unknown>).category;
+  return typeof category === 'string' && category.trim() ? category.trim() : fallback;
+}
 
 export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0, isEnrolled = false): CourseListEntry {
   const totalLessons = row.lessons?.[0]?.count ?? 0;
@@ -30,6 +38,7 @@ export function mapCourseRowToEntry(row: SupabaseCourseRow, progress = 0, isEnro
     totalLessons,
     image: '',
     themeColor: row.theme_color,
+    category: courseCategoryFromConfig(row.feature_config, row.level || 'Khác'),
     isEnrolled,
   };
 }
@@ -72,9 +81,7 @@ export async function fetchPublishedCourses(userId?: string): Promise<CourseList
     .eq('status', 'published')
     .order('order_index', { ascending: true });
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 
   const progressByCourse = new Map<string, number>();
   const enrollmentByCourse = new Set<string>();
