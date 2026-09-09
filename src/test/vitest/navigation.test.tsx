@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describe('BottomNav component', () => {
-  it('renders all 5 tabs and center mascot button', () => {
+  it('renders four destinations plus the center learning launcher', () => {
     render(
       <MemoryRouter initialEntries={['/app/dashboard']}>
         <BottomNav />
@@ -55,8 +55,9 @@ describe('BottomNav component', () => {
 
     expect(screen.getByText('Hôm nay')).toBeDefined();
     expect(screen.getByText('Khóa học')).toBeDefined();
-    expect(screen.getByText('Thi thử')).toBeDefined();
+    expect(screen.getByText('Luyện tập')).toBeDefined();
     expect(screen.getByText('Cá nhân')).toBeDefined();
+    expect(screen.queryByText('Thi thử')).toBeNull();
     expect(screen.getByRole('button', { name: /mở học ngay/i })).toBeDefined();
   });
 });
@@ -141,6 +142,20 @@ describe('LearningLauncherSheet component', () => {
     }
 
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('closes on Escape for keyboard users', () => {
+    useActiveCourseStore.setState({ status: 'ready' });
+    const handleClose = vi.fn();
+
+    render(
+      <MemoryRouter initialEntries={['/app/dashboard']}>
+        <LearningLauncherSheet isOpen={true} onClose={handleClose} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
   it('offers course selection when there is no active course', async () => {
