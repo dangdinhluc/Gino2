@@ -29,6 +29,12 @@
   --color-app-border: var(--gino-border);
   --color-app-border-strong: var(--gino-border-strong);
 
+  /* Public/landing fallbacks use the same brand family when legacy styles
+   * reference their own accent variables. */
+  --landing-gold: var(--gino-secondary);
+  --landing-orange: var(--gino-primary);
+  --landing-red: var(--gino-primary-strong);
+
   --app-background:
     linear-gradient(180deg, rgb(252 250 255 / 0.9), rgb(244 238 251 / 0.95)),
     var(--asset-english-hero-background) center top / cover fixed;
@@ -44,8 +50,6 @@
     var(--asset-dashboard-library-background) center / cover fixed;
 }
 
-/* Old warm surfaces from the first standardization pass now resolve to the
- * lavender-neutral brand family. */
 [data-gino-visual="core"] :where(
   [class*="bg-[#fff9f2]"],
   [class*="bg-[#fffdf9]"],
@@ -63,8 +67,6 @@
   border-color: var(--gino-border) !important;
 }
 
-/* Compatibility mapping for components standardized to orange in the previous
- * pass. */
 [data-gino-visual="core"] :where(
   [class*="text-[#c96a1b]"],
   [class*="text-[#a95112]"]
@@ -79,15 +81,11 @@
   background-color: var(--gino-primary) !important;
 }
 
-[data-gino-visual="core"] :where(
-  [class*="hover:text-[#a95112]"]:hover
-) {
+[data-gino-visual="core"] :where([class*="hover:text-[#a95112]"]:hover) {
   color: var(--gino-primary-strong) !important;
 }
 
-[data-gino-visual="core"] :where(
-  [class*="hover:border-[#ddcfbc]"]:hover
-) {
+[data-gino-visual="core"] :where([class*="hover:border-[#ddcfbc]"]:hover) {
   border-color: var(--gino-border-strong) !important;
 }
 
@@ -95,20 +93,12 @@
   background-image: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
 }
 
-/* Dashboard: the previous pass intentionally neutralized several colorful
- * blocks. Keep that consistency but shift every neutralized block into the
- * lavender family instead of beige. */
 [data-gino-route="/app/dashboard"] [class*="bg-[#221640]"] {
   background-color: #2a1d46 !important;
 }
 
 [data-gino-route="/app/dashboard"] [class*="from-[#160d2d]"][class*="via-[#1d123b]"][class*="to-[#190f33]"] {
-  background-image: linear-gradient(
-    to top,
-    rgb(42 29 70 / 0.96),
-    rgb(57 39 91 / 0.55),
-    rgb(71 48 113 / 0.28)
-  ) !important;
+  background-image: linear-gradient(to top, rgb(42 29 70 / 0.96), rgb(57 39 91 / 0.55), rgb(71 48 113 / 0.28)) !important;
 }
 
 [data-gino-route="/app/dashboard"] [class*="from-[#f0f7ff]"][class*="to-[#e4f0fc]"],
@@ -126,7 +116,6 @@
   background-color: rgb(255 252 255 / 0.92) !important;
 }
 
-/* Navigation is one of the strongest brand cues. */
 [data-gino-visual="core"] .gino-bottom-nav {
   border-color: var(--gino-border) !important;
   background: rgb(255 252 255 / 0.97) !important;
@@ -144,7 +133,6 @@
   box-shadow: 0 8px 20px rgb(111 69 216 / 0.18) !important;
 }
 
-/* Course workspace and generic focused controls. */
 [data-gino-visual="core"] .course-workspace-header,
 [data-gino-visual="core"] .course-workspace-desktop-tabs {
   border-color: var(--gino-border) !important;
@@ -159,4 +147,53 @@
 
 [data-gino-visual="core"] :where(button, a, input, textarea, select):focus-visible {
   outline-color: var(--gino-primary) !important;
+}
+
+/* ---------- Public auth continuity ---------- */
+.auth-v2-shell {
+  background: radial-gradient(circle at 20% 12%, #eee7ff 0, transparent 32%), linear-gradient(135deg, #fbf9ff 0%, #f3eefb 100%) !important;
+  color: var(--gino-text) !important;
+}
+
+.auth-v2-brand-mark,
+.auth-v2-card-icon {
+  border-color: var(--gino-border-strong) !important;
+  background: var(--gino-primary-soft) !important;
+  color: var(--gino-primary) !important;
+}
+
+.auth-v2-overline,
+.auth-v2-story em,
+.auth-v2-label-row a,
+.auth-v2-signup a,
+.auth-v2-back {
+  color: var(--gino-primary) !important;
+}
+
+.auth-v2-card,
+.auth-v2-preview,
+.auth-v2-config-card {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 252 255 / 0.96) !important;
+  box-shadow: var(--gino-shadow-sm) !important;
+}
+
+.auth-v2-input-wrap {
+  border-color: var(--gino-border) !important;
+  background: #fff !important;
+}
+
+.auth-v2-input-wrap:focus-within {
+  border-color: var(--gino-primary) !important;
+  box-shadow: 0 0 0 3px rgb(111 69 216 / 0.12) !important;
+}
+
+.auth-v2-submit {
+  background: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+  box-shadow: 0 8px 20px rgb(111 69 216 / 0.22) !important;
+}
+
+.auth-v2-preview-track span,
+.auth-v2-status-dot {
+  background: var(--gino-primary) !important;
 }
