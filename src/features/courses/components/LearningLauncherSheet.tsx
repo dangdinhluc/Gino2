@@ -70,15 +70,17 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
       if (event.key !== 'Tab') return;
       const dialog = dialogRef.current;
       if (!dialog) return;
-      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+      const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR))
+        .filter((element): element is HTMLElement => element instanceof HTMLElement)
         .filter((element) => !element.hasAttribute('disabled') && element.getAttribute('aria-hidden') !== 'true');
       if (focusable.length === 0) {
         event.preventDefault();
         dialog.focus();
         return;
       }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = focusable.at(0);
+      const last = focusable.at(-1);
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
