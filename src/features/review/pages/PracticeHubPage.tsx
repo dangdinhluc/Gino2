@@ -7,13 +7,15 @@ import { requireSupabase } from '@/src/features/supabase/lib/supabaseRepository'
 import { assets } from '@/src/shared/lib/assets';
 
 type RpcResult = { data: unknown; error: { message: string } | null };
-type UntypedRpc = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+type SupabaseWithDueCountRpc = {
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
+};
 
 async function fetchDueVocabularyCount(courseId: string): Promise<number> {
-  // The RPC was added after the checked-in generated types. Keep this one call
-  // narrowly untyped until the next full Supabase type regeneration.
-  const rpc = requireSupabase().rpc as unknown as UntypedRpc;
-  const { data, error } = await rpc('get_due_vocabulary_count', { target_course_id: courseId });
+  // The production RPC is newer than the checked-in generated types. Keep the
+  // escape hatch local and preserve method binding by calling through client.
+  const client = requireSupabase() as unknown as SupabaseWithDueCountRpc;
+  const { data, error } = await client.rpc('get_due_vocabulary_count', { target_course_id: courseId });
   if (error) throw new Error(error.message);
   return Number(data ?? 0);
 }
