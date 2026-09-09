@@ -41,7 +41,9 @@ export async function fetchActiveCourseContext(userId: string): Promise<ActiveCo
     : null;
 
   return {
-    activeCourseId: persistedId ?? mappedEnrollments[0]?.courseId ?? null,
+    // Do not silently pick an arbitrary enrollment. The learner must explicitly
+    // choose the course that drives Dashboard, review and exam context.
+    activeCourseId: persistedId,
     enrollments: mappedEnrollments,
     usedPersistedSelection: persistedId !== null,
   };
