@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { Tables } from '@/src/features/supabase/lib/database.types';
+import type { Json, Tables } from '@/src/features/supabase/lib/database.types';
 import { createAdminCourse, updateAdminCourse } from '@/src/features/admin/repositories/adminRepository';
 import { EditorDrawer } from '@/src/features/admin/components/EditorDrawer';
 import { EditorField, EditorSelect, editorControlClass } from './EditorFields';
 
 type Course = Tables<'courses'>;
+type CourseWithFeatureConfig = Course & { feature_config?: Json };
 
 interface CourseDraft {
   slug: string;
@@ -17,12 +18,16 @@ interface CourseDraft {
   status: string;
 }
 
-function featureConfigRecord(value: Course['feature_config'] | null | undefined): Record<string, unknown> {
+function featureConfigRecord(value: Json | undefined): Record<string, Json | undefined> {
   return value && typeof value === 'object' && !Array.isArray(value) ? { ...value } : {};
 }
 
+function courseFeatureConfig(course: Course | null): Json | undefined {
+  return course ? (course as CourseWithFeatureConfig).feature_config : undefined;
+}
+
 function courseCategory(course: Course): string {
-  const category = featureConfigRecord(course.feature_config).category;
+  const category = featureConfigRecord(courseFeatureConfig(course)).category;
   return typeof category === 'string' && category.trim() ? category.trim() : course.level;
 }
 
@@ -73,10 +78,10 @@ export function CourseEditorDrawer({ open, course, onClose, onSaved }: { open: b
     setSaving(true);
     setError(null);
     try {
-      const featureConfig = {
-        ...featureConfigRecord(course?.feature_config),
+      const featureConfig: Json = {
+        ...featureConfigRecord(courseFeatureConfig(course)),
         category,
-      } as Course['feature_config'];
+      };
       const payload = {
         slug,
         title,
