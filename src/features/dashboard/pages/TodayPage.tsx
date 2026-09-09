@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Flame, Info, ChevronRight } from 'lucide-react';
+import { ChevronRight, Flame, Info } from 'lucide-react';
 import { claimDailyReward } from '@/src/features/rewards/repositories/rewardRepository';
 import { useRealDashboard } from '@/src/features/dashboard/hooks/useRealDashboard';
 import { DashboardLoading } from '@/src/features/dashboard/components/DashboardLoading';
@@ -13,11 +13,10 @@ export default function TodayPage() {
   const [claimingReward, setClaimingReward] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const [rewardToast, setRewardToast] = useState<string | null>(null);
+  const [showTaskInfo, setShowTaskInfo] = useState(false);
 
   useEffect(() => {
-    if (reason === 'no-course') {
-      navigate('/app/courses', { replace: true });
-    }
+    if (reason === 'no-course') navigate('/app/courses', { replace: true });
   }, [navigate, reason]);
 
   if (loading) return <DashboardLoading />;
@@ -28,6 +27,8 @@ export default function TodayPage() {
   if (!data) return <DashboardError onRetry={refetch} />;
 
   const { profile, activeCourse, today, stats } = data;
+  const statsUnavailable = data.warnings?.includes('stats') ?? false;
+  const planUnavailable = data.warnings?.includes('plan') ?? false;
   const dueCount = today.vocabularyDue;
   const nextLesson = activeCourse?.nextLesson;
   const defaultWorkspaceTab = courseWorkspaceTabs[0]?.id ?? 'vocabulary';
@@ -40,331 +41,123 @@ export default function TodayPage() {
       setRewardClaimed(true);
       setRewardToast(res.claimed ? `🎉 +${res.rewardXp} XP nhận thưởng thành công!` : 'Phần thưởng hôm nay đã được nhận.');
       refetch();
-    } catch (reason: unknown) {
-      setRewardToast(reason instanceof Error ? reason.message : 'Không thể nhận phần thưởng hôm nay.');
+    } catch (claimError: unknown) {
+      setRewardToast(claimError instanceof Error ? claimError.message : 'Không thể nhận phần thưởng hôm nay.');
     } finally {
       setClaimingReward(false);
-      setTimeout(() => setRewardToast(null), 3500);
+      window.setTimeout(() => setRewardToast(null), 3500);
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-[500px] space-y-4 px-3 pb-28 pt-2 sm:px-4">
+    <div className="mx-auto w-full max-w-[760px] space-y-4 px-3 pb-28 pt-2 sm:px-4 lg:pt-4">
       {(refreshing || error || data.warnings?.length) ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e7def8] bg-[#faf8ff] px-3.5 py-2.5 text-[11px] font-semibold text-[#6f6680]" role={error ? 'alert' : 'status'}>
-          <span>{error ? 'Dữ liệu đang được giữ lại trong lúc kết nối được khôi phục.' : refreshing ? 'Đang cập nhật dữ liệu học…' : 'Một số số liệu phụ chưa sẵn sàng.'}</span>
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e5dcf2] bg-[#faf8ff] px-3.5 py-2.5 text-[11px] font-semibold text-[#6f6880]" role={error ? 'alert' : 'status'}>
+          <span>{error ? 'Dữ liệu cũ đang được giữ lại trong lúc kết nối được khôi phục.' : refreshing ? 'Đang cập nhật dữ liệu học…' : 'Một số số liệu chưa tải được và được hiển thị bằng dấu —.'}</span>
           {error ? <button type="button" onClick={refetch} className="shrink-0 font-black text-[#6f45d8]">Thử lại</button> : null}
         </div>
       ) : null}
 
       {rewardToast ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="gino-toast-enter fixed top-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-[#c3adfa] bg-[#6e46e6] px-4 py-2.5 text-center text-xs font-black text-white shadow-xl"
-        >
+        <div role="status" aria-live="polite" className="gino-toast-enter fixed inset-x-4 top-4 z-50 mx-auto max-w-sm rounded-2xl border border-[#c3adfa] bg-[#6f45d8] px-4 py-2.5 text-center text-xs font-black text-white shadow-xl">
           {rewardToast}
         </div>
       ) : null}
 
-      <section className="relative overflow-hidden rounded-[30px] bg-[#221640] p-4 text-white shadow-[0_12px_32px_rgba(25,12,50,0.18)]">
+      <section className="relative overflow-hidden rounded-[30px] bg-[#2a1d46] p-4 text-white shadow-[0_12px_32px_rgba(42,29,70,0.2)] sm:p-5">
         <div className="absolute inset-0">
-          <img
-            src={assets.shared.backgrounds.fujiLandscape}
-            alt="Fuji Landscape"
-            decoding="async"
-            fetchPriority="high"
-            className="h-full w-full object-cover object-center opacity-90"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#160d2d]/95 via-[#1d123b]/50 to-[#190f33]/30" />
+          <img src={assets.shared.backgrounds.fujiLandscape} alt="Núi Phú Sĩ" decoding="async" fetchPriority="high" className="h-full w-full object-cover object-center opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#211532]/95 via-[#342253]/55 to-[#473071]/30" />
         </div>
 
-        <div className="relative z-10 flex items-center justify-between">
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/95 text-[#1e1f29] shadow-sm backdrop-blur-xs transition-transform hover:scale-105 active:scale-95"
-            aria-label="Menu"
-          >
-            <Menu size={20} strokeWidth={2.5} />
-          </button>
-
+        <div className="relative z-10 flex justify-end">
           <div className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/95 px-3.5 py-1.5 text-center shadow-xs backdrop-blur-xs">
-            <Flame size={15} className="fill-[#ff6b35] text-[#ff6b35]" />
+            <Flame size={15} className="fill-[#6f45d8] text-[#6f45d8]" />
             <div className="flex flex-col items-start leading-none">
-              <span className="text-[12px] font-black text-[#1e1f29]">{stats.streak}</span>
-              <span className="text-[8.5px] font-bold text-[#626472]">Ngày liên tiếp</span>
+              <span className="text-[12px] font-black text-[#211b35]">{statsUnavailable ? '—' : stats.streak}</span>
+              <span className="text-[9px] font-bold text-[#6f6880]">Ngày liên tiếp</span>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 mt-3.5 flex items-center justify-between gap-2">
+        <div className="relative z-10 mt-3 flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h1 className="flex items-center gap-1.5 text-[22px] font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
-              <span>Xin chào, {profile.name}!</span>
-              <span className="text-yellow-300">✨</span>
+            <h1 className="flex items-center gap-1.5 text-[22px] font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-[26px]">
+              <span>Xin chào, {profile.name}!</span><span className="text-yellow-300">✨</span>
             </h1>
-            <p className="mt-1 text-[12px] font-medium leading-snug text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
-              Hôm nay là một ngày tuyệt vời để học tiếng Nhật!
-            </p>
+            <p className="mt-1 text-[12px] font-medium leading-snug text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">Tiếp tục đúng khóa đang học và hoàn thành một việc quan trọng hôm nay.</p>
           </div>
-
           <div className="relative -mb-1 -mr-1 h-24 w-24 shrink-0 sm:h-28 sm:w-28">
-            <img
-              src={assets.shared.mascots.headerWaving}
-              alt="Tanuki Mascot"
-              decoding="async"
-              className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.5)]"
-            />
+            <img src={assets.shared.mascots.headerWaving} alt="Linh vật GINO" decoding="async" className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]" />
           </div>
         </div>
 
         {activeCourse ? (
-          <Link
-            to="/app/courses"
-            aria-label={`Khóa đang học: ${activeCourse.title}. Mở quản lý khóa học`}
-            className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[#d7c8f6] bg-[#f8f4ff]/95 px-3.5 py-3 text-[#221640] shadow-sm transition hover:border-[#6e46e6]"
-          >
+          <Link to="/app/courses" aria-label={`Khóa đang học: ${activeCourse.title}. Mở quản lý khóa học`} className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[#d7c8f6] bg-[#f8f4ff]/95 px-3.5 py-3 text-[#211b35] shadow-sm transition hover:border-[#6f45d8]">
             <div className="min-w-0">
-              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#6e46e6]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#6e46e6]" aria-hidden="true" />
-                Khóa đang học
-              </span>
+              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#6f45d8]"><span className="h-1.5 w-1.5 rounded-full bg-[#6f45d8]" aria-hidden="true" />Khóa đang học</span>
               <strong className="mt-1 block truncate text-[15px] font-black">{activeCourse.title}</strong>
-              <span className="mt-0.5 block text-[11px] font-bold text-[#77718a]">
-                Đã chọn · {activeCourse.progress}% hoàn thành
-              </span>
+              <span className="mt-0.5 block text-[11px] font-bold text-[#77718a]">Đã chọn · {activeCourse.progress}% hoàn thành</span>
             </div>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6e46e6] text-sm font-black text-white" aria-hidden="true">
-              ✓
-            </span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6f45d8] text-sm font-black text-white" aria-hidden="true">✓</span>
           </Link>
         ) : null}
 
-        <div className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#1e1f26] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
+        <div className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#211b35] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center">
-              <img
-                src={assets.shared.dashboard.openBook}
-                alt=""
-                decoding="async"
-                className="h-full w-full object-contain drop-shadow-2xs"
-              />
-            </span>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center"><img src={assets.shared.dashboard.openBook} alt="" decoding="async" className="h-full w-full object-contain drop-shadow-2xs" /></span>
             <div className="min-w-0 flex-1">
-              <span className="text-[10.5px] font-black uppercase tracking-wide text-[#6e46e6]">
-                {nextLesson ? 'Tiếp tục học' : activeCourse ? 'Khóa học của bạn' : 'Bắt đầu học'}
-              </span>
-              <strong className="block truncate text-[14.5px] font-black text-[#191a22]">
-                {nextLesson?.title ?? (activeCourse ? 'Chưa có bài học tiếp theo' : 'Bạn chưa có khóa học')}
-              </strong>
-              <span className="block truncate text-[11.5px] font-semibold text-[#767886]">
-                {activeCourse ? (nextLesson ? activeCourse.title : 'Khám phá khóa học') : 'Chọn khóa Tokutei để bắt đầu'}
-              </span>
+              <span className="text-[10.5px] font-black uppercase tracking-wide text-[#6f45d8]">{nextLesson ? 'Tiếp tục học' : activeCourse ? 'Khóa học của bạn' : 'Bắt đầu học'}</span>
+              <strong className="block truncate text-[14.5px] font-black text-[#211b35]">{planUnavailable ? 'Chưa tải được bài tiếp theo' : nextLesson?.title ?? (activeCourse ? 'Chưa có bài học tiếp theo' : 'Bạn chưa có khóa học')}</strong>
+              <span className="block truncate text-[11.5px] font-semibold text-[#767080]">{activeCourse ? (nextLesson ? activeCourse.title : 'Mở khóa học để xem nội dung') : 'Chọn khóa Tokutei để bắt đầu'}</span>
               {activeCourse ? (
-                <div className="mt-1.5 flex items-center gap-2">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#f0ebf8]">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#7c4df2] to-[#6035d8]"
-                      style={{ width: `${activeCourse.progress}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-[#747684]">
-                    {activeCourse.progress}%
-                  </span>
-                </div>
+                <div className="mt-1.5 flex items-center gap-2"><div className="h-2 flex-1 overflow-hidden rounded-full bg-[#eee7ff]"><div className="h-full rounded-full bg-gradient-to-r from-[#6f45d8] to-[#8a72c7]" style={{ width: `${activeCourse.progress}%` }} /></div><span className="text-[10px] font-extrabold text-[#747080]">{activeCourse.progress}%</span></div>
               ) : null}
             </div>
           </div>
-
           {activeCourse ? (
-            <Link
-              to={`/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}`}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#6e46e6] to-[#552ad6] text-white shadow-[0_5px_16px_rgba(110,70,230,0.38)] transition-all hover:scale-105 active:scale-95"
-              aria-label={nextLesson ? 'Tiếp tục học' : 'Khám phá khóa học'}
-            >
-              <ChevronRight size={20} strokeWidth={2.8} />
-            </Link>
+            <Link to={`/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#6f45d8] to-[#5631b8] text-white shadow-[0_5px_16px_rgba(111,69,216,0.3)] transition-all hover:scale-105 active:scale-95" aria-label={nextLesson ? 'Tiếp tục học' : 'Mở khóa học'}><ChevronRight size={20} strokeWidth={2.8} /></Link>
           ) : (
-            <Link
-              to="/app/courses"
-              className="shrink-0 rounded-full bg-gradient-to-r from-[#6e46e6] to-[#552ad6] px-3 py-2 text-center text-[10px] font-black text-white shadow-[0_5px_16px_rgba(110,70,230,0.38)] transition-all hover:scale-105 active:scale-95"
-            >
-              Xem khóa học
-            </Link>
+            <Link to="/app/courses" className="shrink-0 rounded-full bg-gradient-to-r from-[#6f45d8] to-[#5631b8] px-3 py-2 text-center text-[10px] font-black text-white">Xem khóa học</Link>
           )}
         </div>
       </section>
 
       <section className="space-y-2.5">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between gap-3 px-1">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-[15.5px] font-black tracking-tight text-[#1e1f26]">
-              Nhiệm vụ hôm nay
-            </h2>
-            <button
-              type="button"
-              className="text-[#9698a4] hover:text-[#6e46e6]"
-              title="Thông tin nhiệm vụ"
-              aria-label="Thông tin nhiệm vụ"
-            >
-              <Info size={15} />
-            </button>
+            <h2 className="text-[15.5px] font-black tracking-tight text-[#211b35]">Nhiệm vụ hôm nay</h2>
+            <button type="button" onClick={() => setShowTaskInfo((visible) => !visible)} aria-expanded={showTaskInfo} className="flex h-8 w-8 items-center justify-center rounded-full text-[#9189a0] transition hover:bg-[#eee7ff] hover:text-[#6f45d8]" title="Thông tin nhiệm vụ" aria-label="Thông tin nhiệm vụ"><Info size={16} /></button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleClaimReward}
-            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#7042e6] to-[#5a2fd8] py-1 pl-1.5 pr-3 text-[11.5px] font-black text-white shadow-[0_3px_12px_rgba(110,70,230,0.35)] transition-transform active:scale-[0.94]"
-          >
-            <img
-              src={assets.shared.dashboard.chestGold}
-              alt=""
-              decoding="async"
-              className="h-5 w-5 object-contain drop-shadow-xs"
-            />
-            <span>{rewardClaimed ? 'Đã nhận' : 'Nhận XP'}</span>
+          <button type="button" onClick={handleClaimReward} disabled={claimingReward || rewardClaimed} className="flex min-h-10 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#6f45d8] to-[#5631b8] py-1 pl-1.5 pr-3 text-[11.5px] font-black text-white shadow-[0_3px_12px_rgba(111,69,216,0.28)] transition-transform active:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-65">
+            <img src={assets.shared.dashboard.chestGold} alt="" decoding="async" className="h-5 w-5 object-contain drop-shadow-xs" /><span>{claimingReward ? 'Đang nhận…' : rewardClaimed ? 'Đã nhận' : 'Nhận XP'}</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5">
-          <Link
-            to="/app/review/flashcards?mode=due"
-            className="flex flex-col items-center justify-start rounded-[24px] border border-[#d6e7fc] bg-gradient-to-b from-[#f0f7ff] to-[#e4f0fc] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <div>
-              <strong className="block text-[13.5px] font-black text-[#2d6fd8]">Ôn từ vựng</strong>
-              <span className="mt-0.5 block text-[11px] font-medium text-[#606272]">
-                {dueCount > 0 ? `${dueCount} từ đến hạn` : 'Hôm nay chưa có từ cần ôn'}
-              </span>
-            </div>
+        {showTaskInfo ? <div className="rounded-[16px] border border-[#e5dcf2] bg-[#faf8ff] px-3.5 py-3 text-[11px] font-medium leading-5 text-[#6f6880]">GINO ưu tiên ba việc: ôn từ đã đến hạn, luyện phản xạ và tiếp tục bài của khóa đang chọn. Số liệu không tải được sẽ hiển thị dấu — thay vì tự đổi thành 0.</div> : null}
 
-            <div className="my-1.5 h-20 w-20 sm:h-22 sm:w-22">
-              <img
-                src={assets.shared.mascots.vocabWriting}
-                alt="Ôn từ vựng"
-                decoding="async"
-                className="h-full w-full object-contain drop-shadow-2xs"
-              />
-            </div>
+        <div className="grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-3">
+          <Link to="/app/review/flashcards?mode=due" className="flex min-h-[112px] items-center justify-between rounded-[24px] border border-[#e5dcf2] bg-[#fffcff] p-3 shadow-xs transition-all hover:-translate-y-0.5 min-[420px]:min-h-0 min-[420px]:flex-col min-[420px]:justify-start min-[420px]:text-center">
+            <div className="min-w-0"><strong className="block text-[13.5px] font-black text-[#6f45d8]">Ôn từ vựng</strong><span className="mt-0.5 block text-[11px] font-medium text-[#6f6880]">{planUnavailable ? '—' : dueCount > 0 ? `${dueCount} từ đến hạn` : 'Chưa có từ cần ôn'}</span></div>
+            <div className="h-20 w-20 shrink-0 min-[420px]:my-1.5"><img src={assets.shared.mascots.vocabWriting} alt="Ôn từ vựng" decoding="async" className="h-full w-full object-contain drop-shadow-2xs" /></div>
           </Link>
-
-          <Link
-            to="/app/practice"
-            className="flex flex-col items-center justify-start rounded-[24px] border border-[#d3ecd5] bg-gradient-to-b from-[#f0fbf0] to-[#e3f6e4] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <div>
-              <strong className="block text-[13.5px] font-black text-[#2d9e48]">Luyện tập</strong>
-              <span className="mt-0.5 block text-[11px] font-medium text-[#606272]">
-                {today.exercises > 0 ? `${today.exercises} lượt ôn hôm nay` : 'Chưa có hoạt động hôm nay'}
-              </span>
-            </div>
-
-            <div className="my-1.5 h-20 w-20 sm:h-22 sm:w-22">
-              <img
-                src={assets.shared.mascots.practicePencil}
-                alt="Luyện tập"
-                decoding="async"
-                className="h-full w-full object-contain drop-shadow-2xs"
-              />
-            </div>
+          <Link to="/app/practice" className="flex min-h-[112px] items-center justify-between rounded-[24px] border border-[#e5dcf2] bg-[#fffcff] p-3 shadow-xs transition-all hover:-translate-y-0.5 min-[420px]:min-h-0 min-[420px]:flex-col min-[420px]:justify-start min-[420px]:text-center">
+            <div className="min-w-0"><strong className="block text-[13.5px] font-black text-[#6f45d8]">Luyện tập</strong><span className="mt-0.5 block text-[11px] font-medium text-[#6f6880]">{statsUnavailable ? '—' : today.exercises > 0 ? `${today.exercises} lượt ôn hôm nay` : 'Chưa có hoạt động hôm nay'}</span></div>
+            <div className="h-20 w-20 shrink-0 min-[420px]:my-1.5"><img src={assets.shared.mascots.practicePencil} alt="Luyện tập" decoding="async" className="h-full w-full object-contain drop-shadow-2xs" /></div>
           </Link>
-
-          <Link
-            to={activeCourse ? `/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}` : '/app/courses'}
-            className="flex flex-col items-center justify-start rounded-[24px] border border-[#fbe5cb] bg-gradient-to-b from-[#fdf5ea] to-[#faedd9] p-3 text-center shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <div>
-              <strong className="block text-[13.5px] font-black text-[#d6791e]">Bài tiếp theo</strong>
-              <span className="mt-0.5 block truncate text-[11px] font-medium text-[#606272]">
-                {nextLesson?.title ?? 'Chưa có bài học tiếp theo'}
-              </span>
-            </div>
-
-            <div className="my-1.5 h-20 w-20 sm:h-22 sm:w-22">
-              <img
-                src={assets.shared.mascots.nextLessonN5}
-                alt="Bài tiếp theo"
-                decoding="async"
-                className="h-full w-full object-contain drop-shadow-2xs"
-              />
-            </div>
+          <Link to={activeCourse ? `/app/courses/${activeCourse.id}/workspace?tab=${defaultWorkspaceTab}` : '/app/courses'} className="flex min-h-[112px] items-center justify-between rounded-[24px] border border-[#e5dcf2] bg-[#fffcff] p-3 shadow-xs transition-all hover:-translate-y-0.5 min-[420px]:min-h-0 min-[420px]:flex-col min-[420px]:justify-start min-[420px]:text-center">
+            <div className="min-w-0"><strong className="block text-[13.5px] font-black text-[#6f45d8]">Bài tiếp theo</strong><span className="mt-0.5 block truncate text-[11px] font-medium text-[#6f6880]">{planUnavailable ? '—' : nextLesson?.title ?? 'Chưa có bài học tiếp theo'}</span></div>
+            <div className="h-20 w-20 shrink-0 min-[420px]:my-1.5"><img src={assets.shared.mascots.nextLessonN5} alt="Bài tiếp theo" decoding="async" className="h-full w-full object-contain drop-shadow-2xs" /></div>
           </Link>
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[26px] border border-[#d6c7f5] bg-gradient-to-r from-[#e3d8f8] via-[#e9defb] to-[#ded0f7] p-4 shadow-[0_4px_16px_rgba(110,70,230,0.08)]">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-black tracking-tight text-[#1e1f26]">
-            Thành tích hôm nay
-          </h2>
-          <div className="flex items-center gap-1">
-            <span className="text-xs">✨</span>
-            <img
-              src={assets.shared.mascots.faceWinking}
-              alt="Mascot"
-              loading="lazy"
-              decoding="async"
-              className="h-8 w-8 object-contain drop-shadow-xs"
-            />
-          </div>
-        </div>
-
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
-            <img
-              src={assets.shared.dashboard.bookStack}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-7 w-7 object-contain"
-            />
-            <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
-              {stats.learnedWords} từ
-            </strong>
-            <span className="text-[9.5px] font-bold text-[#656775]">Từ đã nhớ</span>
-          </div>
-
-          <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
-            <img
-              src={assets.shared.dashboard.checklist}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-7 w-7 object-contain"
-            />
-            <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
-              {today.exercises} lượt
-            </strong>
-            <span className="text-[9.5px] font-bold text-[#656775]">Đã ôn hôm nay</span>
-          </div>
-
-          <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
-            <img
-              src={assets.shared.dashboard.studyTimer}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-7 w-7 object-contain"
-            />
-            <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
-              {stats.studyMinutes === null ? '—' : `${stats.studyMinutes} phút`}
-            </strong>
-            <span className="text-[9.5px] font-bold text-[#656775]">Thời gian học</span>
-          </div>
-
-          <div className="flex flex-col items-center rounded-[18px] bg-white/85 p-2.5 text-center shadow-2xs backdrop-blur-xs">
-            <img
-              src={assets.shared.dashboard.xpStar}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-7 w-7 object-contain"
-            />
-            <strong className="mt-1 text-[12.5px] font-black text-[#1e1f26]">
-              {stats.xp} XP
-            </strong>
-            <span className="text-[9.5px] font-bold text-[#656775]">Điểm kinh nghiệm</span>
-          </div>
+      <section className="relative overflow-hidden rounded-[26px] border border-[#d6c7f5] bg-gradient-to-r from-[#ece3fb] via-[#f4effb] to-[#e8ddf8] p-4 shadow-[0_4px_16px_rgba(111,69,216,0.08)]">
+        <div className="flex items-center justify-between"><h2 className="text-[15px] font-black tracking-tight text-[#211b35]">Thành tích hôm nay</h2><div className="flex items-center gap-1"><span className="text-xs">✨</span><img src={assets.shared.mascots.faceWinking} alt="Linh vật GINO" loading="lazy" decoding="async" className="h-8 w-8 object-contain drop-shadow-xs" /></div></div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="flex flex-col items-center rounded-[18px] bg-white/90 p-2.5 text-center shadow-2xs"><img src={assets.shared.dashboard.bookStack} alt="" loading="lazy" decoding="async" className="h-7 w-7 object-contain" /><strong className="mt-1 text-[12.5px] font-black text-[#211b35]">{statsUnavailable ? '—' : `${stats.learnedWords} từ`}</strong><span className="text-[10px] font-bold text-[#6f6880]">Từ đã nhớ</span></div>
+          <div className="flex flex-col items-center rounded-[18px] bg-white/90 p-2.5 text-center shadow-2xs"><img src={assets.shared.dashboard.checklist} alt="" loading="lazy" decoding="async" className="h-7 w-7 object-contain" /><strong className="mt-1 text-[12.5px] font-black text-[#211b35]">{statsUnavailable ? '—' : `${today.exercises} lượt`}</strong><span className="text-[10px] font-bold text-[#6f6880]">Đã ôn hôm nay</span></div>
+          <div className="flex flex-col items-center rounded-[18px] bg-white/90 p-2.5 text-center shadow-2xs"><img src={assets.shared.dashboard.xpStar} alt="" loading="lazy" decoding="async" className="h-7 w-7 object-contain" /><strong className="mt-1 text-[12.5px] font-black text-[#211b35]">{statsUnavailable ? '—' : `${stats.xp} XP`}</strong><span className="text-[10px] font-bold text-[#6f6880]">XP hôm nay</span></div>
         </div>
       </section>
     </div>
@@ -373,17 +166,11 @@ export default function TodayPage() {
 
 function DashboardError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-[500px] items-center justify-center px-4 pb-28 pt-2">
-      <div className="w-full rounded-[26px] border border-[#ece7f5] bg-white p-6 text-center shadow-sm">
-        <strong className="block text-[16px] font-black text-[#202129]">Không thể tải dữ liệu</strong>
-        <p className="mt-1 text-[12px] font-medium text-[#606272]">{message ?? 'Vui lòng thử lại sau giây lát.'}</p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-4 rounded-full bg-[#6e46e6] px-5 py-2 text-[12px] font-black text-white shadow-2xs"
-        >
-          Thử lại
-        </button>
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-[760px] items-center justify-center px-4 pb-28 pt-2">
+      <div className="w-full rounded-[26px] border border-[#e5dcf2] bg-white p-6 text-center shadow-sm">
+        <strong className="block text-[16px] font-black text-[#211b35]">Không thể tải dữ liệu</strong>
+        <p className="mt-1 text-[12px] font-medium text-[#6f6880]">{message ?? 'Vui lòng thử lại sau giây lát.'}</p>
+        <button type="button" onClick={onRetry} className="mt-4 min-h-11 rounded-full bg-[#6f45d8] px-5 text-[12px] font-black text-white shadow-2xs">Thử lại</button>
       </div>
     </div>
   );
