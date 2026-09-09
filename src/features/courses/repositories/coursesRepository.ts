@@ -9,7 +9,7 @@ export interface SupabaseCourseRow {
   status: string;
   theme_color: string | null;
   order_index: number;
-  feature_config: unknown;
+  feature_config?: unknown;
   lessons?: Array<{ count: number }> | null;
 }
 
