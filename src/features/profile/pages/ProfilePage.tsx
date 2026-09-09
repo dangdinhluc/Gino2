@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, BookOpen, ChevronRight, Flame, HelpCircle, LogOut, Settings, Trophy, Users, NotebookPen, Zap } from 'lucide-react';
 import { assets } from '@/src/shared/lib/assets';
@@ -6,15 +6,15 @@ import { useAuth } from '@/src/features/auth/lib/AuthProvider';
 import { fetchLearnerProfile, type LearnerProfileSnapshot } from '@/src/features/profile/repositories/profileRepository';
 import { fetchLearnerDashboard, type LearnerDashboardSnapshot } from '@/src/features/dashboard/repositories/learnerDashboardRepository';
 import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
-import { useProgressStore } from '@/src/features/courses/store/progressStore';
+import { listLearnerAchievements } from '@/src/features/rewards/repositories/rewardRepository';
 
 export default function ProfilePage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const weeklyXp = useProgressStore((state) => state.weeklyXp);
   const [profile, setProfile] = useState<LearnerProfileSnapshot | null>(null);
   const [dashboard, setDashboard] = useState<LearnerDashboardSnapshot | null>(null);
   const [stats, setStats] = useState<LearnerStatsSnapshot | null>(null);
+  const [achievementCount, setAchievementCount] = useState<number | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,14 +22,18 @@ export default function ProfilePage() {
     const userId = auth.user?.id;
     if (!userId) return;
     let cancelled = false;
-    Promise.all([fetchLearnerProfile(userId), fetchLearnerDashboard(), fetchLearnerStats()])
-      .then(([nextProfile, nextDashboard, nextStats]) => {
+    setError(null);
+    Promise.all([fetchLearnerProfile(userId), fetchLearnerDashboard(), fetchLearnerStats(), listLearnerAchievements()])
+      .then(([nextProfile, nextDashboard, nextStats, achievements]) => {
         if (cancelled) return;
         setProfile(nextProfile);
         setDashboard(nextDashboard);
         setStats(nextStats);
+        setAchievementCount(achievements.length);
       })
-      .catch((nextError: unknown) => { if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được hồ sơ.'); });
+      .catch((nextError: unknown) => {
+        if (!cancelled) setError(nextError instanceof Error ? nextError.message : 'Không tải được hồ sơ.');
+      });
     return () => { cancelled = true; };
   }, [auth.user?.id]);
 
@@ -45,12 +49,21 @@ export default function ProfilePage() {
   const completedLessons = dashboard?.completedLessons ?? 0;
   const activeCourses = dashboard?.activeCourses ?? 0;
   const mastered = stats?.masteredVocabulary ?? 0;
+  const totalXp = stats?.totalXp ?? 0;
   const levelLabel = profile?.targetLevel || 'Tokutei';
+  const vocabularyProgress = useMemo(() => {
+    if (!stats?.topicMastery?.length) return null;
+    const totals = stats.topicMastery.reduce(
+      (acc, topic) => ({ mastered: acc.mastered + topic.mastered, total: acc.total + topic.total }),
+      { mastered: 0, total: 0 },
+    );
+    return totals.total > 0 ? Math.round((totals.mastered / totals.total) * 100) : null;
+  }, [stats]);
 
   const statItems = [
     { icon: Flame, value: streak, label: 'Chuỗi ngày', tone: 'text-[#6f45d8]' },
-    { icon: Zap, value: weeklyXp, label: 'Tổng XP', tone: 'text-[#6f45d8]' },
-    { icon: Trophy, value: Math.max(0, Math.floor(completedLessons / 10)), label: 'Huy hiệu', tone: 'text-[#6f45d8]' },
+    { icon: Zap, value: totalXp, label: 'Tổng XP', tone: 'text-[#6f45d8]' },
+    { icon: Trophy, value: achievementCount ?? '—', label: 'Huy hiệu', tone: 'text-[#6f45d8]' },
     { icon: BookOpen, value: activeCourses, label: 'Khóa học', tone: 'text-[#8a72c7]' },
     { icon: NotebookPen, value: completedLessons, label: 'Bài đã học', tone: 'text-[#8a72c7]' },
     { icon: BookOpen, value: mastered, label: 'Từ vựng', tone: 'text-[#8a72c7]' },
@@ -75,10 +88,13 @@ export default function ProfilePage() {
             <h1 className="truncate font-[var(--font-heading)] text-[18px] font-bold text-[#211b35]">{profile?.displayName || 'Học viên'}</h1>
             <p className="mt-0.5 text-[11px] font-medium text-[#6f6880]">{levelLabel}</p>
             <div className="mt-2.5 flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#6f6880]">{weeklyXp.toLocaleString()} XP</span>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#ebe4f5]"><div className="h-full w-[82%] rounded-full bg-[#6f45d8]" /></div>
-              <span className="text-[11px] font-semibold text-[#6f6880]">82%</span>
+              <span className="shrink-0 text-[11px] font-semibold text-[#6f6880]">{totalXp.toLocaleString()} XP</span>
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#ebe4f5]" aria-label="Tiến độ từ vựng">
+                <div className="h-full rounded-full bg-[#6f45d8]" style={{ width: `${vocabularyProgress ?? 0}%` }} />
+              </div>
+              <span className="shrink-0 text-[11px] font-semibold text-[#6f6880]">{vocabularyProgress === null ? '—' : `${vocabularyProgress}%`}</span>
             </div>
+            <p className="mt-1 text-[10px] font-medium text-[#8a8298]">Tiến độ từ vựng trên các khóa có dữ liệu</p>
           </div>
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eee7ff] text-[#6f45d8]"><Trophy size={18} /></span>
         </div>
@@ -88,7 +104,7 @@ export default function ProfilePage() {
 
       <section className="mt-5">
         <h2 className="mb-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-[#6f6880]">Thành tích</h2>
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 min-[420px]:grid-cols-3">
           {statItems.map(({ icon: Icon, value, label, tone }) => (
             <div key={label} className="rounded-[14px] border border-[#e5dcf2] bg-[#fffcff] px-2 py-3.5 text-center shadow-[0_2px_8px_rgba(73,48,126,.04)]">
               <Icon size={16} className={`mx-auto ${tone}`} />
