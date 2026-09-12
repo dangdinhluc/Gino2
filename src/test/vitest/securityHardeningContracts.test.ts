@@ -30,4 +30,24 @@ describe('security hardening contracts', () => {
     expect(speakingFunction).toContain("target_feature: 'speaking'");
     expect(speakingFunction).toContain("rpc('refund_ai_quota'");
   });
+
+  it('never calls non-existent jsonb_object_length in answer validation', () => {
+    const hotfix = read('supabase/migrations/202609120001_fix_validate_assessment_answers_jsonb_object_length.sql');
+    expect(hotfix).toContain('jsonb_object_keys');
+    // the invalid call must be gone from the executable body, not just mentioned in a comment
+    expect(hotfix).not.toContain('or jsonb_object_length(');
+
+    // every migration must stay free of the invalid call
+    const hardened = read('supabase/migrations/202608260001_harden_assessment_storage_and_ai_boundaries.sql');
+    expect(hardened).not.toContain('or jsonb_object_length(');
+  });
+
+  it('shuffles assessment options so the stored answer position never leaks', () => {
+    const migration = read('supabase/migrations/202609120002_shuffle_assessment_options_in_paper.sql');
+    expect(migration).toContain('create or replace function public.get_assessment_paper_v2');
+    expect(migration).toContain('md5(q.id');
+    expect(migration).toContain('order by shuffled.sort_key');
+    // learner identity must be part of the sort key so two learners see different orders
+    expect(migration).toContain('learner_key');
+  });
 });
