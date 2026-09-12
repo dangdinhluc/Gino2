@@ -14,3 +14,19 @@ supabase/.temp/
 *.log
 .env*
 !.env.example
+
+# One-off captures and working material. src/img/ is a real asset tree (95 files
+# already tracked), so only the ad-hoc Codex screenshots/PSDs are ignored here —
+# never the directory, or a new icon dropped in later would go missing silently.
+src/img/*Codex*
+sketches/
+output/
+test-results/
+.hermes-local-dev.html
+
+# Raw captures in public/ that no asset map points at yet. Curate them (and drop
+# the matching line) before referencing one from src/shared/lib/assets.ts.
+public/assets/loading/*.PNG
+public/assets/shared/mascots/tiger-*.png
+public/assets/shared/mascots/graduate-tiger-checklist.jpg
+public/assets/documents/rf1-equipment-check-sheet.jpg
