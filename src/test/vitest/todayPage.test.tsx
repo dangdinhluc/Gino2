@@ -203,4 +203,29 @@ describe('TodayPage', () => {
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/app/courses'));
   });
+
+  // Comment: "không đọc được chữ luôn rồi mất icon linh vật chào mừng của anh".
+  // The hero must (a) keep the waving mascot and (b) not rely on a blurred
+  // drop-shadow for legibility — the scrim itself has to carry the contrast.
+  it('keeps the waving mascot and a text scrim that does not lean on a blurry shadow', () => {
+    renderToday();
+
+    const hero = screen.getByAltText('Núi Phú Sĩ').parentElement;
+    expect(hero).toBeTruthy();
+
+    // The dashboard has more than one "Linh vật GINO"; the hero must own one.
+    const mascots = screen.getAllByAltText('Linh vật GINO');
+    const heroMascot = mascots.find((el) => hero?.contains(el));
+    expect(heroMascot).toBeDefined();
+    expect(heroMascot?.getAttribute('src')).toContain('wave');
+
+    const greeting = screen.getByText('Xin chào, Học viên!');
+    // A large soft drop-shadow on the text is what read as "smudged"/unreadable.
+    expect(greeting.className).not.toMatch(/drop-shadow/);
+
+    // The scrim must be near-opaque at the bottom, where the greeting sits.
+    const scrim = hero?.querySelector('div[class*="bg-gradient-to-t"]');
+    expect(scrim?.className).toMatch(/from-\[#150c22\]\/9[0-9]/);
+    expect(scrim?.className).not.toMatch(/drop-shadow/);
+  });
 });

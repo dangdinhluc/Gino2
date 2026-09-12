@@ -1654,6 +1654,14 @@
   padding: 0;
 }
 
+/* The exam tab of a course workspace keeps the bottom nav visible, so its
+   content needs the same bottom clearance the primary routes get. */
+@media (max-width: 1023px) {
+  .app-route-shell.app-route-shell-over-nav {
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* Profile: a warmer, mobile-app style account surface. */
 .profile-page {
   --profile-ink: #34221f;

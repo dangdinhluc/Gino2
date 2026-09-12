@@ -100,7 +100,12 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
 
   const activeCourseMeta = meta.data?.course.id === activeCourseId ? meta.data : null;
   const visibleTabs = useMemo(
-    () => activeCourseMeta ? getVisibleCourseWorkspaceTabs(activeCourseMeta.featureConfig) : [...courseWorkspaceTabs],
+    // "Thi thử" opens the exam phase of the course workspace, which is now a
+    // first-class bottom-nav destination — showing it here too duplicates the
+    // entry point inside the launcher.
+    () => (activeCourseMeta
+      ? getVisibleCourseWorkspaceTabs(activeCourseMeta.featureConfig).filter((tab) => tab.id !== 'exams')
+      : [...courseWorkspaceTabs].filter((tab) => tab.id !== 'exams')),
     [activeCourseMeta],
   );
   const firstTab = visibleTabs[0]?.id ?? 'vocabulary';

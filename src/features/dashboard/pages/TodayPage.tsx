@@ -64,36 +64,38 @@ export default function TodayPage() {
         </div>
       ) : null}
 
-      <section className="relative overflow-hidden rounded-[30px] bg-[#2a1d46] p-4 text-white shadow-[0_12px_32px_rgba(42,29,70,0.2)] sm:p-5">
-        <div className="absolute inset-0">
-          <img src={assets.shared.backgrounds.fujiLandscape} alt="Núi Phú Sĩ" decoding="async" fetchPriority="high" className="h-full w-full object-cover object-center opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#211532]/95 via-[#342253]/55 to-[#473071]/30" />
-        </div>
+      <section className="space-y-3">
+        <div className="relative overflow-hidden rounded-[24px] shadow-[0_10px_26px_rgba(42,29,70,0.18)]">
+          <img src={assets.shared.backgrounds.fujiLandscape} alt="Núi Phú Sĩ" decoding="async" fetchPriority="high" className="h-[185px] w-full object-cover object-center sm:h-[205px]" />
+          {/* Scrim: opaque enough under the greeting that white text clears WCAG AA over
+              the brightest pixel of the artwork, instead of leaning on a blurred
+              drop-shadow to fake contrast (that is what read as "smudged"). */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#150c22]/96 from-0% via-[#150c22]/88 via-45% to-transparent to-82%" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#150c22]/70 via-transparent to-transparent" />
 
-        <div className="relative z-10 flex justify-end">
-          <div className="flex items-center gap-1.5 rounded-full border border-white/60 bg-white/95 px-3.5 py-1.5 text-center shadow-xs backdrop-blur-xs">
+          <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-white/70 bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-xs">
             <Flame size={15} className="fill-[#6f45d8] text-[#6f45d8]" />
             <div className="flex flex-col items-start leading-none">
               <span className="text-[12px] font-black text-[#211b35]">{statsUnavailable ? '—' : stats.streak}</span>
               <span className="text-[9px] font-bold text-[#6f6880]">Ngày liên tiếp</span>
             </div>
           </div>
-        </div>
 
-        <div className="relative z-10 mt-3 flex items-center justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h1 className="flex items-center gap-1.5 text-[22px] font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-[26px]">
-              <span>Xin chào, {profile.name}!</span><span className="text-yellow-300">✨</span>
-            </h1>
-            <p className="mt-1 text-[12px] font-medium leading-snug text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">Tiếp tục đúng khóa đang học và hoàn thành một việc quan trọng hôm nay.</p>
+          <div className="pointer-events-none absolute -bottom-1 right-2.5 h-[96px] w-[96px] sm:h-[112px] sm:w-[112px]">
+            <img src={assets.shared.mascots.headerWaving} alt="Linh vật GINO" decoding="async" className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(10,5,20,0.5)]" />
           </div>
-          <div className="relative -mb-1 -mr-1 h-24 w-24 shrink-0 sm:h-28 sm:w-28">
-            <img src={assets.shared.mascots.headerWaving} alt="Linh vật GINO" decoding="async" className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]" />
+
+          <div className="absolute inset-x-3.5 bottom-3.5 sm:inset-x-4 sm:bottom-4" style={{ paddingRight: '96px' }}>
+            <div className="min-w-0">
+              <h1 className="text-[21px] font-black leading-tight tracking-tight text-white sm:text-[24px]">
+                <span>Xin chào, {profile.name}!</span> <span className="text-yellow-300">✨</span>
+              </h1>
+              <p className="mt-0.5 truncate text-[12px] font-bold text-white/95">Tiếp tục khóa đang học hôm nay</p>
+            </div>
           </div>
         </div>
-
         {activeCourse ? (
-          <Link to="/app/courses" aria-label={`Khóa đang học: ${activeCourse.title}. Mở quản lý khóa học`} className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[#d7c8f6] bg-[#f8f4ff]/95 px-3.5 py-3 text-[#211b35] shadow-sm transition hover:border-[#6f45d8]">
+          <Link to="/app/courses" aria-label={`Khóa đang học: ${activeCourse.title}. Mở quản lý khóa học`} className="flex items-center justify-between gap-3 rounded-2xl border border-[#d7c8f6] bg-[#f8f4ff] px-3.5 py-3 text-[#211b35] shadow-sm transition hover:border-[#6f45d8]">
             <div className="min-w-0">
               <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#6f45d8]"><span className="h-1.5 w-1.5 rounded-full bg-[#6f45d8]" aria-hidden="true" />Khóa đang học</span>
               <strong className="mt-1 block truncate text-[15px] font-black">{activeCourse.title}</strong>
@@ -103,7 +105,7 @@ export default function TodayPage() {
           </Link>
         ) : null}
 
-        <div className="relative z-10 mt-3 flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#211b35] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
+        <div className="flex items-center justify-between gap-3 rounded-[22px] border border-[#eee8f7] bg-white p-3.5 text-[#211b35] shadow-[0_8px_24px_rgba(15,10,35,0.14)]">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center"><img src={assets.shared.dashboard.openBook} alt="" decoding="async" className="h-full w-full object-contain drop-shadow-2xs" /></span>
             <div className="min-w-0 flex-1">

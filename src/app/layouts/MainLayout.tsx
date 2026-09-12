@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { isExamWorkspaceTab } from '@/src/shared/lib/appNav';
 import { BottomNav } from './BottomNav';
 import { useActiveCourse } from '@/src/features/courses/hooks/useActiveCourse';
 
@@ -14,6 +15,10 @@ export function MainLayout() {
   const isFlashcardFocusRoute = location.pathname === '/app/review/flashcards';
   const isExamRunnerRoute = /^\/app\/exams\/[^/]+\/start\/?$/.test(location.pathname);
   const isFocusRoute = isCourseFocusRoute || isFlashcardFocusRoute || isExamRunnerRoute;
+  // The exam tab of a course workspace is a browsable destination reached from the
+  // bottom nav, so it must keep that nav. Only the in-exam runner is real focus mode.
+  const onExamWorkspaceTab = isExamWorkspaceTab(location.pathname, location.search);
+  const showBottomNav = !isFocusRoute || onExamWorkspaceTab;
   const isPrimaryAppRoute = /^\/app\/(dashboard|courses|practice|profile)\/?$/.test(location.pathname);
   const isDashboardRoute = location.pathname === '/app/dashboard';
   const isAiRoute = /^\/app\/(ai-lab|ai-speak)(?:\/|$)/.test(location.pathname);
@@ -54,7 +59,7 @@ export function MainLayout() {
           </Suspense>
         )}
         <div
-          className={`app-route-shell desktop-route-frame relative z-10 ${!isFocusRoute ? 'app-route-shell-wide' : ''} ${isFocusRoute ? 'app-route-shell-focus' : ''} ${isDashboardRoute ? 'app-route-shell-dashboard' : ''} ${useCompactLearnerWidth ? '!mx-auto !w-full !max-w-[1180px]' : ''}`}
+          className={`app-route-shell desktop-route-frame relative z-10 ${!isFocusRoute ? 'app-route-shell-wide' : ''} ${isFocusRoute ? 'app-route-shell-focus' : ''} ${onExamWorkspaceTab ? 'app-route-shell-over-nav' : ''} ${isDashboardRoute ? 'app-route-shell-dashboard' : ''} ${useCompactLearnerWidth ? '!mx-auto !w-full !max-w-[1180px]' : ''}`}
         >
           <div
             key={location.pathname}
@@ -64,7 +69,7 @@ export function MainLayout() {
           </div>
         </div>
       </main>
-      {!isFocusRoute && <BottomNav />}
+      {showBottomNav && <BottomNav />}
       {showAITutor && (
         <Suspense fallback={null}>
           <LazyMobileAITutorPopover />

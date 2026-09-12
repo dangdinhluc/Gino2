@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BottomNav } from '@/src/app/layouts/BottomNav';
+import { MainLayout } from '@/src/app/layouts/MainLayout';
 import { CourseEntryRedirect } from '@/src/features/courses/components/CourseEntryRedirect';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { LearningLauncherSheet } from '@/src/features/courses/components/LearningLauncherSheet';
@@ -40,6 +41,11 @@ function LocationProbe() {
   return <output data-testid="location">{location.pathname}{location.search}{location.hash}</output>;
 }
 
+// jsdom has no Element.prototype.scrollTo, which MainLayout calls on route change.
+if (!Element.prototype.scrollTo) {
+  Element.prototype.scrollTo = () => {};
+}
+
 afterEach(() => {
   cleanup();
   useActiveCourseStore.getState().reset();
@@ -55,10 +61,102 @@ describe('BottomNav component', () => {
 
     expect(screen.getByText('Hôm nay')).toBeDefined();
     expect(screen.getByText('Khóa học')).toBeDefined();
-    expect(screen.getByText('Luyện tập')).toBeDefined();
+    expect(screen.getByText('Thi thử')).toBeDefined();
     expect(screen.getByText('Cá nhân')).toBeDefined();
-    expect(screen.queryByText('Thi thử')).toBeNull();
+    expect(screen.queryByText('Luyện tập')).toBeNull();
     expect(screen.getByRole('button', { name: /mở học ngay/i })).toBeDefined();
+
+    // Guard the label -> destination pairing, not just the labels: the third tab
+    // briefly read "Luyện tập" while its href was still the exam route.
+    const destinations = [
+      ['Hôm nay', '/app/dashboard'],
+      ['Khóa học', '/app/courses'],
+      ['Thi thử', '/app/exams'],
+      ['Cá nhân', '/app/profile'],
+    ] as const;
+
+    for (const [label, href] of destinations) {
+      expect(screen.getByText(label).closest('a')?.getAttribute('href')).toBe(href);
+    }
+  });
+});
+
+describe('MainLayout bottom-nav visibility', () => {
+  const renderAt = (path: string) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="*" element={<div>nội dung</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+  it('keeps the bottom nav on the exam workspace tab (Thi thử destination)', () => {
+    renderAt('/app/courses/course-1/workspace?tab=exams');
+    expect(screen.getByRole('navigation', { name: 'Thanh điều hướng chính' })).toBeDefined();
+  });
+
+  it('still hides the bottom nav inside the exam runner', () => {
+    renderAt('/app/exams/exam-1/start');
+    expect(screen.queryByRole('navigation', { name: 'Thanh điều hướng chính' })).toBeNull();
+  });
+
+  it('Hides the bottom nav on other course workspace tabs', () => {
+    renderAt('/app/courses/course-1/workspace?tab=vocabulary');
+    expect(screen.queryByRole('navigation', { name: 'Thanh điều hướng chính' })).toBeNull();
+  });
+});
+
+// Comment: "đã chuyển qua tab thi thử nhưng thanh menu vẫn báo đang chọn khóa học này".
+// Exam is a tab of the course workspace, so a naive prefix match lit BOTH
+// "Khóa học" and "Thi thử" at once. Exactly one tab may ever be current.
+// BottomNav is rendered directly here because MainLayout hides it on some of
+// these routes — the activation rule must hold regardless of visibility.
+describe('BottomNav active tab', () => {
+  const activeLabelsAt = (path: string) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <BottomNav />
+      </MemoryRouter>,
+    );
+    return Array.from(document.querySelectorAll('nav.gino-bottom-nav a[aria-current="page"]'))
+      .map((el) => el.textContent?.trim());
+  };
+
+  it('marks only "Thi thử" as current on the exam workspace tab', () => {
+    expect(activeLabelsAt('/app/courses/course-1/workspace?tab=exams')).toEqual(['Thi thử']);
+  });
+
+  it('marks only "Khóa học" as current on a non-exam course workspace tab', () => {
+    expect(activeLabelsAt('/app/courses/course-1/workspace?tab=vocabulary')).toEqual(['Khóa học']);
+  });
+
+  it('marks only "Khóa học" as current on the course list', () => {
+    expect(activeLabelsAt('/app/courses')).toEqual(['Khóa học']);
+  });
+
+  it('marks only "Thi thử" as current on the shared exams entry route', () => {
+    expect(activeLabelsAt('/app/exams')).toEqual(['Thi thử']);
+  });
+
+  it('marks only "Hôm nay" as current on the dashboard', () => {
+    expect(activeLabelsAt('/app/dashboard')).toEqual(['Hôm nay']);
+  });
+
+  it('marks exactly one tab current on every app route', () => {
+    for (const path of [
+      '/app/dashboard',
+      '/app/courses',
+      '/app/courses/course-1/workspace?tab=exams',
+      '/app/courses/course-1/workspace?tab=vocabulary',
+      '/app/exams',
+      '/app/profile',
+    ]) {
+      cleanup();
+      expect(activeLabelsAt(path)).toHaveLength(1);
+    }
   });
 });
 
@@ -119,7 +217,8 @@ describe('LearningLauncherSheet component', () => {
     expect(screen.getByText('Tài liệu')).toBeDefined();
     expect(screen.getByText('Luyện tập')).toBeDefined();
     expect(screen.getByText('Game')).toBeDefined();
-    expect(screen.getByText('Thi thử')).toBeDefined();
+    // "Thi thử" is a bottom-nav destination now; the launcher must not duplicate it.
+    expect(screen.queryByText('Thi thử')).toBeNull();
 
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
@@ -133,7 +232,6 @@ describe('LearningLauncherSheet component', () => {
       ['Tài liệu', 'documents'],
       ['Luyện tập', 'practice'],
       ['Game', 'games'],
-      ['Thi thử', 'exams'],
     ] as const;
 
     for (const [label, tab] of routes) {

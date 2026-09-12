@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { assets } from '@/src/shared/lib/assets';
+import { isBottomNavItemActive } from '@/src/shared/lib/appNav';
 
 type NetworkInformationLike = {
   saveData?: boolean;
@@ -13,7 +14,7 @@ const LazyLearningLauncherSheet = lazy(loadLearningLauncherSheet);
 const routePreloaders: Record<string, () => Promise<unknown>> = {
   '/app/dashboard': () => import('@/src/features/dashboard/pages/TodayPage'),
   '/app/courses': () => import('@/src/features/courses/pages/CourseListPage'),
-  '/app/practice': () => import('@/src/features/review/pages/PracticeHubPage'),
+  '/app/exams': () => import('@/src/features/courses/pages/CourseLearningPage'),
   '/app/profile': () => import('@/src/features/profile/pages/ProfilePage'),
 };
 
@@ -46,20 +47,23 @@ export function BottomNav() {
   const navItems = [
     { label: 'Hôm nay', path: '/app/dashboard', icon: assets.shared.navigation.home },
     { label: 'Khóa học', path: '/app/courses', icon: assets.shared.navigation.courses },
-    { label: 'Luyện tập', path: '/app/practice', icon: assets.shared.navigation.vocabulary },
+    { label: 'Thi thử', path: '/app/exams', icon: assets.shared.navigation.exams },
     { label: 'Cá nhân', path: '/app/profile', icon: assets.shared.navigation.profile },
   ];
 
-  const renderNavItem = (item: (typeof navItems)[number]) => (
-    <NavLink
-      key={item.path}
-      to={item.path}
-      onPointerEnter={() => preloadNavTarget(item.path)}
-      onPointerDown={() => preloadNavTarget(item.path)}
-      onFocus={() => preloadNavTarget(item.path)}
-      className="relative flex min-w-0 flex-1 items-center justify-center"
-    >
-      {({ isActive }) => (
+  const renderNavItem = (item: (typeof navItems)[number]) => {
+    const isActive = isBottomNavItemActive(item.path, location.pathname, location.search);
+
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        onPointerEnter={() => preloadNavTarget(item.path)}
+        onPointerDown={() => preloadNavTarget(item.path)}
+        onFocus={() => preloadNavTarget(item.path)}
+        aria-current={isActive ? 'page' : undefined}
+        className="relative flex min-w-0 flex-1 items-center justify-center"
+      >
         <div data-active={isActive ? 'true' : 'false'} className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1 transition-transform duration-150 active:scale-[0.92]">
           <span className="relative flex h-10 w-12 items-center justify-center rounded-xl transition-all">
             <img src={item.icon} alt="" decoding="async" className={`h-9 w-9 object-contain transition-transform duration-200 ${isActive ? 'scale-110 drop-shadow-[0_4px_8px_rgba(111,69,216,.24)]' : 'scale-100 opacity-85'}`} />
@@ -67,9 +71,9 @@ export function BottomNav() {
           <span className={`gino-bottom-nav-label truncate text-[11px] leading-tight transition-colors ${isActive ? 'font-black text-[#6f45d8]' : 'font-semibold text-[#595268]'}`}>{item.label}</span>
           <div className="h-1.5 w-1.5 flex items-center justify-center">{isActive && <span className="gino-bottom-nav-dot h-1.5 w-1.5 rounded-full bg-[#6f45d8]" />}</div>
         </div>
-      )}
-    </NavLink>
-  );
+      </Link>
+    );
+  };
 
   return (
     <>
