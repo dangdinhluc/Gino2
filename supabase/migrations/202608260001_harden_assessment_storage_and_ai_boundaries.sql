@@ -200,7 +200,6 @@ revoke all on function public.validate_assessment_answers(text, jsonb) from publ
 -- server-created attempt ID.
 alter function public.submit_assessment_v2(text, jsonb) rename to score_assessment_v2_internal;
 revoke all on function public.score_assessment_v2_internal(text, jsonb) from public, anon, authenticated;
-revoke all on function public.submit_assessment_v2(text, jsonb) from public, anon, authenticated;
 
 create or replace function public.submit_assessment_v2(
   target_assessment_id text,
