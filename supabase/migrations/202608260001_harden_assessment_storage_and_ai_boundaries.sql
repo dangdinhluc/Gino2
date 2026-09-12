@@ -179,7 +179,7 @@ set row_security = off
 as $$
 begin
   if jsonb_typeof(target_answers) <> 'object'
-    or jsonb_object_length(target_answers) > 200
+    or (select count(*) from jsonb_object_keys(target_answers)) > 200
     or coalesce((select sum(char_length(value)) from jsonb_each_text(target_answers)), 0) > 200000
     or exists (
       select 1
