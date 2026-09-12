@@ -17,5 +17,4 @@ assert.equal(resolvePushDestination('//evil.com', scope), scope);
 assert.equal(resolvePushDestination('https://evil.com', scope), scope);
 assert.equal(resolvePushDestination(null, scope), scope);
 
-// eslint-disable-next-line no-console
 console.log('✓ pushUrl.test passed');

@@ -14,5 +14,4 @@ if (new Set(courseWorkspaceTabs.map((tab) => tab.id)).size !== courseWorkspaceTa
   throw new Error('Course workspace tab ids must be unique.');
 }
 
-// eslint-disable-next-line no-console
 console.log('✓ courseWorkspaceNavigation.test passed');

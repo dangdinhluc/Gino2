@@ -108,5 +108,4 @@ function reset() {
   assert.equal(useGameStore.getState().status, 'complete');
 }
 
-// eslint-disable-next-line no-console
 console.log('✓ gameStore.test passed');

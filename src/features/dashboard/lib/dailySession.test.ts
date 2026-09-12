@@ -17,5 +17,4 @@ import { buildDailySession } from '@/src/features/dashboard/lib/dailySession';
   assert.match(session.steps[0].title, /8 từ mới/);
 }
 
-// eslint-disable-next-line no-console
 console.log('✓ dailySession.test passed');

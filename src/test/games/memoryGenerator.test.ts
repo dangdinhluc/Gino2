@@ -90,5 +90,4 @@ function makeVocab(overrides: Partial<CourseVocabularyItem> & { id: string; word
   assert.equal(rounds[0].data.pairs[0].sourceVocabId, 'v3');
 }
 
-// eslint-disable-next-line no-console
 console.log('✓ memoryGenerator.test passed');

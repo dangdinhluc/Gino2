@@ -95,5 +95,4 @@ function makeVocab(overrides: Partial<CourseVocabularyItem> & { id: string; word
   assert.equal(rounds[0].data.word, 'anzen');
 }
 
-// eslint-disable-next-line no-console
 console.log('✓ builderGenerator.test passed');
