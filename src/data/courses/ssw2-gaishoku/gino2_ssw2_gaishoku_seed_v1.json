@@ -4426,8 +4426,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「学科試験」.",
       "options": [
         "thi lý thuyết",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "ứng phó/xử lý",
+        "kết quả thực tế"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「学科試験」 được dùng với nghĩa “thi lý thuyết”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4441,11 +4441,11 @@
       "prompt_ja": "「状況」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「状況」.",
       "options": [
-        "tình huống",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "cần thiết",
+        "phán đoán",
+        "tình huống"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「状況」 được dùng với nghĩa “tình huống”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m00"
@@ -4457,11 +4457,11 @@
       "prompt_ja": "「計画」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「計画」.",
       "options": [
+        "phán đoán",
         "kế hoạch",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "cần thiết"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「計画」 được dùng với nghĩa “kế hoạch”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m00"
@@ -4474,8 +4474,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「適切」.",
       "options": [
         "phù hợp",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "sai/lỗi",
+        "ưu tiên"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「適切」 được dùng với nghĩa “phù hợp”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4489,11 +4489,11 @@
       "prompt_ja": "「食中毒」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「食中毒」.",
       "options": [
-        "ngộ độc thực phẩm",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "kiểm soát/quản lý",
+        "hạn dùng ngon nhất",
+        "ngộ độc thực phẩm"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「食中毒」 được dùng với nghĩa “ngộ độc thực phẩm”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4505,11 +4505,11 @@
       "prompt_ja": "「細菌」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「細菌」.",
       "options": [
+        "giám sát",
         "vi khuẩn",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "ghi chép"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「細菌」 được dùng với nghĩa “vi khuẩn”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4522,8 +4522,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「体調」.",
       "options": [
         "tình trạng sức khỏe",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "biện pháp khắc phục",
+        "hạn dùng ngon nhất"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「体調」 được dùng với nghĩa “tình trạng sức khỏe”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4537,11 +4537,11 @@
       "prompt_ja": "「交差汚染」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「交差汚染」.",
       "options": [
-        "nhiễm chéo",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "bất thường",
+        "gia nhiệt",
+        "nhiễm chéo"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「交差汚染」 được dùng với nghĩa “nhiễm chéo”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4553,11 +4553,11 @@
       "prompt_ja": "「温度管理」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「温度管理」.",
       "options": [
+        "ngộ độc thực phẩm",
         "quản lý nhiệt độ",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "vệ sinh/dọn sạch"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「温度管理」 được dùng với nghĩa “quản lý nhiệt độ”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4570,8 +4570,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「受入れ」.",
       "options": [
         "tiếp nhận hàng",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "bảo quản lạnh",
+        "ký sinh trùng"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「受入れ」 được dùng với nghĩa “tiếp nhận hàng”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4585,11 +4585,11 @@
       "prompt_ja": "「冷蔵」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「冷蔵」.",
       "options": [
-        "bảo quản lạnh",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "ký sinh trùng",
+        "ngăn tái diễn",
+        "bảo quản lạnh"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「冷蔵」 được dùng với nghĩa “bảo quản lạnh”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4601,11 +4601,11 @@
       "prompt_ja": "「加熱」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「加熱」.",
       "options": [
+        "hướng dẫn",
         "gia nhiệt",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "giao hàng"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「加熱」 được dùng với nghĩa “gia nhiệt”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4618,8 +4618,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「清掃」.",
       "options": [
         "vệ sinh/dọn sạch",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "quản lý nhiệt độ",
+        "ngộ độc thực phẩm"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「清掃」 được dùng với nghĩa “vệ sinh/dọn sạch”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4633,11 +4633,11 @@
       "prompt_ja": "「危害要因」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「危害要因」.",
       "options": [
-        "mối nguy",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "ghi chép",
+        "giám sát",
+        "mối nguy"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「危害要因」 được dùng với nghĩa “mối nguy”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4649,11 +4649,11 @@
       "prompt_ja": "「異常」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「異常」.",
       "options": [
+        "gia nhiệt",
         "bất thường",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "nhiễm chéo"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「異常」 được dùng với nghĩa “bất thường”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m01"
@@ -4666,8 +4666,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「指導」.",
       "options": [
         "hướng dẫn",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "gia nhiệt",
+        "giao hàng"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「指導」 được dùng với nghĩa “hướng dẫn”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4681,11 +4681,11 @@
       "prompt_ja": "「調理工程」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「調理工程」.",
       "options": [
-        "quy trình chế biến",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "lãng phí thực phẩm",
+        "thời gian gia nhiệt",
+        "quy trình chế biến"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「調理工程」 được dùng với nghĩa “quy trình chế biến”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4697,11 +4697,11 @@
       "prompt_ja": "「品質」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「品質」.",
       "options": [
+        "công thức",
         "chất lượng",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "tiêu chuẩn"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「品質」 được dùng với nghĩa “chất lượng”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4714,8 +4714,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「下処理」.",
       "options": [
         "sơ chế",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "loại bỏ",
+        "mức lửa"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「下処理」 được dùng với nghĩa “sơ chế”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4729,11 +4729,11 @@
       "prompt_ja": "「火加減」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「火加減」.",
       "options": [
-        "mức lửa",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "loại bỏ",
+        "độ tươi",
+        "mức lửa"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「火加減」 được dùng với nghĩa “mức lửa”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4745,11 +4745,11 @@
       "prompt_ja": "「盛り付け」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「盛り付け」.",
       "options": [
+        "tỷ lệ thu hồi",
         "trình bày món",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "lỗi/không đạt"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「盛り付け」 được dùng với nghĩa “trình bày món”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4762,8 +4762,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「調理機器」.",
       "options": [
         "thiết bị nấu",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "giờ cao điểm",
+        "lỗi/không đạt"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「調理機器」 được dùng với nghĩa “thiết bị nấu”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4777,11 +4777,11 @@
       "prompt_ja": "「標準」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「標準」.",
       "options": [
-        "tiêu chuẩn",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "chất lượng",
+        "công thức",
+        "tiêu chuẩn"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「標準」 được dùng với nghĩa “tiêu chuẩn”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4793,11 +4793,11 @@
       "prompt_ja": "「繁忙時間」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「繁忙時間」.",
       "options": [
+        "lỗi/không đạt",
         "giờ cao điểm",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "thiết bị nấu"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「繁忙時間」 được dùng với nghĩa “giờ cao điểm”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4810,8 +4810,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「廃棄」.",
       "options": [
         "loại bỏ",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "mức lửa",
+        "độ tươi"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「廃棄」 được dùng với nghĩa “loại bỏ”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4825,11 +4825,11 @@
       "prompt_ja": "「不良」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「不良」.",
       "options": [
-        "lỗi/không đạt",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "trình bày món",
+        "tỷ lệ thu hồi",
+        "lỗi/không đạt"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「不良」 được dùng với nghĩa “lỗi/không đạt”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m02"
@@ -4841,11 +4841,11 @@
       "prompt_ja": "「接客」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「接客」.",
       "options": [
+        "thời gian chờ",
         "phục vụ khách",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "gọi món/order"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「接客」 được dùng với nghĩa “phục vụ khách”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4858,8 +4858,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「案内」.",
       "options": [
         "hướng dẫn",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "khiếu nại",
+        "khách say"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「案内」 được dùng với nghĩa “hướng dẫn”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4873,11 +4873,11 @@
       "prompt_ja": "「注文」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「注文」.",
       "options": [
-        "gọi món/order",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "phục vụ khách",
+        "thời gian chờ",
+        "gọi món/order"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「注文」 được dùng với nghĩa “gọi món/order”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4889,11 +4889,11 @@
       "prompt_ja": "「商品説明」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「商品説明」.",
       "options": [
+        "hướng dẫn di chuyển",
         "giới thiệu sản phẩm/món",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "đọc lại/xác nhận lại"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「商品説明」 được dùng với nghĩa “giới thiệu sản phẩm/món”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4906,8 +4906,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「アレルギー」.",
       "options": [
         "dị ứng",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hỗ trợ",
+        "sơ tán"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「アレルギー」 được dùng với nghĩa “dị ứng”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4921,11 +4921,11 @@
       "prompt_ja": "「会計」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「会計」.",
       "options": [
-        "thanh toán",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "chênh lệch",
+        "khách hàng",
+        "thanh toán"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「会計」 được dùng với nghĩa “thanh toán”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4937,11 +4937,11 @@
       "prompt_ja": "「苦情」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「苦情」.",
       "options": [
+        "khách say",
         "khiếu nại",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hướng dẫn"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「苦情」 được dùng với nghĩa “khiếu nại”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4954,8 +4954,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「配慮」.",
       "options": [
         "quan tâm/cân nhắc",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hành vi gây phiền",
+        "hướng dẫn phục vụ"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「配慮」 được dùng với nghĩa “quan tâm/cân nhắc”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -4969,11 +4969,11 @@
       "prompt_ja": "「食文化」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「食文化」.",
       "options": [
-        "văn hóa ẩm thực",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "người phụ trách",
+        "đảm bảo an toàn",
+        "văn hóa ẩm thực"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「食文化」 được dùng với nghĩa “văn hóa ẩm thực”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -4985,11 +4985,11 @@
       "prompt_ja": "「酔客」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「酔客」.",
       "options": [
+        "khiếu nại",
         "khách say",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hướng dẫn"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「酔客」 được dùng với nghĩa “khách say”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -5002,8 +5002,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「緊急」.",
       "options": [
         "khẩn cấp",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "tôn giáo",
+        "đánh giá"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「緊急」 được dùng với nghĩa “khẩn cấp”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5017,11 +5017,11 @@
       "prompt_ja": "「接客指導」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「接客指導」.",
       "options": [
-        "hướng dẫn phục vụ",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hành vi gây phiền",
+        "quan tâm/cân nhắc",
+        "hướng dẫn phục vụ"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「接客指導」 được dùng với nghĩa “hướng dẫn phục vụ”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m03"
@@ -5033,11 +5033,11 @@
       "prompt_ja": "「店舗運営」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「店舗運営」.",
       "options": [
+        "hỗ trợ tăng cường",
         "vận hành cửa hàng",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "chi phí nhân công"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「店舗運営」 được dùng với nghĩa “vận hành cửa hàng”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5050,8 +5050,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「売上高」.",
       "options": [
         "doanh thu",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "năng suất",
+        "bàn giao"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「売上高」 được dùng với nghĩa “doanh thu”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5065,11 +5065,11 @@
       "prompt_ja": "「予算」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「予算」.",
       "options": [
-        "ngân sách/kế hoạch",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hao hụt/thất thoát",
+        "chi phí nhân công",
+        "ngân sách/kế hoạch"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「予算」 được dùng với nghĩa “ngân sách/kế hoạch”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5081,11 +5081,11 @@
       "prompt_ja": "「原価」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「原価」.",
       "options": [
+        "bảo trì",
         "giá vốn",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「原価」 được dùng với nghĩa “giá vốn”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5098,8 +5098,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「人件費」.",
       "options": [
         "chi phí nhân công",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "hỗ trợ tăng cường",
+        "kiểm tra thiết bị"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「人件費」 được dùng với nghĩa “chi phí nhân công”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5113,11 +5113,11 @@
       "prompt_ja": "「FLコスト」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「FLコスト」.",
       "options": [
-        "chi phí Food + Labor",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "đào tạo nhân viên mới",
+        "hao hụt/thất thoát",
+        "chi phí Food + Labor"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「FLコスト」 được dùng với nghĩa “chi phí Food + Labor”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5129,11 +5129,11 @@
       "prompt_ja": "「シフト」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「シフト」.",
       "options": [
+        "kiểm chứng",
         "ca/lịch làm",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "tồn theo sổ"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「シフト」 được dùng với nghĩa “ca/lịch làm”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5146,8 +5146,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「人員配置」.",
       "options": [
         "bố trí nhân sự",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "chu trình PDCA",
+        "chênh lệch tồn"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「人員配置」 được dùng với nghĩa “bố trí nhân sự”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5161,11 +5161,11 @@
       "prompt_ja": "「新人教育」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「新人教育」.",
       "options": [
-        "đào tạo nhân viên mới",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "chi phí Food + Labor",
+        "hao hụt/thất thoát",
+        "đào tạo nhân viên mới"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「新人教育」 được dùng với nghĩa “đào tạo nhân viên mới”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5177,11 +5177,11 @@
       "prompt_ja": "「指示」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「指示」.",
       "options": [
+        "bảo trì",
         "chỉ thị",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「指示」 được dùng với nghĩa “chỉ thị”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5194,8 +5194,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「発注」.",
       "options": [
         "đặt hàng",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "bàn giao",
+        "giá nhập"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「発注」 được dùng với nghĩa “đặt hàng”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5209,11 +5209,11 @@
       "prompt_ja": "「在庫」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「在庫」.",
       "options": [
-        "tồn kho",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo",
+        "bảo trì",
+        "tồn kho"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「在庫」 được dùng với nghĩa “tồn kho”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5225,11 +5225,11 @@
       "prompt_ja": "「棚卸し」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「棚卸し」.",
       "options": [
+        "bảo trì",
         "kiểm kê",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「棚卸し」 được dùng với nghĩa “kiểm kê”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5242,8 +5242,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「ロス」.",
       "options": [
         "hao hụt/thất thoát",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "ngân sách/kế hoạch",
+        "chi phí nhân công"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「ロス」 được dùng với nghĩa “hao hụt/thất thoát”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5257,11 +5257,11 @@
       "prompt_ja": "「開店」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「開店」.",
       "options": [
-        "mở cửa",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo",
+        "bảo trì",
+        "mở cửa"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「開店」 được dùng với nghĩa “mở cửa”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5273,11 +5273,11 @@
       "prompt_ja": "「保守」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「保守」.",
       "options": [
+        "chỉ thị",
         "bảo trì",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "báo cáo"
       ],
-      "correct_index": 0,
+      "correct_index": 1,
       "explanation_vi": "Trong bài này, 「保守」 được dùng với nghĩa “bảo trì”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
@@ -5290,8 +5290,8 @@
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「労働災害」.",
       "options": [
         "tai nạn lao động",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "giá trị mục tiêu",
+        "so với năm trước"
       ],
       "correct_index": 0,
       "explanation_vi": "Trong bài này, 「労働災害」 được dùng với nghĩa “tai nạn lao động”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
@@ -5305,11 +5305,11 @@
       "prompt_ja": "「PDCA」について、最も適切な説明はどれですか。",
       "prompt_vi": "Chọn mô tả phù hợp nhất cho 「PDCA」.",
       "options": [
-        "chu trình PDCA",
-        "Thực hiện ngay mà không cần xác nhận",
-        "Bỏ qua nếu cửa hàng đang bận"
+        "bố trí nhân sự",
+        "chênh lệch tồn",
+        "chu trình PDCA"
       ],
-      "correct_index": 0,
+      "correct_index": 2,
       "explanation_vi": "Trong bài này, 「PDCA」 được dùng với nghĩa “chu trình PDCA”. Khi thi cần đọc cả ngữ cảnh quản lý, không chỉ dịch từng từ.",
       "difficulty": "foundation",
       "domain": "ssw2-gai-m04"
