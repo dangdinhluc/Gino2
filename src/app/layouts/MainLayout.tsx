@@ -31,7 +31,7 @@ export function MainLayout() {
   const isDashboardRoute = location.pathname === '/app/dashboard';
   const isAiRoute = /^\/app\/(ai-lab|ai-speak)(?:\/|$)/.test(location.pathname);
   const useTokuteiChrome = !isFocusRoute || onExamWorkspaceTab;
-  const hideAITutor = isPrimaryAppRoute || isExamLandingRoute || isCourseFocusRoute || isFlashcardFocusRoute || isExamRunnerRoute;
+  const hideAITutor = (isPrimaryAppRoute && !isDashboardRoute) || isExamLandingRoute || isCourseFocusRoute || isFlashcardFocusRoute || isExamRunnerRoute;
   const showAITutor = !hideAITutor;
   const visualMode = isAiRoute ? 'ai' : 'core';
   const useCompactLearnerWidth = isPrimaryAppRoute || isCourseFocusRoute;

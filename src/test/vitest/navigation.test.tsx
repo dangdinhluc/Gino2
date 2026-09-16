@@ -309,9 +309,9 @@ describe('CourseLearningMenuSheet component', () => {
   });
 });
 
-// The floating AI tutor is a NON-primary-route affordance: it shows on secondary
-// surfaces (grammar, community, settings…) and is hidden on the four primary
-// destinations and the focus routes.
+// The floating AI tutor is available on the dashboard and secondary surfaces
+// (grammar, community, settings…), while remaining hidden on dense primary
+// lists and focus routes.
 //
 // `/app/exams` is the "Thi thử" bottom-nav destination, but it is redirect-ONLY
 // (`<CourseEntryRedirect destination="exams" />`). It renders `PageLoading` while the
@@ -358,8 +358,12 @@ describe('MainLayout floating AI tutor visibility', () => {
     await expectTutorHidden();
   });
 
-  it('hides the tutor on every primary destination', async () => {
-    for (const path of ['/app/dashboard', '/app/courses', '/app/practice', '/app/profile']) {
+  it('shows the tutor on the dashboard and hides it on dense primary lists', async () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: 'c1', status: 'ready', error: null, retry: vi.fn() });
+    renderAt('/app/dashboard');
+    await expect(screen.findByRole('button', { name: /chat ai/i }, { timeout: 1000 })).resolves.toBeDefined();
+
+    for (const path of ['/app/courses', '/app/practice', '/app/profile']) {
       cleanup();
       mockUseActiveCourse.mockReturnValue({ activeCourseId: 'c1', status: 'ready', error: null, retry: vi.fn() });
       renderAt(path);
