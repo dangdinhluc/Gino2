@@ -40,6 +40,7 @@ export const assets = {
       courseLauncherBanner: appImage('course-launcher-banner.webp'),
       lightbulb: appImage('mascot-lightbulb.webp'),
       sleepingMeow: appImage('mascot-sleeping-meow.webp'),
+      aiChat: assetPath('img/gino2-ai-chat.png'),
     },
     dashboard: {
       chestGold: appImage('dashboard-chest-gold.webp'),

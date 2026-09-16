@@ -81,8 +81,8 @@ export function MobileAITutorPopover() {
           {/* Pure 3D Tanuki Mascot Image without rectangular box */}
           <div className="relative h-13 w-13 shrink-0 overflow-visible flex items-center justify-center">
             <img
-              src={assets.shared.mascots.aiTutorTanuki}
-              alt="Tokutei AI Chat Mascot"
+              src={assets.shared.mascots.aiChat}
+              alt="Tokutei AI Chat"
               decoding="async"
               className="h-full w-full object-contain scale-125"
             />
