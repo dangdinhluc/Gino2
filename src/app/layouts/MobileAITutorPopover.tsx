@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { assets } from '@/src/shared/lib/assets';
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6f45d8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf3]';
 const LazyAITutorChatContent = lazy(() => import('@/src/features/ai/components/AITutorChatContent'));
 
 export function MobileAITutorPopover() {
@@ -72,10 +72,10 @@ export function MobileAITutorPopover() {
         <motion.div
           animate={isOpen ? { y: 0, scale: 1 } : { y: [0, -6, 0], scale: 1 }}
           transition={isOpen ? { duration: 0.18, ease: 'easeOut' } : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative flex flex-col items-center justify-center filter drop-shadow-[0_10px_20px_rgba(2,132,199,0.3)]"
+          className="relative flex flex-col items-center justify-center filter drop-shadow-[0_10px_20px_rgba(111,69,216,0.28)]"
         >
           {!isOpen && (
-            <span className="absolute -right-0.5 -top-0.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-1 text-[9px] font-black text-white shadow-md border-2 border-white">
+            <span className="absolute -right-0.5 -top-0.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#8a72c7] to-[#6f45d8] px-1 text-[9px] font-black text-white shadow-md border-2 border-white">
               1
             </span>
           )}
@@ -90,10 +90,6 @@ export function MobileAITutorPopover() {
             />
           </div>
 
-          {/* AI CHAT Badge Floating Under Mascot */}
-          <span className="mt-0.5 rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-white shadow-md border border-white">
-            AI CHAT
-          </span>
         </motion.div>
       </button>
 
