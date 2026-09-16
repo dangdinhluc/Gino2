@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Flame, Search, Settings, Sparkles } from 'lucide-react';
 import { fetchLearnerStats } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { assets } from '@/src/shared/lib/assets';
-import { isBottomNavItemActive } from '@/src/shared/lib/appNav';
+import { isBottomNavItemActive, isExamWorkspaceTab } from '@/src/shared/lib/appNav';
 
 const LazyLearningSearchPopover = lazy(() => import('@/src/features/search/components/LearningSearchPopover').then(({ LearningSearchPopover }) => ({ default: LearningSearchPopover })));
 
@@ -21,6 +21,7 @@ interface TokuteiAppChromeProps {
 
 export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps) {
   const location = useLocation();
+  const onExamWorkspaceTab = isExamWorkspaceTab(location.pathname, location.search);
   const [streak, setStreak] = useState<number | null>(null);
   const [weeklyXp, setWeeklyXp] = useState<number | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -89,10 +90,12 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
-            <div className="flex min-h-10 items-center gap-1.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-3 text-xs font-black text-[#6f45d8]">
-              <Flame size={14} className="fill-[#6f45d8] text-[#6f45d8]" />
-              <span>{streak === null ? '—' : `${streak}d`}</span>
-            </div>
+            {!onExamWorkspaceTab && (
+              <div className="flex min-h-10 items-center gap-1.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-3 text-xs font-black text-[#6f45d8]">
+                <Flame size={14} className="fill-[#6f45d8] text-[#6f45d8]" />
+                <span>{streak === null ? '—' : `${streak}d`}</span>
+              </div>
+            )}
             <div className="flex min-h-10 items-center gap-1.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-3 text-xs font-black text-[#6f45d8]">
               <Sparkles size={14} className="fill-[#8a72c7] text-[#8a72c7]" />
               <span>{weeklyXp === null ? '— XP' : `${weeklyXp.toLocaleString()} XP`}</span>
@@ -124,10 +127,12 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
-            <span className="flex min-h-8 items-center gap-0.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-2 text-[10px] font-black text-[#6f45d8]">
-              <Flame size={11} className="fill-[#6f45d8] text-[#6f45d8]" />
-              <span>{streak === null ? '—' : `${streak}d`}</span>
-            </span>
+            {!onExamWorkspaceTab && (
+              <span className="flex min-h-8 items-center gap-0.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-2 text-[10px] font-black text-[#6f45d8]">
+                <Flame size={11} className="fill-[#6f45d8] text-[#6f45d8]" />
+                <span>{streak === null ? '—' : `${streak}d`}</span>
+              </span>
+            )}
             <span className="flex min-h-8 items-center gap-0.5 rounded-full border border-[#e5dcf2] bg-[#f4effb] px-2 text-[10px] font-black text-[#6f45d8]">
               <Sparkles size={11} className="fill-[#8a72c7] text-[#8a72c7]" />
               <span>{weeklyXp === null ? '—' : weeklyXp}</span>

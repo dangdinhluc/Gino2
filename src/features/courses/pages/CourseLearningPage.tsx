@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
-import { ArrowLeft, Flame, Headphones } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { type CourseLearningMeta, type CoursePodcastItem } from '@/src/features/courses/courseLearning.types';
 import {
   useCourseDocuments,
@@ -17,9 +17,9 @@ import {
 import { CourseLearningSkeleton } from '@/src/features/courses/components/loading/CourseLearningSkeleton';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useDelayedLoadingIndicator } from '@/src/features/courses/hooks/useDelayedLoadingIndicator';
-import { fetchLearnerStats, type LearnerStatsSnapshot } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { speakJapanese, stopSpeaking } from '@/src/shared/lib/tts';
 import { cn } from '@/src/lib/utils';
+import { assets } from '@/src/shared/lib/assets';
 import {
   courseWorkspaceTabs,
   type CourseWorkspaceSection,
@@ -52,8 +52,6 @@ interface CourseLearningHeaderProps {
   hasPodcast?: boolean;
   isPodcastOpen: boolean;
   isPodcastPlaying: boolean;
-  streak: number | null;
-  statsError?: string | null;
   isModeSheetOpen: boolean;
   isModeSheetDisabled?: boolean;
   onOpenModeSheet?: () => void;
@@ -68,8 +66,6 @@ function CourseLearningHeader({
   hasPodcast = false,
   isPodcastOpen,
   isPodcastPlaying,
-  streak,
-  statsError,
   isModeSheetOpen,
   isModeSheetDisabled = false,
   onOpenModeSheet,
@@ -123,14 +119,9 @@ function CourseLearningHeader({
                 focusRing
               )}
             >
-              <Headphones size={14} />
+              <img src={assets.shared.icons.podcast} alt="" className="h-9 w-9 object-contain" />
               {isPodcastPlaying && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />}
             </button>
-          )}
-          {activeTabLabel !== 'Thi thử' && (
-            <span className="inline-flex h-11 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2 text-[10px] font-bold text-[#646771]" title={statsError ?? 'Chuỗi ngày học'}>
-              <Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak === null ? '—' : streak}
-            </span>
           )}
         </div>
       </div>
@@ -151,7 +142,6 @@ function CourseLearningShell({ activeTab, children }: { activeTab: CourseWorkspa
         isPodcastPlaying={false}
         isModeSheetOpen={false}
         isModeSheetDisabled
-        streak={null}
       />
       <main className={cn('course-workspace-main mx-auto w-full max-w-[760px]', activeTab === 'practice' || activeTab === 'exams' ? 'lg:max-w-none' : '')}>
         {children}
@@ -202,11 +192,8 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
   const [isModeSheetOpen, setIsModeSheetOpen] = useState(false);
   const [heardVocabularyId, setHeardVocabularyId] = useState<string | null>(null);
   const [vocabularyAudioError, setVocabularyAudioError] = useState<string | null>(null);
-  const [learnerStats, setLearnerStats] = useState<LearnerStatsSnapshot | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
   const vocabularyAudioRef = useRef<HTMLAudioElement | null>(null);
   const ttsTimerRef = useRef<number | null>(null);
-  const streak = learnerStats?.currentStreak ?? null;
   const vocabulary = useMemo(() => vocabularyState.data?.vocabulary ?? [], [vocabularyState.data]);
   const documents = useMemo(() => documentsState.data?.documents ?? [], [documentsState.data]);
   const reviewQuestions = useMemo(() => practiceState.data?.reviewQuestions ?? [], [practiceState.data]);
@@ -214,14 +201,6 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
   const gamesVocabulary = useMemo(() => gamesState.data?.vocabulary ?? [], [gamesState.data]);
   const exams = useMemo(() => examsState.data?.exams ?? [], [examsState.data]);
   const podcasts = useMemo(() => podcastsState.data?.podcasts ?? [], [podcastsState.data]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchLearnerStats()
-      .then((stats) => { if (!cancelled) setLearnerStats(stats); })
-      .catch((error: unknown) => { if (!cancelled) setStatsError(error instanceof Error ? error.message : 'Không đồng bộ được chỉ số học tập.'); });
-    return () => { cancelled = true; };
-  }, [course.id]);
 
   useEffect(() => {
     if (requestedTab) setActiveTab(requestedTab);
@@ -375,8 +354,6 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
         hasPodcast={meta.podcastCount > 0}
         isPodcastOpen={isPodcastOpen}
         isPodcastPlaying={isPodcastPlaying}
-        streak={streak}
-        statsError={statsError}
         isModeSheetOpen={isModeSheetOpen}
         onOpenModeSheet={() => setIsModeSheetOpen(true)}
         onOpenPodcast={() => setIsPodcastOpen(true)}

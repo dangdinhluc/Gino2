@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Flame, Headphones } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import {
   useCourseDocuments,
   useCourseExams,
@@ -10,6 +10,7 @@ import {
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
 import { useProgressStore } from '@/src/features/courses/store/progressStore';
 import { PageLoading } from '@/src/shared/components/loading/PageLoading';
+import { assets } from '@/src/shared/lib/assets';
 
 export default function CourseHomePage() {
   const { id } = useParams();
@@ -63,8 +64,7 @@ export default function CourseHomePage() {
           <p className="truncate text-[9px] font-medium text-[#8b8e98]">{course.level}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex h-8 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2.5 text-[10px] font-bold text-[#646771]"><Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak}</span>
-          {meta.data.podcastCount > 0 && <Link to={`${coursePath}?tab=documents`} className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ececf2] bg-white text-[#6f45d8]" aria-label="Mở audio khóa học"><Headphones size={14} /></Link>}
+          {meta.data.podcastCount > 0 && <Link to={`${coursePath}?tab=documents`} className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ececf2] bg-white" aria-label="Mở audio khóa học"><img src={assets.shared.icons.podcast} alt="" className="h-7 w-7 object-contain" /></Link>}
         </div>
       </header>
 

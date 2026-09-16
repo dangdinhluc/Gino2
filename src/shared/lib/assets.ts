@@ -7,6 +7,9 @@ const appImage = (name: string) => asset(`app-images/${name}`);
 
 export const assets = {
   shared: {
+    icons: {
+      podcast: assetPath('img/gino2-podcast.png'),
+    },
     logos: {
       primary: assetPath('img/gino2-logo-primary.png'),
       horizontal: assetPath('img/gino2-logo-horizontal.png'),
