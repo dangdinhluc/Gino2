@@ -63,7 +63,7 @@ export function MainLayout() {
         )}
         {useTokuteiChrome && (
           <Suspense fallback={null}>
-            <LazyTokuteiAppChrome desktopOnly={onExamWorkspaceTab} />
+            <LazyTokuteiAppChrome />
           </Suspense>
         )}
         <div

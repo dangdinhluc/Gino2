@@ -78,7 +78,7 @@ function CourseLearningHeader({
   const navigate = useNavigate();
 
   return (
-    <header className={cn('course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2', activeTabLabel === 'Thi thử' && 'lg:hidden')}>
+    <header className={cn('course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2', activeTabLabel === 'Thi thử' && 'hidden')}>
       <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
         <button
           type="button"
