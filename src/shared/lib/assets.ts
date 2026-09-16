@@ -40,7 +40,11 @@ export const assets = {
       courseLauncherBanner: appImage('course-launcher-banner.webp'),
       lightbulb: appImage('mascot-lightbulb.webp'),
       sleepingMeow: appImage('mascot-sleeping-meow.webp'),
-      aiChat: assetPath('img/gino2-ai-chat.png'),
+      aiChat: {
+        idle: assetPath('img/gino2-ai-chat-idle.png'),
+        open: assetPath('img/gino2-ai-chat-open.png'),
+        thinking: assetPath('img/gino2-ai-chat-thinking.png'),
+      },
     },
     dashboard: {
       chestGold: appImage('dashboard-chest-gold.webp'),

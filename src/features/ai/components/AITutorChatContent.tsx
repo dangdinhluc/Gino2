@@ -8,11 +8,16 @@ interface AITutorChatContentProps {
   open: boolean;
   dialogRef: RefObject<HTMLDivElement | null>;
   onClose: () => void;
+  onSendingChange?: (isSending: boolean) => void;
 }
 
-export default function AITutorChatContent({ open, dialogRef, onClose }: AITutorChatContentProps) {
+export default function AITutorChatContent({ open, dialogRef, onClose, onSendingChange }: AITutorChatContentProps) {
   const activeCourseId = useActiveCourseStore((state) => state.activeCourseId);
   const { draft, error, handleSubmit, isSending, messages, resetChat, sendMessage, setDraft } = useAiTutorChat({ enabled: open, courseId: activeCourseId ?? undefined });
+
+  useEffect(() => {
+    onSendingChange?.(isSending);
+  }, [isSending, onSendingChange]);
 
   useEffect(() => {
     if (!open) return undefined;

@@ -8,6 +8,7 @@ const LazyAITutorChatContent = lazy(() => import('@/src/features/ai/components/A
 export function MobileAITutorPopover() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -59,6 +60,7 @@ export function MobileAITutorPopover() {
         type="button"
         onClick={() => setIsOpen((currentState) => {
           if (!currentState) setHasOpened(true);
+          else setIsThinking(false);
           return !currentState;
         })}
         aria-label={isOpen ? 'Ẩn chat AI' : 'Mở chat AI Tokutei'}
@@ -81,8 +83,8 @@ export function MobileAITutorPopover() {
           {/* Pure 3D Tanuki Mascot Image without rectangular box */}
           <div className="relative h-13 w-13 shrink-0 overflow-visible flex items-center justify-center">
             <img
-              src={assets.shared.mascots.aiChat}
-              alt="Tokutei AI Chat"
+              src={isThinking ? assets.shared.mascots.aiChat.thinking : isOpen ? assets.shared.mascots.aiChat.open : assets.shared.mascots.aiChat.idle}
+              alt={isThinking ? 'Tokutei AI đang suy nghĩ' : 'Tokutei AI Chat'}
               decoding="async"
               className="h-full w-full object-contain scale-125"
             />
@@ -103,7 +105,7 @@ export function MobileAITutorPopover() {
             </div>
           ) : null}
         >
-          <LazyAITutorChatContent open={isOpen} dialogRef={dialogRef} onClose={() => setIsOpen(false)} />
+          <LazyAITutorChatContent open={isOpen} dialogRef={dialogRef} onClose={() => setIsOpen(false)} onSendingChange={setIsThinking} />
         </Suspense>
       )}
     </>
