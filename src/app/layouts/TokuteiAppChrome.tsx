@@ -65,7 +65,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
         <div className="mx-auto hidden h-16 w-full max-w-[1440px] items-center justify-between px-6 md:flex md:px-8">
           <Link to="/app/dashboard" className="group flex min-w-0 items-center gap-2.5" aria-label="TOKUTEI GINO - Trang chủ">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#6f45d8] to-[#8a72c7] p-1 shadow-[0_4px_12px_rgba(111,69,216,.16)] transition-transform group-hover:scale-105">
-              <img src={assets.shared.mascots.brand} alt="Tokutei Gino" className="h-full w-full object-contain" />
+              <img src={assets.shared.logos.mark} alt="Tokutei Gino" className="h-full w-full object-contain" />
             </div>
             <div className="min-w-0 space-y-0">
               <h1 className="truncate font-[var(--font-heading)] text-sm font-black leading-tight tracking-tight text-[#211b35] transition-colors group-hover:text-[#6f45d8]">TOKUTEI GINO</h1>
@@ -123,7 +123,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
         <div className="flex h-13 w-full items-center justify-between px-3 md:hidden">
           <Link to="/app/dashboard" className="flex shrink-0 items-center gap-2" aria-label="TOKUTEI GINO - Trang chủ">
             <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6f45d8] to-[#8a72c7] p-0.5 shadow-2xs">
-              <img src={assets.shared.mascots.brand} alt="Tokutei Gino" className="h-full w-full object-contain" />
+              <img src={assets.shared.logos.mark} alt="Tokutei Gino" className="h-full w-full object-contain" />
             </div>
             <div className="space-y-0">
               <h1 className="font-[var(--font-heading)] text-xs font-black leading-tight tracking-tight text-[#211b35]">TOKUTEI GINO</h1>

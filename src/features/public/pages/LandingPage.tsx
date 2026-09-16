@@ -54,7 +54,7 @@ export default function LandingPage() {
 
       <header className="landing-v2-header">
         <Link className="landing-v2-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
-          <span className="landing-v2-brand-mark"><img src={assets.shared.mascots.brand} alt="" aria-hidden="true" /></span>
+        <span className="landing-v2-brand-mark"><img src={assets.shared.logos.mark} alt="" aria-hidden="true" /></span>
           <span><strong>TOKUTEI GINO</strong><small>HỌC TIẾNG NHẬT CÓ ĐÍCH</small></span>
         </Link>
 

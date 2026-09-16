@@ -7,6 +7,13 @@ const appImage = (name: string) => asset(`app-images/${name}`);
 
 export const assets = {
   shared: {
+    logos: {
+      primary: assetPath('img/gino2-logo-primary.png'),
+      horizontal: assetPath('img/gino2-logo-horizontal.png'),
+      mark: assetPath('img/gino2-logo-mark-transparent.png'),
+      appIcon: assetPath('img/gino2-app-icon.png'),
+      dark: assetPath('img/gino2-logo-dark.png'),
+    },
     backgrounds: {
       dashboardLibrary: appImage('background-dashboard-library.webp'),
       englishHero: appImage('background-english-hero.webp'),

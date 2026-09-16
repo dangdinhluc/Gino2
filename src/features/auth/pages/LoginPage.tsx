@@ -95,7 +95,7 @@ export default function LoginPage({ area }: LoginPageProps) {
       <main className={`auth-v2-layout ${isAdminArea ? 'auth-v2-layout-admin' : ''}`}>
         <section className="auth-v2-story" aria-labelledby="auth-story-title">
           <Link className="auth-v2-brand" to="/" aria-label="TOKUTEI GINO trang chủ">
-            <span className="auth-v2-brand-mark"><img src={assets.shared.mascots.brand} alt="" aria-hidden="true" /></span>
+            <span className="auth-v2-brand-mark"><img src={assets.shared.logos.mark} alt="" aria-hidden="true" /></span>
             <span><strong>TOKUTEI GINO</strong><small>HỌC TIẾNG NHẬT CÓ ĐÍCH</small></span>
           </Link>
 

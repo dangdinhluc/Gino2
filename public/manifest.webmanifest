@@ -4,13 +4,13 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fffaf3",
-  "theme_color": "#d83a00",
+  "background_color": "#12083b",
+  "theme_color": "#6f45d8",
   "icons": [
     {
-      "src": "./assets/app-images/mascot-brand.webp",
-      "sizes": "any",
-      "type": "image/webp"
+      "src": "./img/gino2-app-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png"
     }
   ]
 }
