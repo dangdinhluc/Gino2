@@ -34,6 +34,8 @@ export function CourseLearningMenuSheet({
   onSelectSection,
   tabs,
 }: CourseLearningMenuSheetProps) {
+  const selectableTabs = tabs.filter((tab) => tab.id !== 'exams');
+
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -95,7 +97,7 @@ export function CourseLearningMenuSheet({
             </div>
 
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-3 pt-3 touch-pan-y" aria-label="Các chế độ học">
-              {tabs.map((tab) => {
+              {selectableTabs.map((tab) => {
                 const isActive = activeSection === tab.id;
                 return (
                   <button

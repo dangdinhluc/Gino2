@@ -296,6 +296,7 @@ describe('CourseLearningMenuSheet component', () => {
 
     const dialog = screen.getByRole('dialog', { name: /đổi chế độ học/i });
     expect(screen.queryByText('Tổng quan')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^thi thử/i })).toBeNull();
     expect(dialog.className).toContain('max-h-[90dvh]');
     expect(screen.getByLabelText('Các chế độ học').className).toContain('overflow-y-auto');
 

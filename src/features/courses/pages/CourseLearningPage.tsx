@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { CourseLearningMenuSheet } from '@/src/features/courses/components/CourseLearningMenuSheet';
 import { focusRing } from '@/src/features/courses/components/coursePanelStyles';
-import { ArrowLeft, Flame, Headphones, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, Flame, Headphones } from 'lucide-react';
 import { type CourseLearningMeta, type CoursePodcastItem } from '@/src/features/courses/courseLearning.types';
 import {
   useCourseDocuments,
@@ -108,17 +108,6 @@ function CourseLearningHeader({
         </div>
 
         <div className="flex items-center justify-end gap-1.5">
-          <button
-            type="button"
-            onClick={() => onOpenModeSheet?.()}
-            disabled={isModeSheetDisabled}
-            aria-haspopup="dialog"
-            aria-expanded={isModeSheetDisabled ? undefined : isModeSheetOpen}
-            aria-label="Đổi chế độ học"
-            className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#ded6f3] bg-[#f5f0ff] text-[#6f45d8] transition-colors hover:bg-[#eee7ff] disabled:cursor-wait disabled:opacity-80', focusRing)}
-          >
-            <LayoutGrid size={18} strokeWidth={2.2} aria-hidden="true" />
-          </button>
           {(activePodcast || hasPodcast) && (
             <button
               type="button"
