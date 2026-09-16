@@ -64,13 +64,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
       <header className={`sticky top-0 z-40 w-full border-b border-[#e5dcf2] bg-[#fffcff]/96 shadow-[0_2px_12px_rgba(73,48,126,.05)] backdrop-blur-md ${desktopOnly ? 'hidden md:block' : ''}`}>
         <div className="mx-auto hidden h-16 w-full max-w-[1440px] items-center justify-between px-6 md:flex md:px-8">
           <Link to="/app/dashboard" className="group flex min-w-0 items-center gap-2.5" aria-label="TOKUTEI GINO - Trang chủ">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#6f45d8] to-[#8a72c7] p-1 shadow-[0_4px_12px_rgba(111,69,216,.16)] transition-transform group-hover:scale-105">
-              <img src={assets.shared.logos.mark} alt="Tokutei Gino" className="h-full w-full object-contain" />
-            </div>
-            <div className="min-w-0 space-y-0">
-              <h1 className="truncate font-[var(--font-heading)] text-sm font-black leading-tight tracking-tight text-[#211b35] transition-colors group-hover:text-[#6f45d8]">TOKUTEI GINO</h1>
-              <p className="text-[8.5px] font-black uppercase leading-none tracking-wider text-[#6f45d8]">TIẾNG NHẬT ĐI LÀM</p>
-            </div>
+            <img src={assets.shared.logos.horizontal} alt="GINO 2 — Tiếng Nhật mở lối tương lai" className="h-11 w-[11.5rem] shrink-0 object-contain object-left transition-transform group-hover:scale-[1.02]" />
           </Link>
 
           <nav className="flex items-center gap-1.5 rounded-full border border-[#e5dcf2] bg-white/90 p-1.5 shadow-[0_2px_8px_rgba(73,48,126,.04)]" aria-label="Điều hướng chính">
@@ -122,13 +116,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
 
         <div className="flex h-13 w-full items-center justify-between px-3 md:hidden">
           <Link to="/app/dashboard" className="flex shrink-0 items-center gap-2" aria-label="TOKUTEI GINO - Trang chủ">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6f45d8] to-[#8a72c7] p-0.5 shadow-2xs">
-              <img src={assets.shared.logos.mark} alt="Tokutei Gino" className="h-full w-full object-contain" />
-            </div>
-            <div className="space-y-0">
-              <h1 className="font-[var(--font-heading)] text-xs font-black leading-tight tracking-tight text-[#211b35]">TOKUTEI GINO</h1>
-              <p className="text-[7.5px] font-black uppercase leading-none tracking-wider text-[#6f45d8]">TIẾNG NHẬT ĐI LÀM</p>
-            </div>
+            <img src={assets.shared.logos.horizontal} alt="GINO 2 — Tiếng Nhật mở lối tương lai" className="h-10 w-[7.4rem] shrink-0 object-contain object-left" />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
