@@ -10,7 +10,7 @@ export const assets = {
     logos: {
       primary: assetPath('img/gino2-logo-primary.png'),
       horizontal: assetPath('img/gino2-logo-horizontal.png'),
-      mark: assetPath('img/gino2-logo-mark-transparent.png'),
+      mark: assetPath('img/gino2-logo-mark.png'),
       appIcon: assetPath('img/gino2-app-icon.png'),
       dark: assetPath('img/gino2-logo-dark.png'),
     },

@@ -116,7 +116,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
 
         <div className="flex h-13 w-full items-center justify-between px-3 md:hidden">
           <Link to="/app/dashboard" className="flex shrink-0 items-center gap-2" aria-label="TOKUTEI GINO - Trang chủ">
-            <img src={assets.shared.logos.horizontal} alt="GINO 2 — Tiếng Nhật mở lối tương lai" className="h-10 w-[7.4rem] shrink-0 object-contain object-left" />
+            <img src={assets.shared.logos.mark} alt="GINO 2" className="h-10 w-10 shrink-0 object-contain" />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
