@@ -40,6 +40,10 @@
     var(--asset-english-hero-background) center top / cover fixed;
 }
 
+body {
+  color: var(--gino-text);
+}
+
 :root[data-app-background='paper'] {
   --app-background: linear-gradient(135deg, #fdfbff 0%, #f1ebf9 100%);
 }
@@ -50,13 +54,28 @@
     var(--asset-dashboard-library-background) center / cover fixed;
 }
 
+.learning-sticky-toolbar {
+  background: var(--gino-surface-raised);
+}
+
 [data-gino-visual="core"] :where(
   [class*="bg-[#fff9f2]"],
   [class*="bg-[#fffdf9]"],
-  [class*="bg-[#f8f2e8]"],
-  [class*="bg-[#f9eadb]"]
+  [class*="bg-[#fffaf6]"],
+  [class*="bg-[#fff7f2]"],
+  [class*="bg-[#fffdfb]"]
 ) {
   background-color: var(--gino-surface) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="bg-[#f7f1e8]"],
+  [class*="bg-[#f8f2e8]"],
+  [class*="bg-[#f9eadb]"],
+  [class*="bg-[#f2e9dd]"],
+  [class*="bg-[#f8eee8]"]
+) {
+  background-color: var(--gino-surface-soft) !important;
 }
 
 [data-gino-visual="core"] :where(
@@ -65,6 +84,25 @@
   [class*="border-[#e6c39f]"]
 ) {
   border-color: var(--gino-border) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="text-[#172033]"],
+  [class*="text-[#34221f]"]
+) {
+  color: var(--gino-text) !important;
+}
+
+[data-gino-visual="core"] :where(
+  [class*="text-[#5f6b7c]"],
+  [class*="text-[#4d5a6b]"],
+  [class*="text-[#6b7788]"]
+) {
+  color: var(--gino-text-muted) !important;
+}
+
+[data-gino-visual="core"] .app-route-shell :where(.text-gray-400, .text-gray-500, .text-gray-600) {
+  color: var(--gino-text-muted) !important;
 }
 
 [data-gino-visual="core"] :where(
@@ -147,6 +185,115 @@
 
 [data-gino-visual="core"] :where(button, a, input, textarea, select):focus-visible {
   outline-color: var(--gino-primary) !important;
+}
+
+/* ---------- Public landing continuity ----------
+ * index.css defines landing variables directly on .landing-page. A :root
+ * fallback cannot override those inherited values, so set the canonical brand
+ * tokens on the element that owns them. */
+.landing-page {
+  --landing-night: var(--gino-background);
+  --landing-cream: var(--gino-text);
+  --landing-gold: var(--gino-secondary);
+  --landing-orange: var(--gino-primary);
+  --landing-muted: rgb(111 104 128 / 0.78);
+  --landing-line: rgb(111 69 216 / 0.14);
+  --landing-paper: var(--gino-surface);
+  --landing-shadow: rgb(73 48 126 / 0.14);
+}
+
+.landing-hero-overlay {
+  background:
+    linear-gradient(180deg, rgb(255 252 255 / 0.08) 0%, rgb(255 252 255 / 0.04) 46%, var(--landing-night) 100%),
+    radial-gradient(circle at 50% 35%, transparent 0 25%, rgb(238 231 255 / 0.22) 72%);
+}
+
+.landing-brand small,
+.landing-nav,
+.landing-stats,
+.landing-floating-badge small,
+.landing-method p,
+.landing-footer {
+  color: var(--gino-text-muted) !important;
+}
+
+.landing-nav-cta,
+.landing-primary-button {
+  background: linear-gradient(90deg, var(--gino-primary), var(--gino-primary-strong)) !important;
+  box-shadow: 0 10px 24px rgb(111 69 216 / 0.22) !important;
+}
+
+.landing-primary-button:hover,
+.landing-nav-cta:hover {
+  box-shadow: 0 14px 30px rgb(111 69 216 / 0.3) !important;
+}
+
+.landing-secondary-button {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 252 255 / 0.82) !important;
+  color: var(--gino-text) !important;
+  box-shadow: var(--gino-shadow-xs) !important;
+}
+
+.landing-secondary-button:hover {
+  background: var(--gino-surface) !important;
+}
+
+.landing-mascot {
+  filter: drop-shadow(0 20px 42px rgb(73 48 126 / 0.2)) !important;
+}
+
+.landing-floating-badge {
+  border-color: var(--gino-border) !important;
+  background: rgb(255 252 255 / 0.92) !important;
+  box-shadow: var(--gino-shadow-sm) !important;
+}
+
+.landing-streak-badge strong,
+.landing-xp-badge strong {
+  text-shadow: 0 0 16px rgb(111 69 216 / 0.2) !important;
+}
+
+.landing-methods {
+  background:
+    radial-gradient(circle at 50% 0%, rgb(111 69 216 / 0.09), transparent 35%),
+    var(--landing-night) !important;
+}
+
+.landing-methods::before {
+  background-image:
+    linear-gradient(rgb(111 69 216 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(111 69 216 / 0.04) 1px, transparent 1px) !important;
+}
+
+.landing-section-kicker::before,
+.landing-section-kicker::after {
+  background: rgb(111 69 216 / 0.42) !important;
+}
+
+.landing-method {
+  border-color: var(--gino-border) !important;
+  background: linear-gradient(145deg, rgb(255 252 255 / 0.96), rgb(244 239 251 / 0.9)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.85), var(--gino-shadow-sm) !important;
+}
+
+.landing-method::before {
+  background: rgb(111 69 216 / 0.08) !important;
+}
+
+.landing-method:hover {
+  border-color: var(--gino-border-strong) !important;
+  background: linear-gradient(145deg, #fffcff, #f4effb) !important;
+}
+
+.landing-method-icon {
+  border-color: rgb(111 69 216 / 0.24) !important;
+  background: rgb(111 69 216 / 0.09) !important;
+  color: var(--gino-primary) !important;
+}
+
+.landing-method-index {
+  color: rgb(111 104 128 / 0.46) !important;
 }
 
 /* ---------- Public auth continuity ---------- */
