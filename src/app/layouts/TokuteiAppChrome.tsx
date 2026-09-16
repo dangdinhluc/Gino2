@@ -1,8 +1,9 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Flame, Search, Settings, Sparkles } from 'lucide-react';
 import { fetchLearnerStats } from '@/src/features/dashboard/repositories/learnerStatsRepository';
 import { assets } from '@/src/shared/lib/assets';
+import { isBottomNavItemActive } from '@/src/shared/lib/appNav';
 
 const LazyLearningSearchPopover = lazy(() => import('@/src/features/search/components/LearningSearchPopover').then(({ LearningSearchPopover }) => ({ default: LearningSearchPopover })));
 
@@ -14,7 +15,12 @@ const desktopNavItems = [
   { label: 'Cá nhân', path: '/app/profile', imageIcon: assets.shared.navigation.profile },
 ];
 
-export function TokuteiAppChrome() {
+interface TokuteiAppChromeProps {
+  desktopOnly?: boolean;
+}
+
+export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps) {
+  const location = useLocation();
   const [streak, setStreak] = useState<number | null>(null);
   const [weeklyXp, setWeeklyXp] = useState<number | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -55,7 +61,7 @@ export function TokuteiAppChrome() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-[#e5dcf2] bg-[#fffcff]/96 shadow-[0_2px_12px_rgba(73,48,126,.05)] backdrop-blur-md">
+      <header className={`sticky top-0 z-40 w-full border-b border-[#e5dcf2] bg-[#fffcff]/96 shadow-[0_2px_12px_rgba(73,48,126,.05)] backdrop-blur-md ${desktopOnly ? 'hidden md:block' : ''}`}>
         <div className="mx-auto hidden h-16 w-full max-w-[1440px] items-center justify-between px-6 md:flex md:px-8">
           <Link to="/app/dashboard" className="group flex min-w-0 items-center gap-2.5" aria-label="TOKUTEI GINO - Trang chủ">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#6f45d8] to-[#8a72c7] p-1 shadow-[0_4px_12px_rgba(111,69,216,.16)] transition-transform group-hover:scale-105">
@@ -68,22 +74,24 @@ export function TokuteiAppChrome() {
           </Link>
 
           <nav className="flex items-center gap-1.5 rounded-full border border-[#e5dcf2] bg-white/90 p-1.5 shadow-[0_2px_8px_rgba(73,48,126,.04)]" aria-label="Điều hướng chính">
-            {desktopNavItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex min-h-11 items-center gap-2 rounded-full px-4 text-xs font-black transition-all ${
+            {desktopNavItems.map((item) => {
+              const isActive = isBottomNavItemActive(item.path, location.pathname, location.search);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex min-h-11 items-center gap-2 rounded-full px-4 text-xs font-black transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-[#6f45d8] to-[#5631b8] text-white shadow-[0_4px_12px_rgba(111,69,216,.18)]'
                       : 'text-[#6f6880] hover:bg-[#f4effb] hover:text-[#6f45d8]'
-                  }`
-                }
-              >
-                <img src={item.imageIcon} alt="" className="h-5 w-5 shrink-0 object-contain drop-shadow-2xs" />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
+                  }`}
+                >
+                  <img src={item.imageIcon} alt="" className="h-5 w-5 shrink-0 object-contain drop-shadow-2xs" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">

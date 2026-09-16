@@ -66,7 +66,7 @@ export function BottomNav() {
       >
         <div data-active={isActive ? 'true' : 'false'} className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1 transition-transform duration-150 active:scale-[0.92]">
           <span className="relative flex h-10 w-12 items-center justify-center rounded-xl transition-all">
-            <img src={item.icon} alt="" decoding="async" className={`h-9 w-9 object-contain transition-transform duration-200 ${isActive ? 'scale-110 drop-shadow-[0_4px_8px_rgba(111,69,216,.24)]' : 'scale-100 opacity-85'}`} />
+            <img src={item.icon} alt="" decoding="async" className={`h-9 w-9 object-contain transition-transform duration-200 ${isActive ? 'scale-100 drop-shadow-[0_4px_8px_rgba(111,69,216,.24)]' : 'scale-100 opacity-85'}`} />
           </span>
           <span className={`gino-bottom-nav-label truncate text-[11px] leading-tight transition-colors ${isActive ? 'font-black text-[#6f45d8]' : 'font-semibold text-[#595268]'}`}>{item.label}</span>
           <div className="h-1.5 w-1.5 flex items-center justify-center">{isActive && <span className="gino-bottom-nav-dot h-1.5 w-1.5 rounded-full bg-[#6f45d8]" />}</div>

@@ -223,9 +223,14 @@ describe('TodayPage', () => {
     // A large soft drop-shadow on the text is what read as "smudged"/unreadable.
     expect(greeting.className).not.toMatch(/drop-shadow/);
 
-    // The scrim must be near-opaque at the bottom, where the greeting sits.
+    // The scrim must be near-opaque at the bottom, where the greeting sits...
     const scrim = hero?.querySelector('div[class*="bg-gradient-to-t"]');
-    expect(scrim?.className).toMatch(/from-\[#150c22\]\/9[0-9]/);
+    expect(scrim?.className).toMatch(/from-\[#150c22\]\/8[0-9]/);
+    // ...but it must FADE EARLY. Comment: "phần này xấu quá ... phần ảnh nền sau ý" —
+    // a scrim that stays dark to 82% of the hero covers the artwork and reads as a
+    // muddy wash. Anything from 5x to 6x is fine; a return to 8x is the regression.
+    expect(scrim?.className).toMatch(/to-5[0-9]|to-6[0-9]/);
+    expect(scrim?.className).not.toMatch(/to-8[0-9]/);
     expect(scrim?.className).not.toMatch(/drop-shadow/);
   });
 });

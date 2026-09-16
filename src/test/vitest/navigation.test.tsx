@@ -93,9 +93,11 @@ describe('MainLayout bottom-nav visibility', () => {
       </MemoryRouter>,
     );
 
-  it('keeps the bottom nav on the exam workspace tab (Thi thử destination)', () => {
+  it('keeps primary navigation on the exam workspace tab (Thi thử destination)', async () => {
     renderAt('/app/courses/course-1/workspace?tab=exams');
     expect(screen.getByRole('navigation', { name: 'Thanh điều hướng chính' })).toBeDefined();
+    const desktopNav = await screen.findByRole('navigation', { name: 'Điều hướng chính' });
+    expect(desktopNav.querySelector('a[aria-current="page"]')?.textContent).toContain('Thi thử');
   });
 
   it('still hides the bottom nav inside the exam runner', () => {
@@ -211,7 +213,7 @@ describe('LearningLauncherSheet component', () => {
 
     expect(screen.getByRole('heading', { name: /học ngay/i })).toBeDefined();
     expect(await screen.findByText('Tokutei Nhà hàng')).toBeDefined();
-    expect(screen.getAllByText('Bài 8: てあります')).toHaveLength(2);
+    expect(screen.getByText('Bài 8: てあります')).toBeDefined();
     expect(screen.getByText('62%')).toBeDefined();
     expect(screen.getByText('Từ vựng')).toBeDefined();
     expect(screen.getByText('Tài liệu')).toBeDefined();
@@ -223,7 +225,9 @@ describe('LearningLauncherSheet component', () => {
     const sheet = screen.getByRole('dialog');
     expect(sheet.className).toContain('max-h-[90dvh]');
     expect(sheet.className).toContain('overflow-hidden');
-    expect(screen.getByLabelText('Nội dung học trong khóa').parentElement?.className).toContain('overflow-y-auto');
+    const launcherActions = screen.getByLabelText('Nội dung học trong khóa');
+    expect(launcherActions.className).toContain('grid-cols-2');
+    expect(launcherActions.parentElement?.className).toContain('overflow-y-auto');
     expect(document.body.style.overflow).toBe('hidden');
 
     const routes = [
@@ -296,5 +300,83 @@ describe('CourseLearningMenuSheet component', () => {
     fireEvent.click(screen.getByRole('button', { name: /luyện tập/i }));
     expect(onSelectSection).toHaveBeenCalledWith('practice');
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+// The floating AI tutor is a NON-primary-route affordance: it shows on secondary
+// surfaces (grammar, community, settings…) and is hidden on the four primary
+// destinations and the focus routes.
+//
+// `/app/exams` is the "Thi thử" bottom-nav destination, but it is redirect-ONLY
+// (`<CourseEntryRedirect destination="exams" />`). It renders `PageLoading` while the
+// active-course context loads and the active-course ERROR state when that fetch fails.
+// Matching none of the hide rules, the tutor used to float over a bare loading/error
+// screen — persistingly on the error path, which never redirects.
+// Measured before the fix: loading -> visible, error -> visible and still visible later.
+describe('MainLayout floating AI tutor visibility', () => {
+  const renderAt = (path: string) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/app/exams" element={<CourseEntryRedirect destination="exams" />} />
+            <Route path="*" element={<div>nội dung</div>} />
+          </Route>
+        </Routes>
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+
+  // The tutor is lazy-loaded: assert through findByRole, because an immediate query
+  // passes vacuously before the chunk resolves (an earlier probe lied exactly that way).
+  const expectTutorHidden = async () => {
+    let visible = true;
+    try {
+      await screen.findByRole('button', { name: /chat ai/i }, { timeout: 1000 });
+    } catch {
+      visible = false;
+    }
+    expect(visible).toBe(false);
+  };
+
+  it('hides the tutor on the redirect-only exam landing route while the course context loads', async () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: null, status: 'loading', error: null, retry: vi.fn() });
+    renderAt('/app/exams');
+    await expectTutorHidden();
+  });
+
+  it('hides the tutor on the exam landing route when the course context fails (so no redirect ever commits)', async () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: null, status: 'error', error: 'lỗi', retry: vi.fn() });
+    renderAt('/app/exams');
+    expect(screen.getByTestId('location').textContent).toBe('/app/exams');
+    await expectTutorHidden();
+  });
+
+  it('hides the tutor on every primary destination', async () => {
+    for (const path of ['/app/dashboard', '/app/courses', '/app/practice', '/app/profile']) {
+      cleanup();
+      mockUseActiveCourse.mockReturnValue({ activeCourseId: 'c1', status: 'ready', error: null, retry: vi.fn() });
+      renderAt(path);
+      await expectTutorHidden();
+    }
+  });
+
+  it('keeps the exam workspace inside the app scroll container while showing bottom navigation', () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: 'c1', status: 'ready', error: null, retry: vi.fn() });
+    renderAt('/app/courses/c1/workspace?tab=exams');
+
+    const layout = document.querySelector('.app-layout-root');
+    const main = document.querySelector('.desktop-workspace-main');
+    expect(layout?.className).toContain('h-[100dvh]');
+    expect(layout?.className).toContain('overflow-hidden');
+    expect(main?.className).toContain('overflow-y-auto');
+    expect(main?.className).not.toContain('focus-mode-main');
+    expect(screen.getByRole('navigation', { name: 'Thanh điều hướng chính' })).toBeDefined();
+  });
+
+  it('still shows the tutor on a secondary route (the hide rule stays narrow)', async () => {
+    mockUseActiveCourse.mockReturnValue({ activeCourseId: 'c1', status: 'ready', error: null, retry: vi.fn() });
+    renderAt('/app/grammar');
+    await expect(screen.findByRole('button', { name: /chat ai/i }, { timeout: 1000 })).resolves.toBeDefined();
   });
 });

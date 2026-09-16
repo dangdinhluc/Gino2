@@ -69,9 +69,13 @@ export default function TodayPage() {
           <img src={assets.shared.backgrounds.fujiLandscape} alt="Núi Phú Sĩ" decoding="async" fetchPriority="high" className="h-[185px] w-full object-cover object-center sm:h-[205px]" />
           {/* Scrim: opaque enough under the greeting that white text clears WCAG AA over
               the brightest pixel of the artwork, instead of leaning on a blurred
-              drop-shadow to fake contrast (that is what read as "smudged"). */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#150c22]/96 from-0% via-[#150c22]/88 via-45% to-transparent to-82%" />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#150c22]/70 via-transparent to-transparent" />
+              drop-shadow to fake contrast (that is what read as "smudged").
+              Kept SHORT on purpose: the previous /72 via 45% -> 0 at 82% darkened 72% of
+              the hero's height, so the landscape read as a muddy wash instead of artwork.
+              Measured against the real asset, these stops hold the greeting at 4.7:1
+              (worst pixel, both 393x185 and 687x205) while leaving the top ~43% clean. */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#150c22]/88 from-0% via-[#150c22]/56 via-30% to-transparent to-57%" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#150c22]/55 via-[#150c22]/26 via-42% to-transparent to-82%" />
 
           <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-white/70 bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-xs">
             <Flame size={15} className="fill-[#6f45d8] text-[#6f45d8]" />
@@ -87,10 +91,10 @@ export default function TodayPage() {
 
           <div className="absolute inset-x-3.5 bottom-3.5 sm:inset-x-4 sm:bottom-4" style={{ paddingRight: '96px' }}>
             <div className="min-w-0">
-              <h1 className="text-[21px] font-black leading-tight tracking-tight text-white sm:text-[24px]">
+              <h1 className="text-[21px] font-black leading-tight tracking-tight !text-white sm:text-[24px]">
                 <span>Xin chào, {profile.name}!</span> <span className="text-yellow-300">✨</span>
               </h1>
-              <p className="mt-0.5 truncate text-[12px] font-bold text-white/95">Tiếp tục khóa đang học hôm nay</p>
+              <p className="mt-0.5 truncate text-[12px] font-bold !text-white/95">Tiếp tục khóa đang học hôm nay</p>
             </div>
           </div>
         </div>

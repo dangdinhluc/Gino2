@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronRight, X } from 'lucide-react';
+import { ChevronRight, Play, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCourseLearningMeta } from '@/src/features/courses/hooks/useCourseLearningModules';
 import { getVisibleCourseWorkspaceTabs } from '@/src/features/courses/lib/courseCapabilities';
@@ -12,14 +12,6 @@ interface LearningLauncherSheetProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const modeDescriptions = {
-  vocabulary: 'Học từ mới trong khóa',
-  documents: 'Tài liệu của khóa',
-  practice: 'Luyện theo nội dung khóa',
-  games: 'Học qua trò chơi',
-  exams: 'Kiểm tra kiến thức',
-} as const;
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -152,7 +144,7 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 touch-pan-y">
+            <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-2.5 touch-pan-y">
               {activeCourseStatus === 'error' && (
                 <div className="rounded-[22px] border border-red-200 bg-red-50 p-4 text-center" role="alert">
                   <p className="text-[12px] font-bold text-red-700">{activeCourseError ?? 'Không tải được khóa học đang học.'}</p>
@@ -177,15 +169,24 @@ export function LearningLauncherSheet({ isOpen, onClose }: LearningLauncherSheet
               )}
               {activeCourseMeta && (
                 <>
-                  <section className="rounded-[22px] border border-[#e3d8fb] bg-[#faf8ff] p-4" aria-label={`Khóa học ${activeCourseMeta.course.title}`}>
-                    <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-[15px] font-black text-[#27203d]">{activeCourseMeta.course.title}</p><p className="mt-1 truncate text-[11px] font-semibold text-[#858091]">{activeCourseMeta.course.currentModule}</p></div><button type="button" onClick={() => navigateTo('/app/courses#my-courses-center-title')} className="inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-2 text-[11px] font-black text-[#6f45d8] active:bg-[#eee8ff]">Đổi khóa <ChevronRight size={14} /></button></div>
-                    <div className="mt-3 flex items-center justify-between text-[10px] font-black text-[#6f45d8]"><span>Tiến độ</span><span>{activeCourseMeta.course.progress}%</span></div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#eae4f8]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeCourseMeta.course.progress} aria-label={`Tiến độ ${activeCourseMeta.course.title}`}><div className="h-full rounded-full bg-gradient-to-r from-[#6f45d8] to-[#a98af4]" style={{ width: `${activeCourseMeta.course.progress}%` }} /></div>
+                  <section className="overflow-hidden rounded-[20px] border border-[#e7e2f0] bg-white shadow-[0_5px_16px_rgba(55,39,90,0.06)]" aria-label={`Khóa học ${activeCourseMeta.course.title}`}>
+                    <div className="px-3.5 pb-2.5 pt-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="block text-[9px] font-black uppercase tracking-[0.12em] text-[#8c7bad]">Khóa đang học</span>
+                          <p className="mt-0.5 truncate text-[14px] font-black text-[#27203d]">{activeCourseMeta.course.title}</p>
+                          <p className="mt-0.5 truncate text-[10px] font-semibold text-[#858091]">{activeCourseMeta.course.currentModule}</p>
+                        </div>
+                        <button type="button" onClick={() => navigateTo('/app/courses#my-courses-center-title')} className="inline-flex min-h-9 shrink-0 items-center gap-0.5 rounded-full bg-[#f5f1fc] px-2.5 text-[10px] font-black text-[#6f45d8] active:bg-[#ebe3fa]">Đổi khóa <ChevronRight size={13} /></button>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-[9px] font-extrabold text-[#7f748f]"><span>Tiến độ khóa học</span><span className="text-[#6f45d8]">{activeCourseMeta.course.progress}%</span></div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#eeeaf5]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={activeCourseMeta.course.progress} aria-label={`Tiến độ ${activeCourseMeta.course.title}`}><div className="h-full rounded-full bg-gradient-to-r from-[#6f45d8] to-[#a98af4]" style={{ width: `${activeCourseMeta.course.progress}%` }} /></div>
+                    </div>
+                    <button type="button" onClick={() => navigateTo(continuePath)} className="flex min-h-[50px] w-full items-center gap-2.5 border-t border-[#eeeaf5] bg-[#faf8ff] px-3.5 text-left text-[#33264f] transition-colors hover:bg-[#f5f0ff] active:bg-[#eee7fb]"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#6f45d8] text-white shadow-[0_4px_10px_rgba(111,69,216,.2)]"><Play size={13} fill="currentColor" /></span><strong className="min-w-0 flex-1 text-[12px] font-black">Tiếp tục bài đang học</strong><ChevronRight size={18} className="shrink-0 text-[#8d7cad]" /></button>
                   </section>
-                  <button type="button" onClick={() => navigateTo(continuePath)} className="flex min-h-[64px] w-full items-center justify-between rounded-[22px] bg-[#6f45d8] px-4 text-left text-white shadow-[0_8px_18px_rgba(111,69,216,.22)] transition-transform active:scale-[.99]"><span className="min-w-0"><strong className="block text-[13px] font-black">▶ TIẾP TỤC BÀI ĐANG HỌC</strong><span className="mt-1 block truncate text-[10px] font-semibold text-white/75">{activeCourseMeta.course.currentModule}</span></span><ChevronRight size={20} className="shrink-0" /></button>
-                  <div className="space-y-2" aria-label="Nội dung học trong khóa">
+                  <div className="grid grid-cols-2 gap-2" aria-label="Nội dung học trong khóa">
                     {visibleTabs.map((tab) => (
-                      <button key={tab.id} type="button" onClick={() => navigateTo(`${workspacePath}?tab=${tab.id}`)} className="flex min-h-[66px] w-full items-center gap-3 rounded-[20px] border border-[#eae6f4] bg-white px-3.5 text-left shadow-[0_2px_8px_rgba(0,0,0,0.025)] transition-colors hover:border-[#ded6f3] hover:bg-[#faf9fe] active:scale-[.99]"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f6f2ff] p-1.5"><img src={tab.imageIcon} alt="" className="h-full w-full object-contain" /></span><span className="min-w-0 flex-1"><strong className="block text-[14px] font-extrabold text-[#292a32]">{tab.label}</strong><span className="mt-0.5 block truncate text-[11px] font-medium text-[#858794]">{modeDescriptions[tab.id]}</span></span><ChevronRight size={18} className="shrink-0 text-[#aaa0c3]" /></button>
+                      <button key={tab.id} type="button" onClick={() => navigateTo(`${workspacePath}?tab=${tab.id}`)} className="flex min-h-[72px] w-full items-center gap-2 rounded-[18px] border border-[#eae6f4] bg-white px-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.025)] transition-colors hover:border-[#ded6f3] hover:bg-[#faf9fe] active:scale-[.99]"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f6f2ff] p-1.5"><img src={tab.imageIcon} alt="" className="h-full w-full object-contain" /></span><strong className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-[#292a32]">{tab.label}</strong><ChevronRight size={16} className="shrink-0 text-[#aaa0c3]" /></button>
                     ))}
                   </div>
                 </>

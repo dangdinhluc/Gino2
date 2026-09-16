@@ -78,7 +78,7 @@ function CourseLearningHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2">
+    <header className={cn('course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2', activeTabLabel === 'Thi thử' && 'lg:hidden')}>
       <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
         <button
           type="button"
@@ -132,9 +132,11 @@ function CourseLearningHeader({
               {isPodcastPlaying && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />}
             </button>
           )}
-          <span className="inline-flex h-11 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2 text-[10px] font-bold text-[#646771]" title={statsError ?? 'Chuỗi ngày học'}>
-            <Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak === null ? '—' : streak}
-          </span>
+          {activeTabLabel !== 'Thi thử' && (
+            <span className="inline-flex h-11 items-center gap-1 rounded-full border border-[#ececf2] bg-white px-2 text-[10px] font-bold text-[#646771]" title={statsError ?? 'Chuỗi ngày học'}>
+              <Flame size={12} className="fill-[#ff8559] text-[#ff8559]" /> {streak === null ? '—' : streak}
+            </span>
+          )}
         </div>
       </div>
     </header>
