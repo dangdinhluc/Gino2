@@ -76,15 +76,21 @@ function CourseLearningHeader({
   onOpenPodcast,
 }: CourseLearningHeaderProps) {
   const navigate = useNavigate();
+  const canOpenModeSheet = !isModeSheetDisabled && Boolean(onOpenModeSheet);
 
   return (
     <header className={cn('course-workspace-header learning-header -mx-3 border-b border-[#ececf2] bg-white px-3.5 py-2', activeTabLabel === 'Thi thử' && 'hidden')}>
       <div className="mx-auto grid h-full w-full max-w-[760px] grid-cols-[40px_1fr_auto] items-center gap-2">
         <button
           type="button"
-          onClick={() => navigate('/app/dashboard')}
+          onClick={() => {
+            if (canOpenModeSheet) onOpenModeSheet?.();
+            else navigate('/app/dashboard');
+          }}
           className={cn('flex h-11 w-11 items-center justify-center rounded-full text-[#35363d] hover:bg-[#f6f4fb]', focusRing)}
-          aria-label="Thoát học và về Hôm nay"
+          aria-haspopup={canOpenModeSheet ? 'dialog' : undefined}
+          aria-expanded={canOpenModeSheet ? isModeSheetOpen : undefined}
+          aria-label={canOpenModeSheet ? 'Mở menu học tập' : 'Thoát học và về Hôm nay'}
         >
           <ArrowLeft size={18} />
         </button>
@@ -392,6 +398,7 @@ function CourseLearningWorkspaceContent({ meta }: { meta: CourseLearningMeta }) 
         courseTitle={course.title}
         isOpen={isModeSheetOpen}
         onClose={() => setIsModeSheetOpen(false)}
+        onGoHome={() => navigate('/app/dashboard')}
         onSelectSection={handleWorkspaceTabSelect}
         tabs={tabs}
       />

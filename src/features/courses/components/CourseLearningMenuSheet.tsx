@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, ChevronRight, X } from 'lucide-react';
+import { Check, ChevronRight, House, X } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import type {
   CourseWorkspaceSection,
@@ -12,6 +12,7 @@ interface CourseLearningMenuSheetProps {
   courseTitle: string;
   isOpen: boolean;
   onClose: () => void;
+  onGoHome: () => void;
   onSelectSection: (section: CourseWorkspaceSection) => void;
   tabs: readonly CourseWorkspaceTab[];
 }
@@ -29,6 +30,7 @@ export function CourseLearningMenuSheet({
   courseTitle,
   isOpen,
   onClose,
+  onGoHome,
   onSelectSection,
   tabs,
 }: CourseLearningMenuSheetProps) {
@@ -92,7 +94,7 @@ export function CourseLearningMenuSheet({
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 touch-pan-y" aria-label="Các chế độ học">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-3 pt-3 touch-pan-y" aria-label="Các chế độ học">
               {tabs.map((tab) => {
                 const isActive = activeSection === tab.id;
                 return (
@@ -122,6 +124,27 @@ export function CourseLearningMenuSheet({
                   </button>
                 );
               })}
+            </div>
+
+            <div className="shrink-0 border-t border-[#eee6dc] bg-[#fffaf5] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onGoHome();
+                }}
+                className="flex min-h-12 w-full items-center gap-3 rounded-[18px] border border-[#e1d6f5] bg-[#f7f2ff] px-3.5 text-left text-[#5f3cc2] transition-colors hover:bg-[#f0e8ff] active:scale-[.99]"
+                aria-label="Về trang chủ"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6f45d8] shadow-xs">
+                  <House size={17} strokeWidth={2.2} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <strong className="block text-[13px] font-extrabold">Về trang chủ</strong>
+                  <span className="mt-0.5 block text-[10px] font-medium text-[#81769a]">Quay lại Hôm nay</span>
+                </span>
+                <ChevronRight size={18} className="shrink-0 text-[#9e8fc1]" aria-hidden="true" />
+              </button>
             </div>
           </motion.section>
         </motion.div>

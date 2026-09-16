@@ -279,6 +279,7 @@ describe('LearningLauncherSheet component', () => {
 describe('CourseLearningMenuSheet component', () => {
   it('switches directly between focus modes without overview', () => {
     const onClose = vi.fn();
+    const onGoHome = vi.fn();
     const onSelectSection = vi.fn();
 
     render(
@@ -287,6 +288,7 @@ describe('CourseLearningMenuSheet component', () => {
         courseTitle="Tokutei Nhà hàng"
         isOpen
         onClose={onClose}
+        onGoHome={onGoHome}
         onSelectSection={onSelectSection}
         tabs={courseWorkspaceTabs}
       />,
@@ -300,6 +302,9 @@ describe('CourseLearningMenuSheet component', () => {
     fireEvent.click(screen.getByRole('button', { name: /luyện tập/i }));
     expect(onSelectSection).toHaveBeenCalledWith('practice');
     expect(onClose).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /về trang chủ/i }));
+    expect(onGoHome).toHaveBeenCalledTimes(1);
   });
 });
 
