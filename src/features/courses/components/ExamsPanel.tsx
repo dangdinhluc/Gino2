@@ -11,7 +11,7 @@ export function ExamsPanel({ exams, onStartExam }: ExamsPanelProps) {
     <div className="mx-auto w-full max-w-[620px] space-y-2.5 px-3 lg:px-0">
       {exams.length > 0 && (
         <div className="flex items-center justify-between gap-3 px-1">
-          <p className="text-[10px] font-semibold text-[#827a90]">Hoàn thành lần lượt để mở khóa đề tiếp theo.</p>
+          <p className="text-[10px] font-semibold text-[#827a90]">Chọn bất kỳ đề nào để bắt đầu. Có thể làm lại sau khi hoàn thành.</p>
           <span className="shrink-0 rounded-full bg-[#f1ecfb] px-2 py-1 text-[9px] font-black text-[#6f45d8]">{exams.length} đề</span>
         </div>
       )}

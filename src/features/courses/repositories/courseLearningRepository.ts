@@ -265,21 +265,9 @@ function mapPodcasts(rows: CoursePodcastRow[]): CoursePodcastItem[] {
 function mapExams(rows: AssessmentRow[], progress: Pick<LearnerWorkspaceProgress, 'assessmentScores' | 'assessmentPassed'>): CourseExamItem[] {
   return [...rows]
     .sort((a, b) => a.order_index - b.order_index)
-    .map((assessment, index, all) => {
+    .map((assessment) => {
       const latestScore = progress.assessmentScores.get(assessment.id);
       const hasPassed = progress.assessmentPassed.has(assessment.id);
-      const previous = index > 0 ? all[index - 1] : null;
-      const isLocked = index > 0 && previous !== null && !progress.assessmentPassed.has(previous.id);
-      if (isLocked) {
-        return {
-          id: assessment.id,
-          title: assessment.title,
-          skills: [assessment.assessment_type, `Đạt từ ${assessment.passing_score}%`],
-          duration: '—',
-          status: 'locked',
-          unlockLabel: previous ? `Vượt "${previous.title}" để mở` : 'Chưa mở khóa',
-        } satisfies CourseExamItem;
-      }
       return {
         id: assessment.id,
         title: assessment.title,
