@@ -118,7 +118,7 @@ export function TokuteiAppChrome({ desktopOnly = false }: TokuteiAppChromeProps)
           <Link to="/app/dashboard" className="flex shrink-0 items-center gap-2" aria-label="TOKUTEI GINO - Trang chủ">
             <img src={assets.shared.logos.mark} alt="GINO 2" className="h-10 w-10 shrink-0 object-contain" />
             <span className="min-w-0 leading-none">
-              <strong className="block truncate font-[var(--font-heading)] text-[13px] font-black tracking-tight text-[#211b35]">GINO 2</strong>
+              <strong className="block truncate font-[var(--font-heading)] text-[13px] font-black tracking-tight text-[#211b35]">TOKUTEI GINO</strong>
               <small className="mt-1 block truncate text-[7px] font-black uppercase tracking-[0.06em] text-[#6f45d8]">TIẾNG NHẬT MỞ LỐI TƯƠNG LAI</small>
             </span>
           </Link>
